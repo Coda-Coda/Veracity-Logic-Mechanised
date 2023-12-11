@@ -1,0 +1,211 @@
+(* This file contains content from VeracityLogic.v that might be useful to keep,
+   but has mostly been superseded by a different approach. *)
+
+
+
+
+
+Notation "A --- B" := (A -> B) (at level 99, right associativity).
+
+Reserved Notation "A |- B" (at level 80).
+Inductive Entail (Ps : list sentence) (s : sentence) : Prop :=
+(* | bot_elim : forall a e1,
+
+              Ps |- (a : e1 \in _|_)
+              -----------------------
+                     (Ps |- s) *)
+
+| test_elim : forall a e1,
+
+               (Ps |- (a : e1 \in _|_)) /\ True /\ False  --- (Ps |- (a : e1 \in _|_)) --- (Ps |- s)
+
+(* | test_elim1 : forall a e1,
+
+              { (Ps |- (a : e1 \in _|_)) | (Ps |- (a : e1 \in _|_)) | (Ps |- (a : e1 \in _|_)) }
+              ---
+                                (Ps |- s) *)
+
+where "A |- B"  := (Entail A B).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Notation "{ x | .. | y } ---  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -----------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ------------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } -------------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } --------------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ---------------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+Notation "{ x | .. | y } ----------------------------------------------------------------------------------------------------  C" := ((and x .. (and y True) ..) -> C) (at level 99, right associativity).
+
+
+
+
+
+
+Reserved Notation "A |- B" (at level 80).
+Inductive Entail (Ps : list sentence) (s : sentence) : Prop :=
+(* | bot_elim : forall a e1,
+
+              Ps |- (a : e1 \in _|_)
+              -----------------------
+                     (Ps |- s) *)
+
+| test_elim : forall a e1,
+
+              {  (Ps |- (a : e1 \in _|_)) }
+              ---------------------------------------------------------
+                           { (Ps |- (a : e1 \in _|_)) }
+              --------------------------------------------------
+                                (Ps |- s)
+
+| test_elim1 : forall a e1,
+
+              { (Ps |- (a : e1 \in _|_)) | (Ps |- (a : e1 \in _|_)) | (Ps |- (a : e1 \in _|_)) }
+              --------------------------------------------------
+                                (Ps |- s)
+
+where "A |- B"  := (Entail A B).
+
+
+Notation "A -------------------------------------------------- B" := (A -> B) (at level 95, right associativity).
+
+Notation "{ A | B } -------------------------------------------------- C" := ((A /\ B) -> C) (at level 94, right associativity).
+
+Notation "{ A | B | C } -------------------------------------------------- D" := ((A /\ B /\ C) -> D) (at level 93, right associativity).
+
+
+| bot_elim: "Entail Ps (a : e \in Bottom) (Ps  (a : e ∈ C))".
+
+| and_intro: "Ps ⊢ (a : e1 ∈ C1) ⟹ Ps ⊢ (a : e2 ∈ C2)
+          ⟹ Ps ⊢ (a : (e1 ¸ e2) ∈ (C1 ∧ C2))"
+
+| and_elim1: "Ps ⊢ (a : (e1 ¸ e2) ∈ C1 ∧ C2) ⟹ Ps ⊢ (a : e1 ∈ C1)"
+| and_elim2: "Ps ⊢ (a : (e1 ¸ e2) ∈ C1 ∧ C2) ⟹ Ps ⊢ (a : e2 ∈ C2)"
+
+| or_intro1: "Ps ⊢ (a : e1 ∈ C1) ⟹ Ps ⊢ (a : Left e1 ∈ C1 ∨ C2)"
+| or_intro2: "Ps ⊢ (a : e2 ∈ C2) ⟹ Ps ⊢ (a : Right e2 ∈ C1 ∨ C2)"
+
+| or_elim1: "Ps ⊢ (a : Left e1 ∈ C1 ∨ C2) ⟹ Ps ⊢ (a : e1 ∈ C1)"
+| or_elim2: "Ps ⊢ (a : Right e2 ∈ C1 ∨ C2) ⟹ Ps ⊢ (a : e2 ∈ C2)"
+
+| trust: "Ps ⊢ (a2 : e ∈ C) ⟹ Ps ⊢ (a1 T a2) ⟹ Ps ⊢ (a1 : e ∈ C)"
