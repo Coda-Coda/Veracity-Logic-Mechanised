@@ -190,3 +190,35 @@ Inductive Entail : list sentence -> sentence -> Prop :=
                 (Ps ++ Qs) |- (a : Lambda e1 e2 \in (Implies C1 C2))
              
 where "A |- B"  := (Entail A B).
+(** * Examples: Correct Statements *)
+Lemma example1 : forall a e1 e2 e3 C1 C2 C3,
+
+   [] |- (a : e1 \in C1) /\ [] |- (a : e2 \in C2) /\ [] |- (a : e3 \in C3)
+   -----------------------------------------------------------------------
+            [] |- (a : ((e1, e2), e3) \in ((C1 /\' C2) /\' C3))
+.
+Proof.
+intros.
+destruct H as [H1 [H2 H3]].
+apply and_intro; split.
+apply and_intro; split.
+all: assumption.
+Qed.
+
+Lemma example2 : forall a1 a2 e1 e2 C1 C2,
+  
+   [] |- (a1 : e1 \in C1) /\ [] |- (a2 : e2 \in C2) /\ [] |- (Trusts a2 a1)
+   ------------------------------------------------------------------------
+                       [] |- (a2 : (e1, e2) \in (C1 /\' C2))
+.
+Proof.
+intros.
+destruct H as [H1 [H2 H3]].
+apply and_intro; split; [|assumption].
+eapply trust.
+split.
+apply H1.
+apply H3.
+Qed.
+
+(* The final lemma in the Isabelle examples is not true. *)
