@@ -190,7 +190,9 @@ Inductive Entail : list sentence -> sentence -> Prop :=
                 (Ps ++ Qs) |- (a : Lambda e1 e2 \in (Implies C1 C2))
              
 where "A |- B"  := (Entail A B).
+
 (** * Examples: Correct Statements *)
+
 Lemma example1 : forall a e1 e2 e3 C1 C2 C3,
 
    [] |- (a : e1 \in C1) /\ [] |- (a : e2 \in C2) /\ [] |- (a : e3 \in C3)
