@@ -52,7 +52,8 @@ inductive Entail :: "sentence list \<Rightarrow> sentence \<Rightarrow> bool" ("
 
 | trust: "Ps \<turnstile> (a2 : e \<in> C) \<Longrightarrow> Ps \<turnstile> (a1 T a2) \<Longrightarrow> Ps \<turnstile> (a1 : e \<in> C)"
 
-(* Recall that @ means list-concatenation *)
+(* Recall that @ means list-concatenation, and # is like "cons", here
+   used to add (a : e1 \<in> C1) to the front of Qs. *)
 | impl_intro: "(Ps @ ((a : e1 \<in> C1) # Qs)) \<turnstile> (a : e2 \<in> C2)
            \<Longrightarrow> (Ps @ Qs) \<turnstile> (a : Lambda e1 e2 \<in> (Implies C1 C2))"
 
