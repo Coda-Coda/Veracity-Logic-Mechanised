@@ -2,6 +2,56 @@
    but has mostly been superseded by a different approach. *)
 
 
+Lemma incorrect_example_fixed_attempt : ~ forall a C1 C2 Ps,
+  (Ps |- a ~> C1 -> Ps |- a ~> (C1 /\' C2)).
+Proof.
+unfold not.
+intros.
+pose proof (H (Actor 1) (Atomic (Atomic_Claim 1)) (Atomic (Atomic_Claim 2)) ([(Actor 1, (Atomic_Claim 1))])).
+assert([(Actor 1, Atomic_Claim 1)] |- Actor 1 ~> Atomic (Atomic_Claim 1)).
+apply assumed_belief. simpl. left. reflexivity.
+apply H0 in H1.
+inversion H1.
+inversion e2.
+simpl in H7.
+destruct H7.
+inversion H7.
+contradiction.
+
+Lemma exmidForBelieves : forall l a C, l |- a ~> C \/ ~ (l |- a ~> C).
+Proof.
+Admitted.
+(* intros.
+induction l.
+right.
+apply incorrect_example1.
+destruct IHl.
+left.
+shelve.
+right.
+unfold not.
+intros.
+assert(l |- a ~> C -> ~ ~ (l |- a ~> C)).
+intros.
+unfold not.
+intros.
+auto.
+assert( ~ ~ (l |- a ~> C) -> (l |- a ~> C)).
+unfold not. intros.
+exfalso.
+apply H0.
+intros.
+induction H. *)
+
+
+Lemma incorrect_example1 : forall e C, (forall a C', ~ a C') -> ~ (e ~~ C {fun c => False}).
+Proof.
+unfold not.
+intros.
+induction H0.
+eapply H. apply H0.
+all: assumption.
+Qed.
 
 
 
