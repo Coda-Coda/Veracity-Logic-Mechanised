@@ -65,11 +65,10 @@ section \<open>Examples: Incorrect Statements\<close>
 lemma "[] \<turnstile> (a : e \<in> C)"
   by (blast intro: Entail.intros)
 
-
+(* This next statement is actually correct,
+     possibly because the antecedent is false? *)
 lemma "\<lbrakk> [] \<turnstile> (a : e1 \<in> C1) \<rbrakk> \<Longrightarrow> [] \<turnstile> (a : (e1 \<cedilla> e2) \<in> (C1 \<and> C2))"
-  apply (rule and_intro)
-   apply (simp)
-  oops
+   by (rule LogicVeracBoolA.Entail.induct)
 
 
 (*********************************************************************)
@@ -98,8 +97,6 @@ lemma assumes "[] \<turnstile> (a1 : e1 \<in> C1)"
 
 lemma "\<lbrakk> [] \<turnstile> (a : e1 \<in> C1) \<rbrakk>
      \<Longrightarrow> [] \<turnstile> (a : (e1\<cedilla> e2) \<in> C1 \<and> C2)"
-  apply(rule and_intro)
-   apply(auto)
-  oops
+  by (rule LogicVeracBoolA.Entail.induct)
 
 end
