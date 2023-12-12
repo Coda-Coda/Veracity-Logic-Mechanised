@@ -23,8 +23,6 @@ Inductive claim :=
 Inductive trusted_claim :=
   | Trusted (weight : Q) (c : claim).
 
-(* Context (Trusts : actor -> actor -> Q). *)
-(* Infix "`trusts`" := Trusts (at level 25, right associativity). *)
 
 Infix "/\'" := And (at level 80, right associativity).
 Infix "\/L" := OrL (at level 85, right associativity). 
