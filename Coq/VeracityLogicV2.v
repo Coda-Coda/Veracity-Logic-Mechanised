@@ -19,7 +19,6 @@ Inductive claim :=
   | OrR  (c1 c2 : claim)
   | Or (c1 c2 : claim)
   | Implies  (c1 c2 : claim).
-  (* | ByTrust (c : claim). *)
 
 Inductive trusted_claim :=
   | Trusted (weight : Q) (c : claim).
