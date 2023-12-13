@@ -176,3 +176,23 @@ apply H1.
 apply H3.
 apply H2.
 Qed.
+
+Lemma example3 : forall a1 a2 C1 C2 Ps,
+
+             (Ps |- a1 ~> C1 @ 0.8) /\ (Ps |- a2 ~> C2 @ 0.5) /\ (Ps |- a2 ~> Atomic (Trusts a1) @ 0.25)
+                                   ->
+                       (Ps |- a2 ~> (C1 /\' C2) @ 0.2).
+Proof.
+intros.
+destruct H as [H1 [H2 H3]].
+epose proof (and_intro Ps a2 C1 C2 0.2 0.5).
+compute in H.
+apply H.
+compute in *.
+epose proof (trust Ps a2 a1 C1 0.25 0.8).
+compute in H0.
+apply H0.
+assumption.
+assumption.
+assumption.
+Qed.
