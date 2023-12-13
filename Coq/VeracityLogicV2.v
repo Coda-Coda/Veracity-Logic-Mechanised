@@ -89,7 +89,7 @@ Inductive Believes (Ps : list (actor * basic_claim)) : actor -> claim -> Q -> Pr
 
   | trust (a1 a2 : actor) (C : claim) (w1 w2 : Q)
 
-                (e : Ps |- a2 ~> C @ w1) (eT : Ps |- a1 ~> (Atomic (Trusts a2)) @ w1)
+                (e : Ps |- a2 ~> C @ w2) (eT : Ps |- a1 ~> (Atomic (Trusts a2)) @ w1)
                               :
                         Ps |- a1 ~> C @ (Qred w1*w2)
 
