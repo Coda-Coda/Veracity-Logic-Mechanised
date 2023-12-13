@@ -129,6 +129,7 @@ Qed.
 
 (** * Examples: Correct Statements *)
 
+(** ** Example 1 (old version): Trivially true, each antecedent is false. *)
 Lemma example1_old_version : forall a C1 C2 C3,
 
        [] |- a ~~> C1 /\ [] |- a ~~> C2 /\ [] |- a ~~> C3
@@ -142,6 +143,7 @@ apply incorrect_example1 in H1.
 contradiction.
 Qed.
 
+(** ** Example 1: Three-claim conjunction *)
 Lemma example1 : forall a C1 C2 C3 Ps,
 
        Ps |- a ~~> C1 /\ Ps |- a ~~> C2 /\ Ps |- a ~~> C3
@@ -160,6 +162,7 @@ apply H.
 all: assumption.
 Qed.
 
+(* ** Example 2: Trust *)
 Lemma example2 : forall a1 a2 C1 C2 Ps,
 
              (Ps |- a1 ~~> C1) /\ (Ps |- a2 ~~> C2) /\ (Ps |- a2 ~~> Atomic (Trusts a1))
@@ -179,6 +182,7 @@ apply H3.
 apply H2.
 Qed.
 
+(** ** Example 3: Using weights. *)
 Lemma example3 : forall a1 a2 C1 C2 Ps,
 
              (Ps |- a1 ~> C1 @ w= 0.8) /\ (Ps |- a2 ~> C2 @ w= 0.5) /\ (Ps |- a2 ~> Atomic (Trusts a1) @ w= 0.25)
@@ -198,6 +202,8 @@ assumption.
 assumption.
 assumption.
 Qed.
+
+(** ** Example 4: With a variable that is a weight. *)
 Lemma example4 : forall a1 a2 C w Ps,
 
              (Ps |- a1 ~> C @ w= 0.8) /\ (Ps |- a2 ~> Atomic (Trusts a1) @ w= w)
