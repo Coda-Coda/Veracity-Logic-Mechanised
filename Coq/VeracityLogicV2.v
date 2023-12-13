@@ -195,6 +195,9 @@ epose proof (trust Ps a2 a1 C1 (w= 0.25) (w= 0.8)).
 simpl in H0.
 apply H0.
 assumption.
+assumption.
+assumption.
+Qed.
 Lemma example4 : forall a1 a2 C w Ps,
 
              (Ps |- a1 ~> C @ w= 0.8) /\ (Ps |- a2 ~> Atomic (Trusts a1) @ w= w)
