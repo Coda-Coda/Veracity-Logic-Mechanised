@@ -91,7 +91,7 @@ Inductive Believes (Ps : list (actor * basic_claim)) : actor -> claim -> Q -> Pr
 
                 (e : Ps |- a2 ~> C @ w2) (eT : Ps |- a1 ~> (Atomic (Trusts a2)) @ w1)
                               :
-                        Ps |- a1 ~> C @ w1*w2
+                        Ps |- a1 ~> C @ (Qred w1*w2)
 
 (* impl_intro, when partially applied up to just before e2, has a similar meaning
    to the Isabelle equivalent. *)
@@ -101,7 +101,7 @@ Inductive Believes (Ps : list (actor * basic_claim)) : actor -> claim -> Q -> Pr
                                Ps |- a ~> (Implies C1 C2) @ w
   (** TODO, think about the weight for impl_intro here. *)
 
-where "P |- A ~> B @ W " := (Believes P A B (Qred W)).
+where "P |- A ~> B @ W " := (Believes P A B W).
 
 Notation "P |- A ~~> B" := (Believes P A B 1)  (at level 80).
 
