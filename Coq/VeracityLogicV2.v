@@ -152,9 +152,9 @@ Proof.
 intros.
 destruct H as [H1 [H2 H3]].
 pose proof (and_intro Ps a C1 C2 1 1).
-compute in H.
+simpl in H.
 pose proof (and_intro Ps a (C1 /\' C2) C3 1 1).
-compute in H0.
+simpl in H0.
 apply H0.
 apply H.
 all: assumption.
@@ -169,10 +169,10 @@ Proof.
 intros.
 destruct H as [H1 [H2 H3]].
 epose proof (and_intro Ps _ _ _ 1 1).
-compute in H.
+simpl in H.
 apply H.
 epose proof (trust Ps _ _ _ 1 1).
-compute in H0.
+simpl in H0.
 apply H0.
 apply H1.
 apply H3.
@@ -188,11 +188,11 @@ Proof.
 intros.
 destruct H as [H1 [H2 H3]].
 epose proof (and_intro Ps a2 C1 C2 (w= 0.2) (w= 0.5)).
-compute in H.
+simpl in H.
 apply H.
-compute in *.
+simpl in *.
 epose proof (trust Ps a2 a1 C1 (w= 0.25) (w= 0.8)).
-compute in H0.
+simpl in H0.
 apply H0.
 assumption.
 assumption.
