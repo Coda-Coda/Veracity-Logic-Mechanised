@@ -29,83 +29,83 @@ Infix "\/L" := OrL (at level 85, right associativity).
 Infix "\/R" := OrR (at level 85, right associativity). 
 Infix "\/'" := OrR (at level 85, right associativity). 
 
-Notation "w= W" := (Qred W) (at level 75).
-
 Reserved Notation "P |- A ~> B @ W" (at level 80).
+Reserved Notation "P |- A ~> B @@ W" (at level 80).
 Inductive Believes (Ps : list (actor * basic_claim)) : actor -> claim -> Q -> Prop :=
   | assumed (a : actor) (C : basic_claim) (H : List.In (a, C) Ps) : Ps |- a ~> (Atomic C) @ 1.0
   (* bot_elim is implied by there being no rule for Believing bottom. *)
   | and_intro (a : actor) (C1 C2 : claim) (w1 w2 : Q)
 
-                  (e1 : Ps |- a ~> C1 @ (w= w1)) (e2 : Ps |- a ~> C2 @ (w= w2))
+                  (e1 : Ps |- a ~> C1 @ w1) (e2 : Ps |- a ~> C2 @ w2)
                                 :
                           Ps |- a ~> (C1 /\' C2) @ (Qmin w1 w2)
 
   | and_elim1 (a : actor) (C1 C2 : claim) (w : Q)
 
-                  (e : Ps |- a ~> (C1 /\' C2) @ (w= w))
+                  (e : Ps |- a ~> (C1 /\' C2) @ w)
                            :
                         Ps |- a ~> C1 @ w
 
   | and_elim2 (a : actor) (C1 C2 : claim) (w:Q)
 
-                  (e : Ps |- a ~> (C1 /\' C2) @ (w= w))
+                  (e : Ps |- a ~> (C1 /\' C2) @ w)
                            :
                         Ps |- a ~> C2 @ w
 
   | or_intro1 (a : actor) (C1 C2 : claim) (w : Q)
 
-                      (e : Ps |- a ~> C1 @ (w= w))
+                      (e : Ps |- a ~> C1 @ w)
                            :
                     Ps |- a ~> (C1 \/L C2) @ w
 
   | or_intro2 (a : actor) (C1 C2 : claim) (w : Q)
 
-                      (e : Ps |- a ~> C2 @ (w= w))
+                      (e : Ps |- a ~> C2 @ w)
                            :
                     Ps |- a ~> (C1 \/R C2) @ w
 
   | or_elim1 (a : actor) (C1 C2 : claim) (w : Q)
 
-                  (e : Ps |- a ~> (C1 \/L C2) @ (w= w))
+                  (e : Ps |- a ~> (C1 \/L C2) @ w)
                            :
                          Ps |- a ~> C1 @ w
 
   | or_elim2 (a : actor) (C1 C2 : claim) (w : Q)
 
-                  (e : Ps |- a ~> (C1 \/R C2) @ (w= w))
+                  (e : Ps |- a ~> (C1 \/R C2) @ w)
                            :
                          Ps |- a ~> C2 @ w
 
   | or_detag1 (a : actor) (C1 C2 : claim) (w : Q)
 
-                  (e : Ps |- a ~> (C1 \/L C2) @ (w= w))
+                  (e : Ps |- a ~> (C1 \/L C2) @ w)
                            :
                      Ps |- a ~> (C1 \/' C2) @ w
 
   | or_detag2 (a : actor) (C1 C2 : claim) (w : Q)
 
-                  (e : Ps |- a ~> (C1 \/R C2) @ (w= w))
+                  (e : Ps |- a ~> (C1 \/R C2) @ w)
                            :
                     Ps |- a ~> (C1 \/' C2) @ w
 
   | trust (a1 a2 : actor) (C : claim) (w1 w2 : Q)
 
-                (e : Ps |- a2 ~> C @ (w= w2)) (eT : Ps |- a1 ~> (Atomic (Trusts a2)) @ (w= w1))
+                (e : Ps |- a2 ~> C @ w2) (eT : Ps |- a1 ~> (Atomic (Trusts a2)) @ w1)
                               :
-                        Ps |- a1 ~> C @ (w= (w1*w2))
+                        Ps |- a1 ~> C @ (Qred (w1*w2))
 
 (* impl_intro, when partially applied up to just before e2, has a similar meaning
    to the Isabelle equivalent. *)
   | impl_intro (a : actor) (C1 C2 : claim) (w : Q)
-                       (e1 : Ps |- a ~> C1 @ 1) (e2 : Ps |- a ~> C2 @ (w= w))
+                       (e1 : Ps |- a ~> C1 @ 1) (e2 : Ps |- a ~> C2 @ w)
                                            :
                                Ps |- a ~> (Implies C1 C2) @ w
   (** TODO, think about the weight for impl_intro here. *)
 
-where "P |- A ~> B @ W " := (Believes P A B W).
+where "P |- A ~> B @@ W" := (Believes P A B W)
+and   "P |- A ~> B @ W" := (P |- A ~> B @@ (Qred W)).
 
-Notation "P |- A ~~> B" := (Believes P A B 1)  (at level 80).
+Notation "P |- A ~~> B" := (Believes P A B 1) (at level 80).
 
 (** * Examples: Incorrect Statements *)
 
@@ -185,17 +185,17 @@ Qed.
 (** ** Example 3: Using weights. *)
 Lemma example3 : forall a1 a2 C1 C2 Ps,
 
-             (Ps |- a1 ~> C1 @ w= 0.8) /\ (Ps |- a2 ~> C2 @ w= 0.5) /\ (Ps |- a2 ~> Atomic (Trusts a1) @ w= 0.25)
+             (Ps |- a1 ~> C1 @ 0.8) /\ (Ps |- a2 ~> C2 @ 0.5) /\ (Ps |- a2 ~> Atomic (Trusts a1) @ 0.25)
                                    ->
-                       (Ps |- a2 ~> (C1 /\' C2) @ w= 0.2).
+                       (Ps |- a2 ~> (C1 /\' C2) @ 0.2).
 Proof.
 intros.
 destruct H as [H1 [H2 H3]].
-epose proof (and_intro Ps a2 C1 C2 (w= 0.2) (w= 0.5)).
+epose proof (and_intro Ps a2 C1 C2 0.2 0.5).
 simpl in H.
 apply H.
 simpl in *.
-epose proof (trust Ps a2 a1 C1 (w= 0.25) (w= 0.8)).
+epose proof (trust Ps a2 a1 C1 0.25 0.8).
 simpl in H0.
 apply H0.
 assumption.
@@ -203,16 +203,24 @@ assumption.
 assumption.
 Qed.
 
+Lemma QredQred : forall q, Qred (Qred q) = (Qred q).
+Proof.
+intros.
+apply Qred_complete.
+apply Qred_correct.
+Qed.
+
 (** ** Example 4: With a variable that is a weight. *)
 Lemma example4 : forall a1 a2 C w Ps,
 
-             (Ps |- a1 ~> C @ w= 0.8) /\ (Ps |- a2 ~> Atomic (Trusts a1) @ w= w)
+             (Ps |- a1 ~> C @ 0.8) /\ (Ps |- a2 ~> Atomic (Trusts a1) @ w)
                                    ->
-                       (Ps |- a2 ~> C @ w= (w * w= 0.8)).
+                       (Ps |- a2 ~> C @ (w * 0.8)).
 Proof.
 intros.
 destruct H as [H1].
-epose proof (trust Ps a2 a1 C (w) (w= 0.8)).
+epose proof (trust Ps a2 a1 C (w) 0.8).
+rewrite QredQred in H0.
 apply H0.
 assumption.
 assumption.
