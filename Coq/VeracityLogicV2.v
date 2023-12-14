@@ -1,9 +1,71 @@
+(*|
+=================================================
+    Veracity Logic Mechanised in Coq (Draft)
+=================================================
+
+.. raw:: html
+
+   <script type="text/javascript" src="http://livejs.com/live.js"></script>
+
+.. coq:: all
+|*)
+
 Require Import List.
 Import ListNotations.
 Require Import QArith.
 Require Import QArith.Qminmax.
 
 Section VeracityLogic.
+
+(*|
+
+One of the differences to the original Veracity Logic in this current formalisation is the handling of trust.
+
+In the original logic we have the rule:
+
+.. math::
+  \begin{prooftree}
+  \AxiomC{$a^l \in A \quad kTl$}
+  \RightLabel{ $trust\ T$}
+  \UnaryInfC{$a^k \in A$}
+  \end{prooftree}
+
+Instead, here the equivalent would be:
+
+.. math::
+  \begin{prooftree}
+  \AxiomC{$a^l \in A \quad b^k \in Tl$}
+  \RightLabel{ $trust\ T$}
+  \UnaryInfC{$c^k \in A$}
+  \end{prooftree}
+
+With weights, this is:
+
+.. math::
+  \begin{prooftree}
+  \AxiomC{$a^l_{w_1} \in A \quad b^k_{w_2} \in Tl$}
+  \RightLabel{ $trust\ T$}
+  \UnaryInfC{$c^k_{w_1 \times w_2} \in A$}
+  \end{prooftree}
+
+:math:`a, b, c` lose meaning in the new approach, as each piece of evidence is directly tied to the claim it is evidence for. So, we omit :math:`a, b, c` and write the following:
+
+.. math::
+  \begin{prooftree}
+  \AxiomC{$l \rightsquigarrow_{w_1} A \quad k \rightsquigarrow_{w_2} Tl$}
+  \RightLabel{ $trust\ T$}
+  \UnaryInfC{$k \rightsquigarrow_{w_1 \times w_2} A$}
+  \end{prooftree}
+
+In Coq, we cannot use subscript notation. So for :math:`k \rightsquigarrow_{w_1 * w_2} A` we write:
+
+`k ~> A @ (w1 * w2)`.
+
+|*)
+
+(*|
+.. coq:: all
+|*)
 
 Inductive actor :=
   | Actor (a : nat).
@@ -33,7 +95,7 @@ Reserved Notation "P |- A ~> B @ W" (at level 80).
 Reserved Notation "P |- A ~> B @@ W" (at level 80).
 Inductive Believes (Ps : list (actor * basic_claim)) : actor -> claim -> Q -> Prop :=
   | assumed (a : actor) (C : basic_claim) (H : List.In (a, C) Ps) : Ps |- a ~> (Atomic C) @ 1.0
-  (* bot_elim is implied by there being no rule for Believing bottom. *)
+  (* bot_elim has been removed, along with Bottom. TODO: discuss this *)
   | and_intro (a : actor) (C1 C2 : claim) (w1 w2 : Q)
 
                   (e1 : Ps |- a ~> C1 @ w1) (e2 : Ps |- a ~> C2 @ w2)
