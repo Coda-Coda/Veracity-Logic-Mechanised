@@ -225,3 +225,40 @@ apply H0.
 assumption.
 assumption.
 Qed.
+
+(** ** Example 5: Three-claim conjunction with arbitrary weights *)
+Lemma example5 : forall a C1 C2 C3 w1 w2 w3 Ps,
+
+       Ps |- a ~> C1 @ w1 /\ Ps |- a ~> C2 @ w2  /\ Ps |- a ~> C3 @w3
+                               ->
+            Ps |- a ~> ((C1 /\' C2) /\' C3) @ (Qmin w1 (Qmin w2 w3)).
+Proof.
+intros.
+destruct H as [H1 [H2 H3]].
+pose proof (and_intro Ps a C1 C2 w1 w2).
+simpl in H.
+pose proof (and_intro Ps a (C1 /\' C2) C3 (Qmin w1 w2) w3).
+simpl in H0.
+assert(Qred (Qmin w1 (Qmin w2 w3)) = Qred( Qmin (Qmin w1 w2) w3)).
+apply Qred_complete.
+apply Q.min_assoc.
+rewrite H4.
+apply H0.
+apply H.
+all: assumption.
+Qed.
+
+(** ** Example 6: Three-claim conjunction with arbitrary weights - simpler *)
+Lemma example6 : forall a C1 C2 C3 w1 w2 w3 Ps,
+
+       Ps |- a ~> C1 @ w1 /\ Ps |- a ~> C2 @ w2  /\ Ps |- a ~> C3 @w3
+                               ->
+            Ps |- a ~> ((C1 /\' C2) /\' C3) @ (Qmin (Qmin w1 w2) w3).
+Proof.
+intros.
+destruct H as [H1 [H2 H3]].
+apply and_intro.
+apply and_intro.
+all: assumption.
+Qed.
+
