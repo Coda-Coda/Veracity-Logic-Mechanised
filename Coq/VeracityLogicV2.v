@@ -57,7 +57,7 @@ With weights, this is:
   \UnaryInfC{$k \rightsquigarrow_{w_1 \times w_2} A$}
   \end{prooftree}
 
-In Coq, we cannot use subscript notation. So for :math:`k \rightsquigarrow_{w_1 * w_2} A` we write:
+In Coq, we cannot use subscript notation. So for :math:`k \rightsquigarrow_{w_1 \times w_2} A` we write:
 
 `k ~> A @ (w1 * w2)`.
 
