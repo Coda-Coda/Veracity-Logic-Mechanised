@@ -1,5 +1,5 @@
-(** See also VeracityLogicV2.v - https://github.com/Coda-Coda/Veracity-Logic-Mechanised/blob/main/Coq/VeracityLogicV2.v *)
-(** And an initial version with weights - https://github.com/Coda-Coda/Veracity-Logic-Mechanised/blob/with-weights/Coq/VeracityLogicV2.v *)
+(** See also VeracityLogicV2.v (with-weights) - https://github.com/Coda-Coda/Veracity-Logic-Mechanised/blob/main/Coq/VeracityLogicV2.v *)
+(** And an earlier version of VeracityLogicV2.v without weights - https://github.com/Coda-Coda/Veracity-Logic-Mechanised/blob/without-weights/Coq/VeracityLogicV2.v *)
 
 Require Import List.
 Import ListNotations.
