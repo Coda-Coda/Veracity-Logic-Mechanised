@@ -29,7 +29,7 @@ In the original logic we have the rule:
 .. math::
   \begin{prooftree}
   \AxiomC{$a^l \in A \quad kTl$}
-  \RightLabel{ $trust\ T$}
+  \RightLabel{ $trust$}
   \UnaryInfC{$a^k \in A$}
   \end{prooftree}
 
@@ -403,7 +403,7 @@ Check trust.
 .. math::
   \begin{prooftree}
   \AxiomC{$Ps \vdash a_2 \rightsquigarrow_{w_2} C \quad Ps \vdash a_1 \rightsquigarrow_{w_1} T a_2$}
-  \RightLabel{ $trust\ T$}
+  \RightLabel{ $trust$}
   \UnaryInfC{$Ps \vdash a_1 \rightsquigarrow_{w_1 \times w_2} C$}
   \end{prooftree}
 
