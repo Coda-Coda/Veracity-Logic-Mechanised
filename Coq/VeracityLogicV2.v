@@ -169,7 +169,7 @@ Inductive Believes (Ps : list (actor * claim))
 where "P |- A ~> B @@ W" := (Believes P A B W)
 and   "P |- A ~> B @ W" := (P |- A ~> B @@ (Qred W)).
 
-Notation "P |- A ~~> B" := (Believes P A B 1) (at level 80).
+Notation "P |- A ~~> B" := (P |- A ~> B @ 1) (at level 80).
 
 (** * Examples: Incorrect Statements *)
 
