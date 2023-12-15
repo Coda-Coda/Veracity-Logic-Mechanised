@@ -93,8 +93,10 @@ Infix "\/'" := OrR (at level 85, right associativity).
 
 Reserved Notation "P |- A ~> B @ W" (at level 80).
 Reserved Notation "P |- A ~> B @@ W" (at level 80).
-Inductive Believes (Ps : list (actor * basic_claim)) : actor -> claim -> Q -> Prop :=
-  | assumed (a : actor) (C : basic_claim) (H : List.In (a, C) Ps) : Ps |- a ~> (Atomic C) @ 1.0
+Inductive Believes (Ps : list (actor * claim))
+  : actor -> claim -> Q -> Prop :=
+  | assumed (a : actor) (C : claim) (H : List.In (a, C) Ps)
+     : Ps |- a ~> C @ 1
   (* bot_elim has been removed, along with Bottom. TODO: discuss this *)
   | and_intro (a : actor) (C1 C2 : claim) (w1 w2 : Q)
 
