@@ -3,10 +3,6 @@
     Veracity Logic Mechanised in Coq (Draft)
 =================================================
 
-.. raw:: html
-
-   <script type="text/javascript" src="http://livejs.com/live.js"></script>
-
 Introduction
 ------------
 
