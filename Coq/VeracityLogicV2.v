@@ -29,7 +29,7 @@ In the original logic we have the rule:
 .. math::
   \begin{prooftree}
   \AxiomC{$a^l \in A \quad kTl$}
-  \RightLabel{ $trust$}
+  \RightLabel{ $trust\ T$}
   \UnaryInfC{$a^k \in A$}
   \end{prooftree}
 
