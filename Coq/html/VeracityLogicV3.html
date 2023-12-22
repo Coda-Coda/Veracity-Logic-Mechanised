@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" class="alectryon-standalone" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.20.1: https://docutils.sourceforge.io/" />
+<title>Veracity Logic Mechanised in Coq V3</title>
+<script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.min.js?config=TeX-AMS_CHTML"></script>
+<link rel="stylesheet" href="alectryon.css" type="text/css" />
+<link rel="stylesheet" href="docutils_basic.css" type="text/css" />
+<link rel="stylesheet" href="pygments.css" type="text/css" />
+<script type="text/javascript" src="alectryon.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/IBM-type/0.5.4/css/ibm-type.min.css" integrity="sha512-sky5cf9Ts6FY1kstGOBHSybfKqdHR41M0Ldb0BjNiv3ifltoQIsg0zIaQ+wwdwgQ0w9vKFW7Js50lxH9vqNSSw==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/firacode/5.2.0/fira_code.min.css" integrity="sha512-MbysAYimH1hH2xYzkkMHB6MqxBqfP0megxsCLknbYqHVwXTCg9IqHbk+ZP/vnhO8UEW6PaXAkKe2vQ+SWACxxA==" crossorigin="anonymous" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<div class="alectryon-root alectryon-centered"><div class="alectryon-banner">Built with <a href="https://github.com/cpitclaudel/alectryon/">Alectryon</a>, running Coq+SerAPI v8.14.0+0.14.0. Bubbles (<span class="alectryon-bubble"></span>) indicate interactive fragments: hover for details, tap to reveal contents. Use <kbd>Ctrl+↑</kbd> <kbd>Ctrl+↓</kbd> to navigate, <kbd>Ctrl+🖱️</kbd> to focus. On Mac, use <kbd>⌘</kbd> instead of <kbd>Ctrl</kbd>.</div><div class="document" id="veracity-logic-mechanised-in-coq-v3">
+<h1 class="title">Veracity Logic Mechanised in Coq V3</h1>
+
+<p>This version aims to more closely align with the draft paper.
+It also features a LaTeX/MathJax visualisation of completed proofs.</p>
+<p>This is possible due to not using <code class="highlight coq"><span class="kt">Prop</span></code> at all. &quot;<em>In fact in my logic there are no propositions</em>&quot; - Steve.
+Instead, this aims to model the process of constructing proof trees, just like they are done on paper.</p>
+<p>A correct proof tree is a datatype with similarities to a tree datatype, which makes it possible to write a function that prints a proof out.</p>
+<p>Coq is useful here because we can construct correct proof trees in &quot;proof mode&quot;. In fact, we are just defining particular proof trees, but it is convenient to use &quot;proof mode&quot;.</p>
+<p>Lastly, we use Coq's dependent types to enforce that it's not just any proof tree that we build, but it is a correct proof tree for the given judgement.
+The type <code class="highlight coq"><span class="n">proofTreeOf</span></code> depends on the value, <code class="highlight coq"><span class="n">j</span></code>, of type <code class="highlight coq"><span class="n">judgement</span></code> which constrains what a <code class="highlight coq"><span class="n">proofTreeOf</span> <span class="n">j</span></code> is.
+This is similar to a type such as <code class="highlight coq"><span class="n">vector</span></code> depending on a value, <code class="highlight coq"><span class="n">n</span></code>, (the vector's length) of type <code class="highlight coq"><span class="n">nat</span></code> which constrains what a <code class="highlight coq"><span class="n">vector</span> <span class="n">n</span></code> is.</p>
+<!-- The following is required to get MathJax to process the outputs marked with the class coq-math. -->
+<link rel="stylesheet" href="overrides.css">
+
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", () => {
+     // 1. Find all relevant Alectryon tags
+     var spans = document.querySelectorAll(".coq-math > * > * > * > * > * > .s2, .custom-math");
+
+     // 2. Wrap the contents of each in \(\) math delimiters, add mathjax class
+     spans.forEach(function (e) {
+         e.innerText = '\\[' + e.innerText + '\\]';
+         e.classList.add("mathjax_process");
+     });
+
+     // 3. If MathJax has already loaded, force reprocessing
+     window.MathJax && MathJax.typesetPromise(spans);
+  });
+</script>
+
+<style type="text/css"> /* Override MathJax margins */
+    .coq-math .goal-conclusion > *,
+    .coq-math .hyp-body span > *,
+    .coq-math .hyp-type span > * {
+        margin: 0 !important;
+    }
+</style><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Require Import</span> List.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Import</span> ListNotations.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Require Import</span> String.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> string.</span></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Section</span> <span class="nf">VeracityLogic</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">evid</span> :=
+  | AtomicEvid (name : string)
+  | Pair (e1 e2 : evid)
+  | Left (e1 : evid)
+  | Right (e1 : evid)
+  | Lambda (e1 e2 : evid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">claim</span> :=
+  | AtomicClaim (name : string)
+  | Bottom
+  | And (c1 c2 : claim)
+  | Or  (c1 c2 : claim)
+  | Implies  (c1 c2 : claim).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">actor</span> :=
+  | Actor (s : string).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">singleJudgement</span> :=
+  | SingleJudgement (e : evid) (a : actor) (c: claim).</span></span></pre><p>Judgements are a list of <strong>single</strong> judgements entailing some single judgement, or state that some claim <code class="highlight coq"><span class="n">c</span></code> is a veracity claim.</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">judgement</span> :=
+  | Entail (l : list singleJudgement) (s : singleJudgement)
+  | IsAVeracityClaim (c : claim).</span></span></pre><p>Next, we introduce some notation for Coq.</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Notation</span> <span class="s2">&quot;L |- S&quot;</span> := (Entail L S) (<span class="kn">at level</span> <span class="mi">3</span>).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Notation</span> <span class="s2">&quot;E \by A \in C&quot;</span> := (SingleJudgement E A C) (<span class="kn">at level</span> <span class="mi">2</span>).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Infix</span> <span class="s2">&quot;/\&#39;&quot;</span> := And (<span class="kn">at level</span> <span class="mi">81</span>, <span class="kn">left associativity</span>).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Infix</span> <span class="s2">&quot;\/&#39;&quot;</span> := Or (<span class="kn">at level</span> <span class="mi">86</span>, <span class="kn">left associativity</span>).</span><span class="alectryon-wsp"> 
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Notation</span> <span class="s2">&quot;_|_&quot;</span> := (Bottom) (<span class="kn">at level</span> <span class="mi">1</span>).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Notation</span> <span class="s2">&quot;( x , y , .. , z )&quot;</span> := (Pair .. (Pair x y) .. z).</span></span></pre><p>For now, I have only implemented one inference rule, <code class="highlight coq"><span class="n">and_intro</span></code>, as well as the <code class="highlight coq"><span class="n">assume</span></code> rule and a rule <code class="highlight coq"><span class="n">leaf</span></code> that declares that it is correct for a proof tree to stop on a statement such as <span class="math">\(C_1 \textit{ is a claim}\)</span>.</p>
+<p><code class="highlight coq"><span class="n">proofTreeOf</span></code> is a data type, a tree, which depends on a judgement. The type <code class="highlight coq"><span class="n">tree</span> <span class="n">j</span></code> describes a tree which correctly proves <code class="highlight coq"><span class="n">j</span></code>.</p>
+<p>But this is not a proposition. This is best thought of as the datatype for (correct) proof trees.</p>
+<p>The remaining rules will be easy to add, this will be done in 2024.</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">proofTreeOf</span> : judgement -&gt; <span class="kt">Type</span> :=
+| leaf c : proofTreeOf (IsAVeracityClaim c)
+| assume e a c
+
+       (M : proofTreeOf (IsAVeracityClaim c)) 
+                         :
+  proofTreeOf ([e \<span class="bp">by</span> a \<span class="kr">in</span> c] |- e \<span class="bp">by</span> a \<span class="kr">in</span> c)
+
+| and_intro Ps Qs a e1 e2 C1 C2
+
+(L: proofTreeOf (Ps |- e1 \<span class="bp">by</span> a \<span class="kr">in</span> C1))
+                          (R: proofTreeOf (Qs |- e2 \<span class="bp">by</span> a \<span class="kr">in</span> C2))
+                       :
+    proofTreeOf ((Ps ++ Qs) |- (e1, e2) \<span class="bp">by</span> a \<span class="kr">in</span> (C1 /\&#39; C2)).</span></span></pre><p>This is the <code class="highlight coq"><span class="n">and_intro</span></code> rule as Coq sees it:</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv3-v-chk0" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk0"><span class="kn">Check</span> and_intro.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">and_intro
+     : <span class="kr">forall</span> (<span class="nv">Ps</span> <span class="nv">Qs</span> : list singleJudgement)
+         (<span class="nv">a</span> : actor) (<span class="nv">e1</span> <span class="nv">e2</span> : evid) (<span class="nv">C1</span> <span class="nv">C2</span> : claim),
+       proofTreeOf Ps |- e1 \<span class="bp">by</span> a \<span class="kr">in</span> C1 -&gt;
+       proofTreeOf Qs |- e2 \<span class="bp">by</span> a \<span class="kr">in</span> C2 -&gt;
+       proofTreeOf
+         (Ps ++ Qs) |- (e1, e2) \<span class="bp">by</span> a \<span class="kr">in</span> (C1 /\&#39; C2)</blockquote></div></div></small></span></pre><!-- For some reason, math:: directives cause prooftree to crash. The following is an alternative that works. -->
+<p>Here is a <em>manual</em> translation of the above rule into Latex.</p>
+<pre class="code custom-math literal-block">
+\begin{prooftree}
+\AxiomC{$Ps \vdash e_1^a \in C_1 \quad Ps \vdash e_2^a \in C_2$}
+\RightLabel{ $and\_intro$}
+\UnaryInfC{$Ps ++ Qs \vdash (e_1, e_2)^a \in (C_1 \wedge C_2)$}
+\end{prooftree}
+</pre>
+<div class="section" id="example-actors-evidence-claims-and-judgements">
+<h1>Example actors, evidence, claims and judgements</h1>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">a1</span> := Actor <span class="s2">&quot;a_{1}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">e1</span> := AtomicEvid <span class="s2">&quot;e_{1}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">c1</span> := AtomicClaim <span class="s2">&quot;c_{1}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">a2</span> := Actor <span class="s2">&quot;a_{2}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">e2</span> := AtomicEvid <span class="s2">&quot;e_{2}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">c2</span> := AtomicClaim <span class="s2">&quot;c_{2}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">a3</span> := Actor <span class="s2">&quot;a_{3}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">e3</span> := AtomicEvid <span class="s2">&quot;e_{3}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">c3</span> := AtomicClaim <span class="s2">&quot;c_{3}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">a4</span> := Actor <span class="s2">&quot;a_{4}&quot;</span>.</span></span></pre><p>We can also assume arbitrary evidence/claims exist. This currently doesn't work well with printing to Latex though.</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Context</span> (<span class="nv">e4</span> : evid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Context</span> (<span class="nv">c4</span> : claim).</span></span></pre><p>Example Single judgements:</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">sj1</span> := e1 \<span class="bp">by</span> a1 \<span class="kr">in</span> c1.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">sj3</span> := e3 \<span class="bp">by</span> a3 \<span class="kr">in</span> c3.</span></span></pre><p>Example Judgments:</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">j1</span> := [sj1;sj1;sj3] |- e2 \<span class="bp">by</span> a2 \<span class="kr">in</span> c2.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">j2</span> := [] |- e4 \<span class="bp">by</span> a4 \<span class="kr">in</span> c4.</span></span></pre><p>Example use of notation:</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk1" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk1"><span class="kn">Check</span> [] |- e1 \<span class="bp">by</span> a1 \<span class="kr">in</span> c1.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">[] |- e1 \<span class="bp">by</span> a1 \<span class="kr">in</span> c1
+     : judgement</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk2" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk2"><span class="kn">Check</span> e1 \<span class="bp">by</span> a1 \<span class="kr">in</span> c1.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">e1 \<span class="bp">by</span> a1 \<span class="kr">in</span> c1
+     : singleJudgement</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk3" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk3"><span class="kn">Check</span> [e1 \<span class="bp">by</span> a1 \<span class="kr">in</span> c1; e2 \<span class="bp">by</span> a2 \<span class="kr">in</span> c2] |- e1 \<span class="bp">by</span> a1 \<span class="kr">in</span> c1.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">[e1 \<span class="bp">by</span> a1 \<span class="kr">in</span> c1; e2 \<span class="bp">by</span> a2 \<span class="kr">in</span> c2]
+|- e1 \<span class="bp">by</span> a1 \<span class="kr">in</span> c1
+     : judgement</blockquote></div></div></small></span></pre></div>
+<div class="section" id="machinery-for-printing-to-latex">
+<h1>Machinery for printing to LaTeX</h1>
+<p>We define and make use of the <code class="highlight coq"><span class="n">show</span></code> typeclass, for simplicity.</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Class</span> <span class="nf">Show</span> <span class="nv">A</span> : <span class="kt">Type</span> :=
+  {
+    show : A -&gt; string
+  }.</span></span></pre><p>For each datatype defined earlier, we define a string representation of it.</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showEvid</span> (<span class="nv">e</span> : evid) :=
+<span class="kr">match</span> e <span class="kr">with</span>
+        | AtomicEvid name =&gt; name
+        | Pair e1 e2 =&gt; <span class="s2">&quot;(&quot;</span> ++ (showEvid e1) ++ <span class="s2">&quot;, &quot;</span> ++ (showEvid e2) ++ <span class="s2">&quot;)&quot;</span>
+        | Left e =&gt; <span class="s2">&quot;i(&quot;</span> ++ showEvid e ++ <span class="s2">&quot;)&quot;</span>
+        | Right e =&gt; <span class="s2">&quot;l(&quot;</span> ++ showEvid e ++ <span class="s2">&quot;)&quot;</span>
+        | Lambda e1 e2 =&gt; <span class="s2">&quot;\lambda &quot;</span> ++ showEvid e1 ++ <span class="s2">&quot; \rightarrow &quot;</span> ++ showEvid e2
+     <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : <span class="kn">Show</span> evid := { show := showEvid }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showClaim</span> (<span class="nv">c</span> : claim) :=
+<span class="kr">match</span> c <span class="kr">with</span>
+  | AtomicClaim name =&gt; name
+  | Bottom =&gt; <span class="s2">&quot;\bot&quot;</span>
+  | And c1 c2 =&gt; showClaim c1 ++ <span class="s2">&quot; \wedge &quot;</span> ++ showClaim c2
+  | Or c1 c2 =&gt; showClaim c1 ++ <span class="s2">&quot; \vee &quot;</span> ++ showClaim c2
+  | Implies c1 c2 =&gt; showClaim c1 ++ <span class="s2">&quot; \rightarrow &quot;</span> ++ showClaim c2
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : <span class="kn">Show</span> claim := { show := showClaim }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showActor</span> (<span class="nv">a</span> : actor) := 
+  <span class="kr">match</span> a <span class="kr">with</span>
+    | Actor s =&gt; s 
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : <span class="kn">Show</span> actor := { show := showActor }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showList</span> {<span class="nv">A</span>} `{<span class="kn">Show</span> A} (l : list A) :=
+  <span class="kr">match</span> l <span class="kr">with</span>
+    | [] =&gt; <span class="s2">&quot;&quot;</span>
+    | [h] =&gt; show h
+    | h1 :: (h2 :: tl) <span class="kr">as</span> tl&#39; =&gt; show h1 ++ <span class="s2">&quot;, &quot;</span> ++ showList tl&#39;
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showListInstance</span> {<span class="nv">A</span> : <span class="kt">Type</span>} `{<span class="kn">Show</span> A} : <span class="kn">Show</span> (list A) := { show l := showList l}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showSingleJudgement</span> (<span class="nv">s</span> : singleJudgement) := 
+  <span class="kr">match</span> s <span class="kr">with</span>
+    | SingleJudgement e a c =&gt; show e ++ <span class="s2">&quot;^{&quot;</span> ++ show a ++ <span class="s2">&quot;} \in &quot;</span> ++ show c
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : <span class="kn">Show</span> singleJudgement := { show := showSingleJudgement }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showJudgement</span> (<span class="nv">j</span> : judgement) :=
+  <span class="kr">match</span> j <span class="kr">with</span>
+  | Entail l s =&gt; <span class="kr">match</span> l <span class="kr">with</span>
+                  | [] =&gt; show s
+                  | (h :: tl) <span class="kr">as</span> l =&gt; show l ++ <span class="s2">&quot; \vdash &quot;</span> ++ show s
+                  <span class="kr">end</span>
+  | IsAVeracityClaim c =&gt; show c ++ <span class="s2">&quot; \em{ is a veracity claim}&quot;</span>
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : <span class="kn">Show</span> judgement := { show := showJudgement }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk4" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk4"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> show j1.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;e_{1}^{a_{1}} \in c_{1}, e_{1}^{a_{1}} \in c_{1}, e_{3}^{a_{3}} \in c_{3} \vdash e_{2}^{a_{2}} \in c_{2}&quot;</span>
+: string</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showProofTreeOf_helper</span> (<span class="nv">j</span> : judgement) (<span class="nv">p</span> : proofTreeOf j) : string :=
+<span class="kr">match</span> p <span class="kr">with</span>
+| leaf c =&gt; <span class="s2">&quot;\AxiomC{$ &quot;</span> ++ show c ++ <span class="s2">&quot; \textit{ is a veracity claim} $}&quot;</span> ++ <span class="s2">&quot;&quot;</span>
+| assume e a c M =&gt; showProofTreeOf_helper (IsAVeracityClaim c) M ++ <span class="s2">&quot; \RightLabel{ $ assume $}\UnaryInfC{$ &quot;</span> ++ show ([e \<span class="bp">by</span> a \<span class="kr">in</span> c] |- e \<span class="bp">by</span> a \<span class="kr">in</span> c) ++ <span class="s2">&quot; $}&quot;</span>
+<span class="c">(* | bot_elim a e1 C M =&gt; &quot;bot_elim &quot; ++ showProofTreeOf ([] |- e1 \by a \in _|_) M *)</span>
+| and_intro Ps Qs a e1 e2 C1 C2 L R =&gt; 
+    showProofTreeOf_helper (Ps |- e1 \<span class="bp">by</span> a \<span class="kr">in</span> C1) L
+ ++ showProofTreeOf_helper (Qs |- e2 \<span class="bp">by</span> a \<span class="kr">in</span> C2) R 
+ ++ <span class="s2">&quot; \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ &quot;</span> ++ show ((Ps ++ Qs) |- (e1, e2) \<span class="bp">by</span> a \<span class="kr">in</span> (C1 /\&#39; C2)) ++ <span class="s2">&quot; $}&quot;</span>
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showProofTreeOf</span> <span class="nv">j</span> <span class="nv">p</span> := <span class="s2">&quot;\begin{prooftree}&quot;</span> ++ showProofTreeOf_helper j p ++ <span class="s2">&quot;\end{prooftree}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showProofTreeOfInstance</span> (<span class="nv">j</span> : judgement) : <span class="kn">Show</span> (proofTreeOf j) := { show := showProofTreeOf j}.</span></span></pre></div>
+<div class="section" id="an-example-from-the-paper">
+<h1>An example from the paper</h1>
+<p>This example is the top half of the proof tree on p13 (Section 4.2) of the draft paper.</p>
+<p>The proof trees visualised in this section are automatically generated by Coq.</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">l</span> := AtomicEvid <span class="s2">&quot;l&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">s</span> := AtomicEvid <span class="s2">&quot;s&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">c</span> := AtomicEvid <span class="s2">&quot;c&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">P</span> := Actor <span class="s2">&quot;P&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">C1</span> := AtomicClaim <span class="s2">&quot;C_1&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">C2</span> := AtomicClaim <span class="s2">&quot;C_2&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">C3</span> := AtomicClaim <span class="s2">&quot;C_3&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk5" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk5"><span class="kn">Definition</span> <span class="nf">concreteProofTreeExampleWith2Conjuncts</span> : 
+proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6"><span class="nb">epose proof</span> (and_intro [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] [s \<span class="bp">by</span> P \<span class="kr">in</span> C2]) _ _ _ C1 C2.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- <span class="nl">?e1</span> \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- <span class="nl">?e2</span> \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  ([l \<span class="bp">by</span> P \<span class="kr">in</span> C1] ++ [s \<span class="bp">by</span> P \<span class="kr">in</span> C2])
+  |- (<span class="nl">?e1</span>, <span class="nl">?e2</span>) \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</div></blockquote></div></div></small><span class="alectryon-wsp"> </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk7" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk7"><span class="nb">simpl</span> <span class="kr">in</span> H.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- <span class="nl">?e1</span> \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- <span class="nl">?e2</span> \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (<span class="nl">?e1</span>, <span class="nl">?e2</span>) \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk8" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk8"><span class="nb">apply</span> H.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk9" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk9"><hr></label><div class="goal-conclusion">proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2</div></blockquote></div></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chka" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chka"><span class="nb">apply</span> assume.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf (IsAVeracityClaim C1)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chkb" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chkb"><hr></label><div class="goal-conclusion">proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2</div></blockquote></div></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chkc" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chkc"><span class="nb">apply</span> leaf.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chkd" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chkd"><span class="nb">apply</span> assume.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf (IsAVeracityClaim C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">apply</span> leaf.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv3-v-chke" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chke"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (show concreteProofTreeExampleWith2Conjuncts).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ C_1 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ l^{P} \in C_1 \vdash l^{P} \in C_1 $}\AxiomC{$ C_2 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ s^{P} \in C_2 \vdash s^{P} \in C_2 $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ l^{P} \in C_1, s^{P} \in C_2 \vdash (l, s)^{P} \in C_1 \wedge C_2 $}\end{prooftree}&quot;</span>
+: string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chkf" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chkf"><span class="kn">Definition</span> <span class="nf">concreteProofTreeExampleWith3Conjuncts</span> : 
+proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- ((l, s),c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk10" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk10"><span class="nb">epose proof</span> (and_intro [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2] [c \<span class="bp">by</span> P \<span class="kr">in</span> C3]) P (l, s) c (C1 /\&#39; C2) C3.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  ([l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2] ++
+   [c \<span class="bp">by</span> P \<span class="kr">in</span> C3])
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</div></blockquote></div></div></small><span class="alectryon-wsp"> </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk11" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk11"><span class="nb">simpl</span> <span class="kr">in</span> H.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk12" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk12"><span class="nb">apply</span> H.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk13" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk13"><hr></label><div class="goal-conclusion">proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3</div></blockquote></div></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk14" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk14"><span class="nb">epose proof</span> (and_intro [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] [s \<span class="bp">by</span> P \<span class="kr">in</span> C2]) _ _ _ C1 C2.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br><span><var>H0</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- <span class="nl">?e1</span> \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- <span class="nl">?e2</span> \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  ([l \<span class="bp">by</span> P \<span class="kr">in</span> C1] ++ [s \<span class="bp">by</span> P \<span class="kr">in</span> C2])
+  |- (<span class="nl">?e1</span>, <span class="nl">?e2</span>) \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk15" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk15"><hr></label><div class="goal-conclusion">proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3</div></blockquote></div></div></div></small><span class="alectryon-wsp"> </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk16" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk16"><span class="nb">simpl</span> <span class="kr">in</span> H0.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br><span><var>H0</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- <span class="nl">?e1</span> \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- <span class="nl">?e2</span> \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (<span class="nl">?e1</span>, <span class="nl">?e2</span>) \<span class="bp">by</span> <span class="nl">?a</span> \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk17" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk17"><hr></label><div class="goal-conclusion">proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3</div></blockquote></div></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk18" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk18"><span class="nb">apply</span> H0.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br><span><var>H0</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk19" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br><span><var>H0</var><span class="hyp-type"><b>: </b><span>proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1] |- l \<span class="bp">by</span> P \<span class="kr">in</span> C1 -&gt;
+proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk19"><hr></label><div class="goal-conclusion">proofTreeOf [s \<span class="bp">by</span> P \<span class="kr">in</span> C2] |- s \<span class="bp">by</span> P \<span class="kr">in</span> C2</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk1a" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk1a"><hr></label><div class="goal-conclusion">proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3</div></blockquote></div></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kp">all</span>: <span class="nb">apply</span> assume; <span class="nb">apply</span> leaf.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv3-v-chk1b" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk1b"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (show concreteProofTreeExampleWith3Conjuncts).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ C_1 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ l^{P} \in C_1 \vdash l^{P} \in C_1 $}\AxiomC{$ C_2 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ s^{P} \in C_2 \vdash s^{P} \in C_2 $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ l^{P} \in C_1, s^{P} \in C_2 \vdash (l, s)^{P} \in C_1 \wedge C_2 $}\AxiomC{$ C_3 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ c^{P} \in C_3 \vdash c^{P} \in C_3 $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ l^{P} \in C_1, s^{P} \in C_2, c^{P} \in C_3 \vdash ((l, s), c)^{P} \in C_1 \wedge C_2 \wedge C_3 $}\end{prooftree}&quot;</span>
+: string</blockquote></div></div></small></span></pre><p>We can also combine existing trees into new trees, when appropriate. For example:</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk1c" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk1c"><span class="kn">Definition</span> <span class="nf">concreteProofTreeExampleWith3ConjunctsUsingExistingTree</span> : 
+proofTreeOf [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- ((l, s),c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk1d" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk1d"><span class="nb">epose proof</span> (and_intro [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2] [c \<span class="bp">by</span> P \<span class="kr">in</span> C3]) P (l, s) c (C1 /\&#39; C2) C3.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  ([l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2] ++
+   [c \<span class="bp">by</span> P \<span class="kr">in</span> C3])
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</div></blockquote></div></div></small><span class="alectryon-wsp"> </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk1e" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk1e"><span class="nb">simpl</span> <span class="kr">in</span> H.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk1f" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk1f"><span class="nb">apply</span> H.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk20" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk20"><hr></label><div class="goal-conclusion">proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3</div></blockquote></div></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk21" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk21"><span class="bp">exact</span> concreteProofTreeExampleWith2Conjuncts.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2]
+  |- (l, s) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2) -&gt;
+proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3 -&gt;
+proofTreeOf
+  [l \<span class="bp">by</span> P \<span class="kr">in</span> C1; s \<span class="bp">by</span> P \<span class="kr">in</span> C2; c \<span class="bp">by</span> P \<span class="kr">in</span> C3]
+  |- (l, s, c) \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39; C2 /\&#39; C3)</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf [c \<span class="bp">by</span> P \<span class="kr">in</span> C3] |- c \<span class="bp">by</span> P \<span class="kr">in</span> C3</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">apply</span> assume; <span class="nb">apply</span> leaf.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv3-v-chk22" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk22"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (show concreteProofTreeExampleWith3Conjuncts).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ C_1 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ l^{P} \in C_1 \vdash l^{P} \in C_1 $}\AxiomC{$ C_2 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ s^{P} \in C_2 \vdash s^{P} \in C_2 $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ l^{P} \in C_1, s^{P} \in C_2 \vdash (l, s)^{P} \in C_1 \wedge C_2 $}\AxiomC{$ C_3 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ c^{P} \in C_3 \vdash c^{P} \in C_3 $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ l^{P} \in C_1, s^{P} \in C_2, c^{P} \in C_3 \vdash ((l, s), c)^{P} \in C_1 \wedge C_2 \wedge C_3 $}\end{prooftree}&quot;</span>
+: string</blockquote></div></div></small></span></pre></div>
+</div>
+</div></body>
+</html>
