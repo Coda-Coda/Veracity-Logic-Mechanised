@@ -141,6 +141,14 @@ Inductive Entail : list sentence -> sentence -> Prop :=
                                   :
                         (Ps |- (a :' e \in C))
                      
+
+| from_Ps Ps a e C
+
+                       (_ : (In (a :' e \in C)) Ps)
+                                  :
+                        (Ps |- (a :' e \in C))
+                     
+
 | bot_elim Ps a e C
 
                       (_: (Ps |- (a :' e \in _|_)))
