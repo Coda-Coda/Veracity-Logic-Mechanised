@@ -16,6 +16,8 @@ Lastly, we use Coq's dependent types to enforce that it's not just any proof tre
 The type :coq:`proofTreeOf` depends on the value, :coq:`j`, of type :coq:`judgement` which constrains what a :coq:`proofTreeOf j` is.
 This is similar to a type such as :coq:`vector` depending on a value, :coq:`n`, (the vector's length) of type :coq:`nat` which constrains what a :coq:`vector n` is.
 
+Handling a trust relation and weights are future work (2024).
+
 ..
   The following is required to get MathJax to process the outputs marked with the class coq-math.
 
