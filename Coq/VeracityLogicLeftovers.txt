@@ -2,6 +2,18 @@
    but has mostly been superseded by a different approach. *)
 
 
+Attempted implication proof (for V2).
+(* Lemma exampleI : forall a C1 C2 Ps,
+
+       Ps |- a ~~> C2
+                               ->
+            Ps |- a ~~> (Implies C1 C2)
+.
+Proof.
+intros.
+apply impl_intro.
+shelve.
+assumption. *)
 
 
 Example of string proof tree rendering:
