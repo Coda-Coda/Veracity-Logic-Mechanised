@@ -129,7 +129,7 @@ Inductive proofTreeOf : judgement -> Type :=
 | and_intro Ps Qs a e1 e2 C1 C2
 
 (L: proofTreeOf (Ps |- e1 \by a \in C1))
-                          (R: proofTreeOf (Qs |- e2 \by a \in C2))
+                           (R: proofTreeOf (Qs |- e2 \by a \in C2))
                        :
     proofTreeOf ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)).
 
@@ -222,12 +222,14 @@ For each datatype defined earlier, we define a string representation of it.
 
 Fixpoint showEvid (e : evid) :=
 match e with
-        | AtomicEvid name => name
-        | Pair e1 e2 => "(" ++ (showEvid e1) ++ ", " ++ (showEvid e2) ++ ")"
-        | Left e => "i(" ++ showEvid e ++ ")"
-        | Right e => "l(" ++ showEvid e ++ ")"
-        | Lambda e1 e2 => "\lambda " ++ showEvid e1 ++ " \rightarrow " ++ showEvid e2
-     end.
+  | AtomicEvid name => name
+  | Pair e1 e2 => "(" ++ (showEvid e1) ++ ", "
+                      ++ (showEvid e2) ++ ")"
+  | Left e => "i(" ++ showEvid e ++ ")"
+  | Right e => "l(" ++ showEvid e ++ ")"
+  | Lambda e1 e2 => "\lambda " ++ showEvid e1 ++ " \rightarrow "
+                       ++ showEvid e2
+end.
 Instance : Show evid := { show := showEvid }.
 
 Fixpoint showClaim (c : claim) :=
@@ -252,39 +254,50 @@ Fixpoint showList {A} `{Show A} (l : list A) :=
     | [h] => show h
     | h1 :: (h2 :: tl) as tl' => show h1 ++ ", " ++ showList tl'
   end.
-Instance showListInstance {A : Type} `{Show A} : Show (list A) := { show l := showList l}.
+Instance showListInstance {A : Type} `{Show A} : Show (list A) 
+  := { show l := showList l}.
 
 Definition showSingleJudgement (s : singleJudgement) := 
   match s with
-    | SingleJudgement e a c => show e ++ "^{" ++ show a ++ "} \in " ++ show c
+    | SingleJudgement e a c => show e ++ "^{" ++ show a ++ "} \in "
+                                 ++ show c
   end.
 Instance : Show singleJudgement := { show := showSingleJudgement }.
 
 Definition showJudgement (j : judgement) :=
   match j with
-  | Entail l s => match l with
-                  | [] => show s
-                  | (h :: tl) as l => show l ++ " \vdash " ++ show s
-                  end
+  | Entail l s => 
+      match l with
+        | [] => show s
+        | (h :: tl) as l => show l ++ " \vdash " ++ show s
+      end
   | IsAVeracityClaim c => show c ++ " \em{ is a veracity claim}"
   end.
 Instance : Show judgement := { show := showJudgement }.
 
 Eval compute in show j1.
 
-Fixpoint showProofTreeOf_helper (j : judgement) (p : proofTreeOf j) : string :=
+Fixpoint showProofTreeOf_helper (j : judgement) (p : proofTreeOf j)
+  : string :=
 match p with
-| leaf c => "\AxiomC{$ " ++ show c ++ " \textit{ is a veracity claim} $}" ++ ""
-| assume e a c M => showProofTreeOf_helper (IsAVeracityClaim c) M ++ " \RightLabel{ $ assume $}\UnaryInfC{$ " ++ show ([e \by a \in c] |- e \by a \in c) ++ " $}"
-(* | bot_elim a e1 C M => "bot_elim " ++ showProofTreeOf ([] |- e1 \by a \in _|_) M *)
+| leaf c => "\AxiomC{$ " 
+             ++ show c 
+             ++ " \textit{ is a veracity claim} $}"
+| assume e a c M => showProofTreeOf_helper (IsAVeracityClaim c) M
+    ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
+    ++ show ([e \by a \in c] |- e \by a \in c) ++ " $}"
 | and_intro Ps Qs a e1 e2 C1 C2 L R => 
     showProofTreeOf_helper (Ps |- e1 \by a \in C1) L
  ++ showProofTreeOf_helper (Qs |- e2 \by a \in C2) R 
- ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ " ++ show ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
+ ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
+ ++ show ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
 end.
 
-Definition showProofTreeOf j p := "\begin{prooftree}" ++ showProofTreeOf_helper j p ++ "\end{prooftree}".
-Instance showProofTreeOfInstance (j : judgement) : Show (proofTreeOf j) := { show := showProofTreeOf j}.
+Definition showProofTreeOf j p
+  := "\begin{prooftree}" ++ showProofTreeOf_helper j p
+       ++ "\end{prooftree}".
+Instance showProofTreeOfInstance (j : judgement)
+  : Show (proofTreeOf j) := { show := showProofTreeOf j}.
 
 (*|
 
@@ -306,8 +319,11 @@ Definition C2 := AtomicClaim "C_2".
 Definition C3 := AtomicClaim "C_3".
 
 Definition concreteProofTreeExampleWith2Conjuncts : 
-proofTreeOf [l \by P \in C1; s \by P \in C2] |- (l, s) \by P \in (C1 /\' C2).
-epose proof (and_intro [l \by P \in C1] [s \by P \in C2]) _ _ _ C1 C2. simpl in H.
+proofTreeOf [l \by P \in C1; s \by P \in C2]
+              |- (l, s) \by P \in (C1 /\' C2).
+epose proof (and_intro [l \by P \in C1]
+                       [s \by P \in C2]) _ _ _ C1 C2.
+simpl in H.
 apply H.
 apply assume.
 apply leaf.
@@ -327,10 +343,15 @@ Eval compute in (show concreteProofTreeExampleWith2Conjuncts).
 |*)
 
 Definition concreteProofTreeExampleWith3Conjuncts : 
-proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3] |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
-epose proof (and_intro [l \by P \in C1; s \by P \in C2] [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3. simpl in H.
+proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
+              |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
+epose proof (and_intro [l \by P \in C1; s \by P \in C2]
+                       [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3.
+simpl in H.
 apply H.
-epose proof (and_intro [l \by P \in C1] [s \by P \in C2]) _ _ _ C1 C2. simpl in H0.
+epose proof (and_intro [l \by P \in C1]
+                       [s \by P \in C2]) _ _ _ C1 C2.
+simpl in H0.
 apply H0.
 all: apply assume; apply leaf.
 Defined.
@@ -351,8 +372,12 @@ We can also combine existing trees into new trees, when appropriate. For example
 |*)
 
 Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
-proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3] |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
-epose proof (and_intro [l \by P \in C1; s \by P \in C2] [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3. simpl in H.
+proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
+              |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
+epose proof (and_intro
+              [l \by P \in C1; s \by P \in C2]
+              [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3.
+simpl in H.
 apply H.
 exact concreteProofTreeExampleWith2Conjuncts.
 apply assume; apply leaf.
