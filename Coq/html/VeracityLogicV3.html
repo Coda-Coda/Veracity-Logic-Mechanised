@@ -27,6 +27,7 @@ Instead, this aims to model the process of constructing proof trees, just like t
 <p>Lastly, we use Coq's dependent types to enforce that it's not just any proof tree that we build, but it is a correct proof tree for the given judgement.
 The type <code class="highlight coq"><span class="n">proofTreeOf</span></code> depends on the value, <code class="highlight coq"><span class="n">j</span></code>, of type <code class="highlight coq"><span class="n">judgement</span></code> which constrains what a <code class="highlight coq"><span class="n">proofTreeOf</span> <span class="n">j</span></code> is.
 This is similar to a type such as <code class="highlight coq"><span class="n">vector</span></code> depending on a value, <code class="highlight coq"><span class="n">n</span></code>, (the vector's length) of type <code class="highlight coq"><span class="n">nat</span></code> which constrains what a <code class="highlight coq"><span class="n">vector</span> <span class="n">n</span></code> is.</p>
+<p>Handling a trust relation and weights are future work (2024).</p>
 <!-- The following is required to get MathJax to process the outputs marked with the class coq-math. -->
 <link rel="stylesheet" href="overrides.css">
 
