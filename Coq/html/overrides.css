@@ -1,0 +1,16 @@
+.coq-math > * > * > * > * > * > .s2 {
+  color:black;
+}
+
+.coq-math .alectryon-sentence:hover .alectryon-output:not(:hover) .alectryon-messages {
+  box-shadow: none;
+}
+
+.coq-math > * > * >  * > * > .alectryon-message {
+  background:#f6f5f4 !important;
+}
+
+.coq-math > * > * >  * > .alectryon-messages {
+  background: #f6f5f4 !important;
+  border: none;
+}
