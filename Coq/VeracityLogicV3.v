@@ -178,7 +178,7 @@ Definition c3 := AtomicClaim "c_{3}".
 
 Definition a4 := Actor "a_{4}".
 (*|
-We can also assume arbitrary evidence/claims exist. This currently doesn't work well with printing to Latex though.
+We can also assume arbitrary evidence/claims exist. This currently doesn't work well with printing to Latex. An experimental alternative is demonstrated in the experimental-NamedC-and-NamedE branch.
 |*)
 Context (e4 : evid).
 Context (c4 : claim).
