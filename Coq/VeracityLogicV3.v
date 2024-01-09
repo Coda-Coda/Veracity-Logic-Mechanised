@@ -70,14 +70,16 @@ Inductive evid :=
   | Pair (e1 e2 : evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
-  | Lambda (e1 e2 : evid).
+  | Lambda (e1 e2 : evid)
+  | NamedE (name : string) (e1 : evid).
 
 Inductive claim :=
   | AtomicClaim (name : string)
   | Bottom
   | And (c1 c2 : claim)
   | Or  (c1 c2 : claim)
-  | Implies  (c1 c2 : claim).
+  | Implies  (c1 c2 : claim)
+  | NamedC (name : string) (c1 : claim).
 
 Inductive actor :=
   | Actor (s : string).
@@ -178,10 +180,12 @@ Definition c3 := AtomicClaim "c_{3}".
 
 Definition a4 := Actor "a_{4}".
 (*|
-We can also assume arbitrary evidence/claims exist. This currently doesn't work well with printing to Latex though.
+We can also assume arbitrary evidence/claims exist.
 |*)
-Context (e4 : evid).
-Context (c4 : claim).
+Context (e4' : evid).
+Context (c4' : claim).
+Definition e4 := NamedE "e_{4}" e4'.
+Definition c4 := NamedC "c_{4}" c4'.
 
 (*|
 Example Single judgements:
@@ -229,6 +233,7 @@ match e with
   | Right e => "l(" ++ showEvid e ++ ")"
   | Lambda e1 e2 => "\lambda " ++ showEvid e1 ++ " \rightarrow "
                        ++ showEvid e2
+  | NamedE name e => name
 end.
 Instance : Show evid := { show := showEvid }.
 
@@ -239,6 +244,7 @@ match c with
   | And c1 c2 => showClaim c1 ++ " \wedge " ++ showClaim c2
   | Or c1 c2 => showClaim c1 ++ " \vee " ++ showClaim c2
   | Implies c1 c2 => showClaim c1 ++ " \rightarrow " ++ showClaim c2
+  | NamedC name c1 => name
   end.
 Instance : Show claim := { show := showClaim }.
 
