@@ -57,7 +57,6 @@ Handling a trust relation and weights are future work (2024).
 Require Import List.
 Import ListNotations.
 Require Import String.
-Open Scope string.
 
 (*|
 .. coq:: all
@@ -83,7 +82,8 @@ Inductive actor :=
   | Actor (s : string).
 
 Inductive singleJudgement :=
-  | SingleJudgement (e : evid) (a : actor) (c: claim).
+  | SingleJudgement (e : evid) (a : actor) (c: claim)
+  | Trusts (a1 a2 : actor). (* TODO, separate out into "sentences"? *)
 
 (*|
 
@@ -120,19 +120,77 @@ The remaining rules will be easy to add, this will be done in 2024.
 
 Inductive proofTreeOf : judgement -> Type :=
 | leaf c : proofTreeOf (IsAVeracityClaim c)
+| leafTrust Ps a1 a2 : proofTreeOf (Ps |- (Trusts a1 a2)) (* Is this helpful? Allows proofs with trust to be built, with the assumption that the leaves are checked against the "real world" *)
 | assume e a c
 
        (M : proofTreeOf (IsAVeracityClaim c)) 
                          :
   proofTreeOf ([e \by a \in c] |- e \by a \in c)
 
+| bot_elim Ps e a C
+
+        (M : proofTreeOf (Ps |- (e \by a \in _|_)))
+                           :
+           proofTreeOf (Ps |- (e \by a \in C))
+
 | and_intro Ps Qs a e1 e2 C1 C2
 
 (L: proofTreeOf (Ps |- e1 \by a \in C1))
                            (R: proofTreeOf (Qs |- e2 \by a \in C2))
-                       :
-    proofTreeOf ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)).
+                        :
+    proofTreeOf ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2))
 
+| and_elim1 Ps a e1 e2 C1 C2
+
+    (M : proofTreeOf Ps |- ((e1, e2) \by a \in (C1 /\' C2)))
+                           :
+             proofTreeOf (Ps |- (e1 \by a \in C1))
+
+| and_elim2 Ps a e1 e2 C1 C2
+
+    (M : proofTreeOf Ps |- ((e1, e2) \by a \in (C1 /\' C2)))
+                          :
+        proofTreeOf (Ps |- (e2 \by a \in C2))
+
+| or_intro1 Ps a e1 C1 C2
+
+           (M: proofTreeOf Ps |- (e1 \by a \in C1))
+                          :
+    proofTreeOf (Ps |- ((Left e1) \by a \in (C1 \/' C2)))
+
+| or_intro2 Ps a e2 C1 C2
+
+           (M: proofTreeOf Ps |- (e2 \by a \in C2))
+                          :
+    proofTreeOf (Ps |- ((Right e2) \by a \in (C1 \/' C2)))
+
+| or_elim1 Ps a e1 C1 C2
+
+      (M: proofTreeOf (Ps |- ((Left e1) \by a \in (C1 \/' C2))))
+                          :
+        proofTreeOf (Ps |- (e1 \by a \in C1))
+
+| or_elim2 Ps a e2 C1 C2
+
+      (M : proofTreeOf (Ps |- ((Right e2) \by a \in (C1 \/' C2))))
+                            :
+          proofTreeOf (Ps |- (e2 \by a \in C2))
+
+| trust Ps a1 a2 e C
+
+(L: proofTreeOf (Ps |- (e \by a2 \in C)))
+                            (R: proofTreeOf (Ps |- (Trusts a1 a2)))
+                          :
+            proofTreeOf (Ps |- (e \by a1 \in C))
+
+| impl_intro Ps Qs a e1 e2 C1 C2
+
+(M: proofTreeOf
+      ((Ps ++ ((e1 \by a \in C1) :: Qs)) |- (e2 \by a \in C2)))
+                              :
+proofTreeOf
+   ((Ps ++ Qs) |- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
+.
 (*|
 This is the :coq:`and_intro` rule as Coq sees it:
 |*)
@@ -163,6 +221,8 @@ Example actors, evidence, claims and judgements
 -----------------------------------------------
 
 |*)
+
+Open Scope string.
 
 Definition a1 := Actor "a_{1}".
 Definition e1 := AtomicEvid "e_{1}".
