@@ -383,10 +383,267 @@ exact concreteProofTreeExampleWith2Conjuncts.
 apply assume; apply leaf.
 Defined.
 
+Definition concreteProofTreeExampleImpossible : 
+forall (p : proofTreeOf []
+              |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)), False.
+Proof.
+intros.
+inversion p.
+assert (Qs = []).
+destruct Ps.
+destruct Qs.
+reflexivity.
+inversion H0.
+inversion H0.
+subst.
+inversion R.
+Qed.
+
+Definition a : exists (l : list singleJudgement), l = []. exists []. reflexivity. Defined.
+
+Definition concreteProofTreeExampleWithExists : 
+exists l1, exists (p : proofTreeOf l1
+              |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)), True.
+eexists _.
+eexists _.
+reflexivity.
+Unshelve.
+shelve.
+epose proof (and_intro
+              [l \by P \in C1; s \by P \in C2]
+              [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3.
+simpl in H.
+apply H.
+exact concreteProofTreeExampleWith2Conjuncts.
+apply assume; apply leaf.
+Defined.
+
+Definition concreteProofTreeExampleWithExists' : 
+{l1 | exists (p : proofTreeOf l1
+              |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)), True}.
+eexists _.
+eexists _.
+reflexivity.
+Unshelve.
+shelve.
+epose proof (and_intro
+              [l \by P \in C1; s \by P \in C2]
+              [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3.
+simpl in H.
+apply H.
+exact concreteProofTreeExampleWith2Conjuncts.
+apply assume; apply leaf.
+Defined.
+
+
+Eval compute in (proj1_sig concreteProofTreeExampleWithExists').
+
+Record lpPair := {
+  lForPair : list singleJudgement;
+  pForPair : proofTreeOf lForPair
+              |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)
+}.
+
+Definition concreteProofTreeExampleWithExists'' : 
+{l1 | exists (p : proofTreeOf (lForPair l1)
+              |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)), pForPair l1 = p}.
+eexists ({| lForPair := _; pForPair := _ |}).
+eexists _.
+simpl.
+reflexivity.
+Unshelve.
+eapply _.
+epose proof (and_intro
+              [l \by P \in C1; s \by P \in C2]
+              [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3.
+simpl in H.
+apply H.
+exact concreteProofTreeExampleWith2Conjuncts.
+apply assume; apply leaf.
+Defined.
 
 (*|
 .. coq:: unfold
    :class: coq-math
 |*)
 
-Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
+Eval compute in (show (pForPair (proj1_sig concreteProofTreeExampleWithExists''))).
+
+(*|
+.. coq::
+|*)
+
+Record lpPairGeneric := {
+  lForPairG : list singleJudgement;
+  jForPairG : singleJudgement;
+  pForPairG : proofTreeOf lForPairG
+              |- jForPairG
+}.
+
+Definition inferL j1 := 
+{l1 | exists (p : proofTreeOf (lForPairG l1)
+              |- (jForPairG l1)), pForPairG l1 = p /\ jForPairG l1 = j1}.
+
+Definition concreteProofTreeExampleWithExists''' : 
+inferL ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
+unfold inferL.
+eexists ({| lForPairG := _; pForPairG := _; jForPairG := ((l, s),c) \by P \in (C1 /\' C2 /\' C3) |}).
+eexists _.
+simpl.
+split.
+reflexivity.
+reflexivity.
+Unshelve.
+eapply _.
+epose proof (and_intro
+              [l \by P \in C1; s \by P \in C2]
+              [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3.
+simpl in H.
+apply H.
+exact concreteProofTreeExampleWith2Conjuncts.
+apply assume; apply leaf.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (show (pForPairG (proj1_sig concreteProofTreeExampleWithExists'''))).
+
+(*|
+.. coq::
+|*)
+
+Record lpPairGeneric' := {
+  eForPairG' : evid;
+  aForPairG' : actor;
+  lForPairG' : list singleJudgement;
+  cForPairG' : claim;
+  pForPairG' : proofTreeOf lForPairG'
+              |- (eForPairG' \by aForPairG' \in cForPairG')
+}.
+
+Definition proofOf c := 
+{l1 | exists (e : evid), exists (a: actor), exists (p : proofTreeOf (lForPairG' l1)
+              |- ((eForPairG' l1) \by (aForPairG' l1) \in (cForPairG' l1))), 
+               pForPairG' l1 = p /\ cForPairG' l1 = c /\ eForPairG' l1 = e /\ aForPairG' l1 = a}.
+
+(* The statement of the proof, only necessary to state the target claim to begin proving. *)
+Definition concreteProofTreeExampleWithExists'''' : proofOf (C1 /\' C2 /\' C3).
+unfold proofOf.
+eexists ({| lForPairG' := _; pForPairG' := _; cForPairG' := _; aForPairG' := _; eForPairG' := _ |}).
+eexists _.
+eexists _.
+eexists _.
+simpl.
+split.
+reflexivity.
+split.
+reflexivity.
+split.
+reflexivity.
+split.
+Unshelve.
+eapply _.
+eapply _.
+eapply _.
+epose proof (and_intro _ _) P (l, s) c (C1 /\' C2) C3.
+simpl in H.
+apply H.
+epose proof (and_intro _ _) _ _ _ C1 C2.
+simpl in H0.
+apply H0.
+all: apply assume; apply leaf.
+Defined.
+
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (show (pForPairG' (proj1_sig concreteProofTreeExampleWithExists''''))).
+
+(*|
+.. coq::
+|*)
+
+Definition concreteProofTreeSimplified : proofOf (C1 /\' C2 /\' C3).
+unfold proofOf. (* .none *)
+eexists ({| lForPairG' := _; pForPairG' := _; cForPairG' := _; aForPairG' := _; eForPairG' := _ |}). (* .none *)
+eexists _. (* .none *)
+eexists _. (* .none *)
+eexists _. (* .none *)
+simpl. (* .none *)
+split. (* .none *)
+reflexivity. (* .none *)
+split. (* .none *)
+reflexivity. (* .none *)
+split. (* .none *)
+reflexivity. (* .none *)
+split. (* .none *)
+Unshelve. (* .none *)
+eapply _. (* .none *)
+eapply _. (* .none *)
+eapply _. (* .none *)
+epose proof (and_intro _ _) P (l, s) c (C1 /\' C2) C3.
+simpl in H.
+apply H.
+epose proof (and_intro _ _) _ _ _ C1 C2.
+simpl in H0.
+apply H0.
+all: apply assume; apply leaf.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (show (pForPairG' (proj1_sig concreteProofTreeSimplified))).
+
+(*|
+.. coq::
+|*)
+
+Ltac setup := 
+
+unshelve (unfold proofOf;
+eexists ({| lForPairG' := _; pForPairG' := _; cForPairG' := _; aForPairG' := _; eForPairG' := _ |});
+eexists _;
+eexists _;
+eexists _;
+simpl;
+split;
+[reflexivity|];
+split;
+[reflexivity|];
+split;
+[reflexivity|];
+split);
+[eapply _|eapply _|eapply _|].
+
+(* The statement of the proof, only necessary to state the target claim to begin proving. *)
+Definition concreteProofTreeExampleWithSetupTactic
+  : proofOf (C1 /\' C2 /\' C3).
+setup.
+epose proof (and_intro _ _) P _ c _ C3.
+simpl in H.
+apply H.
+epose proof (and_intro _ _) _ l s C1 C2.
+simpl in H0.
+apply H0.
+all: apply assume; apply leaf.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (show (pForPairG' (proj1_sig concreteProofTreeExampleWithSetupTactic))).
+
+(*|
+.. coq::
+|*)
