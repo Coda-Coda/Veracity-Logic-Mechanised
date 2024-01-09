@@ -82,8 +82,7 @@ Inductive actor :=
   | Actor (s : string).
 
 Inductive singleJudgement :=
-  | SingleJudgement (e : evid) (a : actor) (c: claim)
-  | Trusts (a1 a2 : actor). (* TODO, separate out into "sentences"? *)
+  | SingleJudgement (e : evid) (a : actor) (c: claim).
 
 (*|
 
@@ -106,6 +105,42 @@ Infix "\/'" := Or (at level 86, left associativity).
 Notation "_|_" := (Bottom) (at level 1).
 Notation "( x , y , .. , z )" := (Pair .. (Pair x y) .. z).
 
+
+Require Import Coq.Strings.Ascii.
+
+Open Scope char_scope.
+
+Definition natToDigit (n : nat) : ascii :=
+  match n with
+    | 0 => "0"
+    | 1 => "1"
+    | 2 => "2"
+    | 3 => "3"
+    | 4 => "4"
+    | 5 => "5"
+    | 6 => "6"
+    | 7 => "7"
+    | 8 => "8"
+    | _ => "9"
+  end.
+
+Require Import Coq.Numbers.Natural.Peano.NPeano.
+Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
+  let acc' := String (natToDigit (n mod 10)) acc in
+  match time with
+    | 0 => acc'
+    | S time' =>
+      match n / 10 with
+        | 0 => acc'
+        | n' => writeNatAux time' n' acc'
+      end
+  end.
+
+Definition writeNat (n : nat) : string :=
+  writeNatAux n n "".
+
+Eval compute in writeNat 42.
+
 (*|
 
 For now, I have only implemented one inference rule, :coq:`and_intro`, as well as the :coq:`assume` rule and a rule :coq:`leaf` that declares that it is correct for a proof tree to stop on a statement such as :math:`C_1 \textit{ is a claim}`.
@@ -120,7 +155,6 @@ The remaining rules will be easy to add, this will be done in 2024.
 
 Inductive proofTreeOf : judgement -> Type :=
 | leaf c : proofTreeOf (IsAVeracityClaim c)
-| leafTrust Ps a1 a2 : proofTreeOf (Ps |- (Trusts a1 a2)) (* Is this helpful? Allows proofs with trust to be built, with the assumption that the leaves are checked against the "real world" *)
 | assume e a c
 
        (M : proofTreeOf (IsAVeracityClaim c)) 
@@ -176,10 +210,9 @@ Inductive proofTreeOf : judgement -> Type :=
                             :
           proofTreeOf (Ps |- (e2 \by a \in C2))
 
-| trust Ps a1 a2 e C
+| trust Ps a1 a2 e C (name : string)
 
 (L: proofTreeOf (Ps |- (e \by a2 \in C)))
-                            (R: proofTreeOf (Ps |- (Trusts a1 a2)))
                           :
             proofTreeOf (Ps |- (e \by a1 \in C))
 
@@ -223,6 +256,9 @@ Example actors, evidence, claims and judgements
 |*)
 
 Open Scope string.
+
+Definition e := AtomicEvid "e".
+Definition C := AtomicClaim "C".
 
 Definition a1 := Actor "a_{1}".
 Definition e1 := AtomicEvid "e_{1}".
@@ -337,6 +373,8 @@ Instance : Show judgement := { show := showJudgement }.
 
 Eval compute in show j1.
 
+Require Import Coq.Strings.Ascii.
+
 Fixpoint showProofTreeOf_helper (j : judgement) (p : proofTreeOf j)
   : string :=
 match p with
@@ -346,11 +384,25 @@ match p with
 | assume e a c M => showProofTreeOf_helper (IsAVeracityClaim c) M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
     ++ show ([e \by a \in c] |- e \by a \in c) ++ " $}"
+| bot_elim Ps e a C M => "TODO"
 | and_intro Ps Qs a e1 e2 C1 C2 L R => 
     showProofTreeOf_helper (Ps |- e1 \by a \in C1) L
  ++ showProofTreeOf_helper (Qs |- e2 \by a \in C2) R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
  ++ show ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
+| and_elim1 Ps a e1 e2 C1 C2 M => "TODO"
+| and_elim2 Ps a e1 e2 C1 C2 M => "TODO"
+| or_intro1 Ps a e1 C1 C2 M => "TODO"
+| or_intro2 Ps a e2 C1 C2 M => "TODO"
+| or_elim1 Ps a e1 C1 C2 M => "TODO"
+| or_elim2 Ps a e2 C1 C2 M => "TODO"
+| trust Ps a1 a2 e C name L => 
+    showProofTreeOf_helper (Ps |- e \by a2 \in C) L
+ ++ " \AxiomC{$" ++ show a1 ++ name ++ show a2 ++ "$} "
+ ++ " \RightLabel{ $ trust\ " ++ name
+ ++ "$} \BinaryInfC{$ "
+ ++ show (Ps |- (e \by a1 \in C)) ++ " $}"
+| impl_intro Ps Qs a e1 e2 C1 C2 M => "TODO"
 end.
 
 Definition showProofTreeOf j p
@@ -374,6 +426,7 @@ Definition l := AtomicEvid "l".
 Definition s := AtomicEvid "s".
 Definition c := AtomicEvid "c".
 Definition P := Actor "P".
+Definition Q := Actor "Q".
 Definition C1 := AtomicClaim "C_1".
 Definition C2 := AtomicClaim "C_2".
 Definition C3 := AtomicClaim "C_3".
@@ -450,3 +503,27 @@ Defined.
 |*)
 
 Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
+
+
+
+Definition concreteProofTreeExampleTrust : 
+proofTreeOf [e \by a2 \in C]
+              |- e \by a1 \in (C).
+apply (trust [e \by a2 \in C] a1 a2 e C "T").
+apply assume.
+apply leaf.
+Defined.
+
+Eval compute in (show concreteProofTreeExampleTrust).
+
+
+
+
+Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
+proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
+              |- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
+eapply (trust _ _ _ _ _ "U").
+apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
+Defined.
+
+Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust).
