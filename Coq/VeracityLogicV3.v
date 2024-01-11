@@ -333,6 +333,16 @@ Definition showTrustInfo (t : trustInfo) :=
   end.
 Instance : Show trustInfo := { show := showTrustInfo }.
 
+Definition getTrustInfoName (t : trustInfo) : string :=
+match t with
+  | Trust _ name _ => name
+end.
+
+Instance : Show string := { show := id }.
+
+Definition showTrustInfoNameOnly (t : list trustInfo) :=
+  show (map getTrustInfoName t).
+
 Definition showJudgement (j : judgement) :=
   match j with
   | Entail Ts l s => 
@@ -344,8 +354,8 @@ Definition showJudgement (j : judgement) :=
           end
         | (h :: tl) => 
           match l with
-          | [] => show Ts ++ " \vdash " ++ show s
-          | (h2 :: tl2) => show Ts ++ ", " ++ show l ++ " \vdash " ++ show s
+          | [] => show Ts ++ " \vdash_{" ++ showTrustInfoNameOnly Ts ++ "} " ++ show s
+          | (h2 :: tl2) => show Ts ++ ", " ++ show l ++ " \vdash_{" ++ showTrustInfoNameOnly Ts ++ "} " ++ show s
           end
       end
   | IsAVeracityClaim c => show c ++ " \em{ is a veracity claim}"
@@ -357,7 +367,7 @@ Instance : Show judgement := { show := showJudgement }.
    :class: coq-math
 |*)
 
-Eval compute in show ([Trust a1 "T" a2]~~[e \by a2 \in C]
+Eval compute in show ([Trust a1 "T" a2;Trust a1 "U" a2;Trust a1 "V" a2]~~[e \by a2 \in C]
               |- e \by a1 \in (C)).
 
 Eval compute in show j1.
