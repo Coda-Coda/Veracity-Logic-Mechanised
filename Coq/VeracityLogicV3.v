@@ -152,76 +152,77 @@ But this is not a proposition. This is best thought of as the datatype for (corr
 The remaining rules will be easy to add, this will be done in 2024.
 
 |*)
-
-Inductive proofTreeOf : judgement -> Type :=
-| leaf c : proofTreeOf (IsAVeracityClaim c)
+Require Import QArith.
+Inductive proofTreeOf (T : actor -> actor -> Q -> Prop) : judgement -> Type :=
+| leaf c : proofTreeOf T (IsAVeracityClaim c)
 | assume e a c
 
-       (M : proofTreeOf (IsAVeracityClaim c)) 
+       (M : proofTreeOf T (IsAVeracityClaim c)) 
                          :
-  proofTreeOf ([e \by a \in c] |- e \by a \in c)
+  proofTreeOf T ([e \by a \in c] |- e \by a \in c)
 
 | bot_elim Ps e a C
 
-        (M : proofTreeOf (Ps |- (e \by a \in _|_)))
+        (M : proofTreeOf T (Ps |- (e \by a \in _|_)))
                            :
-           proofTreeOf (Ps |- (e \by a \in C))
+           proofTreeOf T (Ps |- (e \by a \in C))
 
 | and_intro Ps Qs a e1 e2 C1 C2
 
-(L: proofTreeOf (Ps |- e1 \by a \in C1))
-                           (R: proofTreeOf (Qs |- e2 \by a \in C2))
+(L: proofTreeOf T (Ps |- e1 \by a \in C1))
+                           (R: proofTreeOf T (Qs |- e2 \by a \in C2))
                         :
-    proofTreeOf ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2))
+    proofTreeOf T ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2))
 
 | and_elim1 Ps a e1 e2 C1 C2
 
-    (M : proofTreeOf Ps |- ((e1, e2) \by a \in (C1 /\' C2)))
+    (M : proofTreeOf T Ps |- ((e1, e2) \by a \in (C1 /\' C2)))
                            :
-             proofTreeOf (Ps |- (e1 \by a \in C1))
+             proofTreeOf T (Ps |- (e1 \by a \in C1))
 
 | and_elim2 Ps a e1 e2 C1 C2
 
-    (M : proofTreeOf Ps |- ((e1, e2) \by a \in (C1 /\' C2)))
+    (M : proofTreeOf T Ps |- ((e1, e2) \by a \in (C1 /\' C2)))
                           :
-        proofTreeOf (Ps |- (e2 \by a \in C2))
+        proofTreeOf T (Ps |- (e2 \by a \in C2))
 
 | or_intro1 Ps a e1 C1 C2
 
-           (M: proofTreeOf Ps |- (e1 \by a \in C1))
+           (M: proofTreeOf T Ps |- (e1 \by a \in C1))
                           :
-    proofTreeOf (Ps |- ((Left e1) \by a \in (C1 \/' C2)))
+    proofTreeOf T (Ps |- ((Left e1) \by a \in (C1 \/' C2)))
 
 | or_intro2 Ps a e2 C1 C2
 
-           (M: proofTreeOf Ps |- (e2 \by a \in C2))
+           (M: proofTreeOf T Ps |- (e2 \by a \in C2))
                           :
-    proofTreeOf (Ps |- ((Right e2) \by a \in (C1 \/' C2)))
+    proofTreeOf T (Ps |- ((Right e2) \by a \in (C1 \/' C2)))
 
 | or_elim1 Ps a e1 C1 C2
 
-      (M: proofTreeOf (Ps |- ((Left e1) \by a \in (C1 \/' C2))))
+      (M: proofTreeOf T (Ps |- ((Left e1) \by a \in (C1 \/' C2))))
                           :
-        proofTreeOf (Ps |- (e1 \by a \in C1))
+        proofTreeOf T (Ps |- (e1 \by a \in C1))
 
 | or_elim2 Ps a e2 C1 C2
 
-      (M : proofTreeOf (Ps |- ((Right e2) \by a \in (C1 \/' C2))))
+      (M : proofTreeOf T (Ps |- ((Right e2) \by a \in (C1 \/' C2))))
                             :
-          proofTreeOf (Ps |- (e2 \by a \in C2))
+          proofTreeOf T (Ps |- (e2 \by a \in C2))
 
-| trust Ps a1 a2 e C (name : string)
+| trust Ps a1 a2 e C w (name : string)
 
-(L: proofTreeOf (Ps |- (e \by a2 \in C)))
+(L: proofTreeOf T (Ps |- (e \by a2 \in C)))
+                            (R : T a1 a2 w)
                           :
-            proofTreeOf (Ps |- (e \by a1 \in C))
+            proofTreeOf T (Ps |- (e \by a1 \in C))
 
 | impl_intro Ps Qs a e1 e2 C1 C2
 
-(M: proofTreeOf
+(M: proofTreeOf T
       ((Ps ++ ((e1 \by a \in C1) :: Qs)) |- (e2 \by a \in C2)))
                               :
-proofTreeOf
+proofTreeOf T
    ((Ps ++ Qs) |- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
 .
 (*|
@@ -375,41 +376,41 @@ Eval compute in show j1.
 
 Require Import Coq.Strings.Ascii.
 
-Fixpoint showProofTreeOf_helper (j : judgement) (p : proofTreeOf j)
+Fixpoint showproofTreeOf_helper (j : judgement) (p : proofTreeOf (fun _ _ _ => True) j)
   : string :=
 match p with
-| leaf c => "\AxiomC{$ " 
+| leaf _ c => "\AxiomC{$ " 
              ++ show c 
              ++ " \textit{ is a veracity claim} $}"
-| assume e a c M => showProofTreeOf_helper (IsAVeracityClaim c) M
+| assume _ e a c M => showproofTreeOf_helper (IsAVeracityClaim c) M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
     ++ show ([e \by a \in c] |- e \by a \in c) ++ " $}"
-| bot_elim Ps e a C M => "TODO"
-| and_intro Ps Qs a e1 e2 C1 C2 L R => 
-    showProofTreeOf_helper (Ps |- e1 \by a \in C1) L
- ++ showProofTreeOf_helper (Qs |- e2 \by a \in C2) R 
+| bot_elim _ Ps e a C M => "TODO"
+| and_intro _ Ps Qs a e1 e2 C1 C2 L R => 
+    showproofTreeOf_helper (Ps |- e1 \by a \in C1) L
+ ++ showproofTreeOf_helper (Qs |- e2 \by a \in C2) R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
  ++ show ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
-| and_elim1 Ps a e1 e2 C1 C2 M => "TODO"
-| and_elim2 Ps a e1 e2 C1 C2 M => "TODO"
-| or_intro1 Ps a e1 C1 C2 M => "TODO"
-| or_intro2 Ps a e2 C1 C2 M => "TODO"
-| or_elim1 Ps a e1 C1 C2 M => "TODO"
-| or_elim2 Ps a e2 C1 C2 M => "TODO"
-| trust Ps a1 a2 e C name L => 
-    showProofTreeOf_helper (Ps |- e \by a2 \in C) L
+| and_elim1 _ Ps a e1 e2 C1 C2 M => "TODO"
+| and_elim2 _ Ps a e1 e2 C1 C2 M => "TODO"
+| or_intro1 _ Ps a e1 C1 C2 M => "TODO"
+| or_intro2 _ Ps a e2 C1 C2 M => "TODO"
+| or_elim1 _ Ps a e1 C1 C2 M => "TODO"
+| or_elim2 _ Ps a e2 C1 C2 M => "TODO"
+| trust _ Ps a1 a2 e C w name L R => 
+    showproofTreeOf_helper (Ps |- e \by a2 \in C) L
  ++ " \AxiomC{$" ++ show a1 ++ name ++ show a2 ++ "$} "
  ++ " \RightLabel{ $ trust\ " ++ name
  ++ "$} \BinaryInfC{$ "
  ++ show (Ps |- (e \by a1 \in C)) ++ " $}"
-| impl_intro Ps Qs a e1 e2 C1 C2 M => "TODO"
+| impl_intro _ Ps Qs a e1 e2 C1 C2 M => "TODO"
 end.
 
-Definition showProofTreeOf j p
-  := "\begin{prooftree}" ++ showProofTreeOf_helper j p
+Definition showproofTreeOf (T : actor -> actor -> Q -> Prop) j p
+  := "\begin{prooftree}" ++ showproofTreeOf_helper j p
        ++ "\end{prooftree}".
-Instance showProofTreeOfInstance (j : judgement)
-  : Show (proofTreeOf j) := { show := showProofTreeOf j}.
+(* Instance showproofTreeOf TInstance T (j : judgement)
+  : Show (proofTreeOf T j) := { show := showproofTreeOf T j}. *)
 
 (*|
 
@@ -431,10 +432,12 @@ Definition C1 := AtomicClaim "C_1".
 Definition C2 := AtomicClaim "C_2".
 Definition C3 := AtomicClaim "C_3".
 
+Definition proofTreeOfOriginal := proofTreeOf (fun _ _ _ => True).
+
 Definition concreteProofTreeExampleWith2Conjuncts : 
-proofTreeOf [l \by P \in C1; s \by P \in C2]
+proofTreeOfOriginal  [l \by P \in C1; s \by P \in C2]
               |- (l, s) \by P \in (C1 /\' C2).
-epose proof (and_intro [l \by P \in C1]
+epose proof (and_intro _ [l \by P \in C1]
                        [s \by P \in C2]) _ _ _ C1 C2.
 simpl in H.
 apply H.
@@ -456,13 +459,13 @@ Eval compute in (show concreteProofTreeExampleWith2Conjuncts).
 |*)
 
 Definition concreteProofTreeExampleWith3Conjuncts : 
-proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
+proofTreeOfOriginal [l \by P \in C1; s \by P \in C2; c \by P \in C3]
               |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
-epose proof (and_intro [l \by P \in C1; s \by P \in C2]
+epose proof (and_intro _ [l \by P \in C1; s \by P \in C2]
                        [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3.
 simpl in H.
 apply H.
-epose proof (and_intro [l \by P \in C1]
+epose proof (and_intro _ [l \by P \in C1]
                        [s \by P \in C2]) _ _ _ C1 C2.
 simpl in H0.
 apply H0.
@@ -485,9 +488,9 @@ We can also combine existing trees into new trees, when appropriate. For example
 |*)
 
 Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
-proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
+proofTreeOfOriginal [l \by P \in C1; s \by P \in C2; c \by P \in C3]
               |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
-epose proof (and_intro
+epose proof (and_intro _
               [l \by P \in C1; s \by P \in C2]
               [c \by P \in C3]) P (l, s) c (C1 /\' C2) C3.
 simpl in H.
@@ -507,11 +510,14 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 
 
 Definition concreteProofTreeExampleTrust : 
-proofTreeOf [e \by a2 \in C]
+proofTreeOfOriginal [e \by a2 \in C]
               |- e \by a1 \in (C).
-apply (trust [e \by a2 \in C] a1 a2 e C "T").
+eapply (trust _ [e \by a2 \in C] a1 a2 e C _ "T").
 apply assume.
 apply leaf.
+apply I.
+Unshelve.
+exact 1.
 Defined.
 
 Eval compute in (show concreteProofTreeExampleTrust).
@@ -520,10 +526,13 @@ Eval compute in (show concreteProofTreeExampleTrust).
 
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
-proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
+proofTreeOfOriginal [l \by P \in C1; s \by P \in C2; c \by P \in C3]
               |- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
-eapply (trust _ _ _ _ _ "U").
+eapply (trust _ _ _ _ _ _ _ "U").
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
+Unshelve.
+apply I.
+apply 0.3.
 Defined.
 
 Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust).
