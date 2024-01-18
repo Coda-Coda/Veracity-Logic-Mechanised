@@ -84,8 +84,25 @@ Inductive actor :=
 Inductive singleJudgement :=
   | SingleJudgement (e : evid) (a : actor) (c: claim).
 
+(*|
+
+We define a tagged type representing a trust relation.
+
+|*)
+
 Inductive trustRelationInfo :=
   | Trust (name : string).
+
+(*|
+
+And we define equality for the tagged type.
+
+|*)
+
+Definition eqbTrust t1 t2 :=
+  match t1,t2 with
+    | Trust name1,Trust name2 => eqb name1 name2
+  end.
 
 (*|
 
@@ -183,7 +200,7 @@ Inductive proofTreeOf : judgement -> Type :=
 
 (L: proofTreeOf (Ps |-_{Ts} (e \by a2 \in C)))
                           :
-            proofTreeOf (Ps |-_{(Trust name :: Ts)} (e \by a1 \in C))
+            proofTreeOf (Ps |-_{if existsb (eqbTrust (Trust name)) Ts then Ts else (Trust name :: Ts)} (e \by a1 \in C))
 
 | impl_intro Ts Ps Qs a e1 e2 C1 C2
 
@@ -525,11 +542,10 @@ Eval compute in (show concreteProofTreeExampleTrust).
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
 proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
-              |-_{[Trust "U";Trust "U";Trust "U";Trust "U"]} ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
-eapply (trust _ _ Q Q _ _ "U").
-eapply (trust _ _ Q Q _ _ "U").
-eapply (trust _ _ Q Q _ _ "U").
-eapply (trust _ _ _ _ _ _ "U").
+              |-_{[Trust "U"]} ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
+eapply (trust [Trust "U"] _ Q Q _ _ "U").
+eapply (trust [Trust "U"] _ Q Q _ _ "U").
+eapply (trust [] _ _ _ _ _ "U").
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
 
