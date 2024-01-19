@@ -57,6 +57,7 @@ Handling a trust relation and weights are future work (2024).
 Require Import List.
 Import ListNotations.
 Require Import String.
+Require Import Coq.Strings.Ascii.
 
 (*|
 .. coq:: all
@@ -105,8 +106,32 @@ Infix "\/'" := Or (at level 86, left associativity).
 Notation "_|_" := (Bottom) (at level 1).
 Notation "( x , y , .. , z )" := (Pair .. (Pair x y) .. z).
 
+(*|
 
-Require Import Coq.Strings.Ascii.
+We define a tagged type representing a trust relation.
+
+|*)
+
+Inductive trustRelationInfo :=
+  | Trust (name : string).
+
+(*|
+
+And we define equality for the tagged type.
+
+|*)
+
+Class Beq A : Type :=
+  {
+    beq : A -> A -> bool
+  }.
+
+Definition beqTrust (t1 t2 : trustRelationInfo) : bool :=
+match t1,t2 with
+| Trust name1,Trust name2 => String.eqb name1 name2
+end.
+Instance : Beq trustRelationInfo := { beq := beqTrust }.
+
 
 Open Scope char_scope.
 
@@ -210,7 +235,7 @@ Inductive proofTreeOf : judgement -> Type :=
                             :
           proofTreeOf (Ps |- (e2 \by a \in C2))
 
-| trust Ps a1 a2 e C (name : string)
+| trust Ps a1 a2 e C (name : trustRelationInfo)
 
 (L: proofTreeOf (Ps |- (e \by a2 \in C)))
                           :
@@ -344,6 +369,12 @@ Definition showActor (a : actor) :=
   end.
 Instance : Show actor := { show := showActor }.
 
+Definition showTrustRelationInfo (t : trustRelationInfo) := 
+  match t with
+    | Trust name => name
+  end.
+Instance : Show trustRelationInfo := { show := showTrustRelationInfo }.
+
 Fixpoint showList {A} `{Show A} (l : list A) :=
   match l with
     | [] => ""
@@ -360,20 +391,49 @@ Definition showSingleJudgement (s : singleJudgement) :=
   end.
 Instance : Show singleJudgement := { show := showSingleJudgement }.
 
-Definition showJudgement (j : judgement) :=
+Definition showJudgement (Ts : list trustRelationInfo) (j : judgement) :=
   match j with
   | Entail l s => 
       match l with
         | [] => show s
-        | (h :: tl) as l => show l ++ " \vdash " ++ show s
+        | (h :: tl) as l => show l ++ " \vdash_{" ++ show Ts ++ "} " ++ show s
       end
   | IsAVeracityClaim c => show c ++ " \em{ is a veracity claim}"
   end.
-Instance : Show judgement := { show := showJudgement }.
 
-Eval compute in show j1.
+Eval compute in showJudgement [] j1.
 
-Require Import Coq.Strings.Ascii.
+Fixpoint getAllTrustRelationsUsed (j : judgement) (p : proofTreeOf j)
+  : list trustRelationInfo :=
+match p with
+| leaf c => []
+| assume e a c M => getAllTrustRelationsUsed (IsAVeracityClaim c) M
+| bot_elim Ps e a C M => getAllTrustRelationsUsed _ M
+| and_intro Ps Qs a e1 e2 C1 C2 L R => 
+    getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
+| and_elim1 Ps a e1 e2 C1 C2 M => getAllTrustRelationsUsed _ M
+| and_elim2 Ps a e1 e2 C1 C2 M => getAllTrustRelationsUsed _ M
+| or_intro1 Ps a e1 C1 C2 M => getAllTrustRelationsUsed _ M
+| or_intro2 Ps a e2 C1 C2 M => getAllTrustRelationsUsed _ M
+| or_elim1 Ps a e1 C1 C2 M => getAllTrustRelationsUsed _ M
+| or_elim2 Ps a e2 C1 C2 M => getAllTrustRelationsUsed _ M
+| trust Ps a1 a2 e C name L => 
+    name :: getAllTrustRelationsUsed _ L
+| impl_intro Ps Qs a e1 e2 C1 C2 M => getAllTrustRelationsUsed _ M
+end.
+
+Close Scope string.
+
+Fixpoint removeDups {A} `{Beq A} (l : list A) : list A :=
+match l with
+| [] => []
+| h :: tl => if existsb (beq h) tl then removeDups tl else h :: removeDups tl
+end.
+
+
+Lemma removeDupsCorrect : (forall l, NoDup (removeDups l)) /\ forall l a, In a (removeDups l) <-> In a l.
+Proof.
+Abort.
 
 Fixpoint showProofTreeOf_helper (j : judgement) (p : proofTreeOf j)
   : string :=
@@ -383,13 +443,13 @@ match p with
              ++ " \textit{ is a veracity claim} $}"
 | assume e a c M => showProofTreeOf_helper (IsAVeracityClaim c) M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
-    ++ show ([e \by a \in c] |- e \by a \in c) ++ " $}"
+    ++ showJudgement (removeDups (getAllTrustRelationsUsed j p)) ([e \by a \in c] |- e \by a \in c) ++ " $}"
 | bot_elim Ps e a C M => "TODO"
 | and_intro Ps Qs a e1 e2 C1 C2 L R => 
     showProofTreeOf_helper (Ps |- e1 \by a \in C1) L
  ++ showProofTreeOf_helper (Qs |- e2 \by a \in C2) R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
- ++ show ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
+ ++ showJudgement (removeDups (getAllTrustRelationsUsed j p)) ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
 | and_elim1 Ps a e1 e2 C1 C2 M => "TODO"
 | and_elim2 Ps a e1 e2 C1 C2 M => "TODO"
 | or_intro1 Ps a e1 C1 C2 M => "TODO"
@@ -398,12 +458,14 @@ match p with
 | or_elim2 Ps a e2 C1 C2 M => "TODO"
 | trust Ps a1 a2 e C name L => 
     showProofTreeOf_helper (Ps |- e \by a2 \in C) L
- ++ " \AxiomC{$" ++ show a1 ++ name ++ show a2 ++ "$} "
- ++ " \RightLabel{ $ trust\ " ++ name
+ ++ " \AxiomC{$" ++ show a1 ++ show name ++ show a2 ++ "$} "
+ ++ " \RightLabel{ $ trust\ " ++ show name
  ++ "$} \BinaryInfC{$ "
- ++ show (Ps |- (e \by a1 \in C)) ++ " $}"
+ ++ showJudgement (removeDups (getAllTrustRelationsUsed j p)) (Ps |- (e \by a1 \in C)) ++ " $}"
 | impl_intro Ps Qs a e1 e2 C1 C2 M => "TODO"
 end.
+
+Open Scope string.
 
 Definition showProofTreeOf j p
   := "\begin{prooftree}" ++ showProofTreeOf_helper j p
@@ -509,7 +571,7 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 Definition concreteProofTreeExampleTrust : 
 proofTreeOf [e \by a2 \in C]
               |- e \by a1 \in (C).
-apply (trust [e \by a2 \in C] a1 a2 e C "T").
+apply (trust [e \by a2 \in C] a1 a2 e C (Trust "T")).
 apply assume.
 apply leaf.
 Defined.
@@ -522,8 +584,20 @@ Eval compute in (show concreteProofTreeExampleTrust).
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
 proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
               |- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
-eapply (trust _ _ _ _ _ "U").
+eapply (trust _ _ _ _ _ (Trust "U")).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
 
-Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust).
+Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust). 
+
+Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
+proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
+              |- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
+eapply (trust _ Q Q _ _ (Trust "U")).
+eapply (trust _ Q Q _ _ (Trust "V")).
+eapply (trust _ _ _ _ _ (Trust "U")).
+apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
+Show Proof.
+Defined.
+
+Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras). 
