@@ -347,7 +347,7 @@ match e with
   | Pair e1 e2 => "(" ++ (showEvid e1) ++ ", "
                       ++ (showEvid e2) ++ ")"
   | Left e => "i(" ++ showEvid e ++ ")"
-  | Right e => "l(" ++ showEvid e ++ ")"
+  | Right e => "j(" ++ showEvid e ++ ")"
   | Lambda e1 e2 => "\lambda " ++ showEvid e1 ++ " \rightarrow "
                        ++ showEvid e2
 end.
@@ -437,32 +437,57 @@ Abort.
 
 Fixpoint showProofTreeOf_helper (j : judgement) (p : proofTreeOf j)
   : string :=
+let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 match p with
 | leaf c => "\AxiomC{$ " 
              ++ show c 
              ++ " \textit{ is a veracity claim} $}"
-| assume e a c M => showProofTreeOf_helper (IsAVeracityClaim c) M
+| assume e a c M => showProofTreeOf_helper _ M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
-    ++ showJudgement (removeDups (getAllTrustRelationsUsed j p)) ([e \by a \in c] |- e \by a \in c) ++ " $}"
-| bot_elim Ps e a C M => "TODO"
+    ++ showJudgement Ts ([e \by a \in c] |- e \by a \in c) ++ " $}"
+| bot_elim Ps e a C M => showProofTreeOf_helper _ M
+    ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
+    ++ showJudgement Ts (Ps |- (e \by a \in C))
+    ++ " $}"
 | and_intro Ps Qs a e1 e2 C1 C2 L R => 
-    showProofTreeOf_helper (Ps |- e1 \by a \in C1) L
- ++ showProofTreeOf_helper (Qs |- e2 \by a \in C2) R 
+    showProofTreeOf_helper _ L
+ ++ showProofTreeOf_helper _ R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
- ++ showJudgement (removeDups (getAllTrustRelationsUsed j p)) ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
-| and_elim1 Ps a e1 e2 C1 C2 M => "TODO"
-| and_elim2 Ps a e1 e2 C1 C2 M => "TODO"
-| or_intro1 Ps a e1 C1 C2 M => "TODO"
-| or_intro2 Ps a e2 C1 C2 M => "TODO"
-| or_elim1 Ps a e1 C1 C2 M => "TODO"
-| or_elim2 Ps a e2 C1 C2 M => "TODO"
+ ++ showJudgement Ts ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
+| and_elim1 Ps a e1 e2 C1 C2 M => showProofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \land^{-1} $} \UnaryInfC{$ "
+ ++ showJudgement Ts (Ps |- (e1 \by a \in C1))
+ ++ " $}"
+| and_elim2 Ps a e1 e2 C1 C2 M => showProofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \land^{-2} $} \UnaryInfC{$ "
+ ++ showJudgement Ts (Ps |- (e2 \by a \in C2))
+ ++ " $}"
+| or_intro1 Ps a e1 C1 C2 M => showProofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \lor^{+1} $} \UnaryInfC{$ "
+ ++ showJudgement Ts (Ps |- ((Left e1) \by a \in (C1 \/' C2)))
+ ++ " $}"
+| or_intro2 Ps a e2 C1 C2 M => showProofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \lor^{+2} $} \UnaryInfC{$ "
+ ++ showJudgement Ts (Ps |- ((Right e2) \by a \in (C1 \/' C2)))
+ ++ " $}"
+| or_elim1 Ps a e1 C1 C2 M => showProofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \lor^{-1} $} \UnaryInfC{$ "
+ ++ showJudgement Ts (Ps |- (e1 \by a \in C1))
+ ++ " $}"
+| or_elim2 Ps a e2 C1 C2 M => showProofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \lor^{-2} $} \UnaryInfC{$ "
+ ++ showJudgement Ts (Ps |- (e2 \by a \in C2))
+ ++ " $}"
 | trust Ps a1 a2 e C name L => 
-    showProofTreeOf_helper (Ps |- e \by a2 \in C) L
+    showProofTreeOf_helper _ L
  ++ " \AxiomC{$" ++ show a1 ++ show name ++ show a2 ++ "$} "
  ++ " \RightLabel{ $ trust\ " ++ show name
  ++ "$} \BinaryInfC{$ "
- ++ showJudgement (removeDups (getAllTrustRelationsUsed j p)) (Ps |- (e \by a1 \in C)) ++ " $}"
-| impl_intro Ps Qs a e1 e2 C1 C2 M => "TODO"
+ ++ showJudgement Ts (Ps |- (e \by a1 \in C)) ++ " $}"
+| impl_intro Ps Qs a e1 e2 C1 C2 M => showProofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
+ ++ showJudgement Ts ((Ps ++ Qs) |- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
+ ++ " $}"
 end.
 
 Open Scope string.
@@ -610,7 +635,7 @@ Record proofTreeOfClaim (c : claim) := {
   _a : actor;
   _p : proofTreeOf _l |- (_e \by _a \in c)
 }.
-Instance : Show (proofTreeOfClaim C1) := { show p := show (_p C1 p) }.
+Instance showProofTreeOfClaim (c : claim) : Show (proofTreeOfClaim c) := { show p := show (_p c p) }.
 
 Definition exampleWithProofOf : proofTreeOfClaim C1.
 Proof.
@@ -621,3 +646,29 @@ Defined.
 
 Eval compute in show exampleWithProofOf.
 
+Definition usingAll : proofTreeOfClaim (Implies _|_ C1).
+Proof.
+eexists _ _ _.
+eapply or_elim1.
+eapply or_intro1.
+eapply or_elim2.
+eapply or_intro2.
+eapply and_elim1.
+eapply and_intro.
+eapply and_elim2.
+eapply and_intro.
+apply assume; apply leaf.
+2: apply assume; apply leaf.
+eapply (trust _ _ _ _ _ (Trust "T")).
+eapply (impl_intro []).
+simpl.
+eapply bot_elim.
+apply assume.
+apply leaf.
+Unshelve.
+1,8: apply a1.
+1,2,4,6: apply C2.
+1,2,3: apply e2.
+Defined.
+
+Eval compute in show usingAll.
