@@ -608,22 +608,6 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).
 
 
 
-Definition concreteProofTreeExampleImpossible : 
-forall (p : proofTreeOf []
-              |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)), False.
-Proof.
-intros.
-inversion p.
-assert (Qs = []).
-destruct Ps.
-destruct Qs.
-reflexivity.
-inversion H0.
-inversion H0.
-subst.
-inversion R.
-Qed.
-
 Definition a : exists (l : list singleJudgement), l = []. exists []. reflexivity. Defined.
 
 Definition concreteProofTreeExampleWithExists : 
