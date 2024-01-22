@@ -179,6 +179,7 @@ The remaining rules will be easy to add, this will be done in 2024.
 |*)
 
 Inductive proofTreeOf : judgement -> Type :=
+| admit p : proofTreeOf p
 | leaf c : proofTreeOf (IsAVeracityClaim c)
 | assume e a c
 
@@ -406,6 +407,7 @@ Eval compute in showJudgement [] j1.
 Fixpoint getAllTrustRelationsUsed (j : judgement) (p : proofTreeOf j)
   : list trustRelationInfo :=
 match p with
+| admit _ => []
 | leaf c => []
 | assume e a c M => getAllTrustRelationsUsed (IsAVeracityClaim c) M
 | bot_elim Ps e a C M => getAllTrustRelationsUsed _ M
@@ -439,6 +441,7 @@ Fixpoint showProofTreeOf_helper (j : judgement) (p : proofTreeOf j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 match p with
+| admit p => "\AxiomC{?}"
 | leaf c => "\AxiomC{$ " 
              ++ show c 
              ++ " \textit{ is a veracity claim} $}"
@@ -664,7 +667,7 @@ eapply (impl_intro []).
 simpl.
 eapply bot_elim.
 apply assume.
-apply leaf.
+apply (admit _).
 Unshelve.
 1,8: apply a1.
 1,2,4,6: apply C2.
