@@ -675,3 +675,35 @@ Unshelve.
 Defined.
 
 Eval compute in show usingAll.
+
+Ltac proveClaim := 
+unshelve eexists _ _ _;
+(repeat ( 
+idtac
+(* + unshelve eapply or_elim1 *)
+(* + unshelve eapply admit *)
++ unshelve eapply or_intro1
+(* + unshelve eapply or_elim2 *)
++ unshelve eapply or_intro2
+(* + unshelve eapply and_elim1 *)
++ unshelve eapply and_intro
+(* + unshelve eapply and_elim2 *)
++ unshelve eapply and_intro
++ unshelve apply assume
++ unshelve apply leaf
+(* + unshelve eapply (trust _ _ _ _ _ (Trust "T")) *)
++ unshelve eapply (impl_intro [])
++ simpl
++ unshelve eapply bot_elim));
+repeat (apply a1
++ apply C2
++ apply e2
++ apply [])
+.
+
+Definition automatedProof : proofTreeOfClaim (C2 /\' C3 /\' C1).
+Proof.
+proveClaim.
+Defined.
+
+Eval compute in show automatedProof.
