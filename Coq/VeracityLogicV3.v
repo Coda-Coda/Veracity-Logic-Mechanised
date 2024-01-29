@@ -181,11 +181,11 @@ The remaining rules will be easy to add, this will be done in 2024.
 Inductive proofTreeOf : judgement -> Type :=
 | admit p : proofTreeOf p
 | leaf c : proofTreeOf (IsAVeracityClaim c)
-| assume e a c
+| assume e a name
 
-       (M : proofTreeOf (IsAVeracityClaim c)) 
+       (M : proofTreeOf (IsAVeracityClaim (AtomicClaim name))) 
                          :
-  proofTreeOf ([e \by a \in c] |- e \by a \in c)
+  proofTreeOf ([e \by a \in (AtomicClaim name)] |- e \by a \in (AtomicClaim name))
 
 | bot_elim Ps e a C
 
@@ -409,7 +409,7 @@ Fixpoint getAllTrustRelationsUsed (j : judgement) (p : proofTreeOf j)
 match p with
 | admit _ => []
 | leaf c => []
-| assume e a c M => getAllTrustRelationsUsed (IsAVeracityClaim c) M
+| assume e a name M => getAllTrustRelationsUsed _ M
 | bot_elim Ps e a C M => getAllTrustRelationsUsed _ M
 | and_intro Ps Qs a e1 e2 C1 C2 L R => 
     getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
@@ -445,9 +445,9 @@ match p with
 | leaf c => "\AxiomC{$ " 
              ++ show c 
              ++ " \textit{ is a veracity claim} $}"
-| assume e a c M => showProofTreeOf_helper _ M
+| assume e a name M => showProofTreeOf_helper _ M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
-    ++ showJudgement Ts ([e \by a \in c] |- e \by a \in c) ++ " $}"
+    ++ showJudgement Ts ([e \by a \in (AtomicClaim name)] |- e \by a \in (AtomicClaim name)) ++ " $}"
 | bot_elim Ps e a C M => showProofTreeOf_helper _ M
     ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
     ++ showJudgement Ts (Ps |- (e \by a \in C))
