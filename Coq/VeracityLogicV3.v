@@ -610,7 +610,9 @@ Defined.
 
 Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 
-
+(*|
+.. coq::
+|*)
 
 Definition concreteProofTreeExampleTrust : 
 proofTreeOf [e \by a2 \in C]
@@ -620,9 +622,16 @@ apply assume.
 apply leaf.
 Defined.
 
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
 Eval compute in (show concreteProofTreeExampleTrust).
 
-
+(*|
+.. coq::
+|*)
 
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
@@ -632,7 +641,17 @@ eapply (trust _ _ _ _ _ (Trust "U")).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
 
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
 Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust). 
+
+(*|
+.. coq::
+|*)
+
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
 proofTreeOf [l \by P \in C1; s \by P \in C2; c \by P \in C3]
@@ -644,8 +663,17 @@ apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Show Proof.
 Defined.
 
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
 Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras). 
 
+(*|
+.. coq::
+|*)
 
 
 Record proofTreeOfClaim (c : claim) := {
@@ -663,7 +691,18 @@ apply (assume e1 a1).
 apply leaf.
 Defined.
 
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
 Eval compute in show exampleWithProofOf.
+
+
+(*|
+.. coq::
+|*)
 
 Definition usingAll : proofTreeOfClaim (Implies _|_ C1).
 Proof.
@@ -691,7 +730,17 @@ Unshelve.
 1,2: apply "C_2".
 Defined.
 
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
 Eval compute in show usingAll.
+
+(*|
+.. coq::
+|*)
 
 Ltac proveClaim := 
 (* unshelve eexists _ _ _; *)
@@ -815,17 +864,35 @@ end. *)
 Ltac2 rec proveClaimLtac2_helper max_depth :=
 match Int.equal max_depth 1 with
   | true => 
-    solve [apply eQ | eapply bot_elim | eapply leaf | eapply aQ | eapply CQ | eapply assume_bot]
+    solve [apply admit | eapply leaf | eapply assume | eapply assume_bot | eapply bot_elim | eapply and_intro | eapply and_elim1 |
+           eapply and_elim2 | eapply or_intro1 | eapply or_intro2 | eapply or_elim1 | eapply or_elim2 | eapply trust | eapply impl_intro |
+           simpl | apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust "?") ]
   | false => 
     (* Message.print (Message.of_int max_depth); *)
     
     Control.plus (
-      fun () => Control.plus (fun () => try (( apply eQ); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "1"); proveClaimLtac2_helper (Int.sub max_depth 1))
-        (fun _ => Control.plus (fun () => try (( eapply bot_elim); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "2"); proveClaimLtac2_helper (Int.sub max_depth 1))
-          (fun _ => Control.plus (fun () => try (( eapply assume_bot); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "3"); proveClaimLtac2_helper (Int.sub max_depth 1)   )
-            (fun _ => Control.plus (fun () => try (( eapply aQ); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
-              (fun _ => try (( eapply assume); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "5"); proveClaimLtac2_helper (Int.sub max_depth 1))))))
-                (fun _ => try (( apply CQ); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "6"); proveClaimLtac2_helper (Int.sub max_depth 1))
+      fun () => Control.plus (fun () => try (( apply admit); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "1"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply leaf); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "2"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply assume); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "3"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply assume_bot); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+
+     (fun _ => Control.plus (fun () => try (( eapply bot_elim); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply and_intro); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply and_elim1); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply and_elim2); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply or_intro1); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply or_intro2); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply or_elim1); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply or_elim2); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply trust); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( eapply impl_intro); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( simpl); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( apply CQ); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( apply aQ); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => try (( apply eQ); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+
+     (fun _ => try (( apply ([] : list singleJudgement)); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "5"); proveClaimLtac2_helper (Int.sub max_depth 1))))))))))))))))))))
+     (fun _ => try (( apply (Trust "?")); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "6"); proveClaimLtac2_helper (Int.sub max_depth 1))
 end.
 
 (* solve [
@@ -855,43 +922,47 @@ end.
 
 (* Ltac2 Notation etransitivity := Std.unshelve (). *)
 
-Set Default Proof Mode "Ltac2".
+Set Default Proof Mode "Classic".
 
 
 Set Ltac2 Backtrace.
 
+Ltac autoprove :=
+unshelve eexists _ _ _;
+ltac2:(proveClaimLtac2_helper 1).
+
 Definition exampleBottom : proofTreeOfClaim (C1).
 Proof.
-(eexists _ _ _).
-proveClaimLtac2_helper 2.
-Unshelve.
+autoprove.
 Show Proof.
-eapply bot_elim.
-eapply assume_bot.
-eapply leaf.
-
-
-apply bot_elim.
-apply assume_bot.
-eapply bot_elim.
-eapply assume_bot.
-eapply leaf.
-(* eapply admit. *)
-(* apply and_elim1 with (e2 := eQ) (C2 := CQ). *)
-(proveClaimLtac2_helper 4).
-Show Proof.
-Unshelve.
-apply CQ.
-apply CQ.
 Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
 
 Eval compute in show exampleBottom.
 
-(* Definition automatedProof : proofTreeOfClaim (C2 /\' C3 /\' C1).
+(*|
+.. coq::
+|*)
+
+
+Definition automatedProof : proofTreeOfClaim (C2 /\' C3 /\' C1).
 Proof.
-unshelve eexists _ _ _;
-proveClaim.
+autoprove.
 Show Proof.
 Defined.
 
-Eval compute in show automatedProof. *)
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in show automatedProof.
+
+(*|
+.. coq::
+|*)
+
