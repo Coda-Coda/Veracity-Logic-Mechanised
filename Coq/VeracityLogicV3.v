@@ -133,38 +133,6 @@ end.
 Instance : Beq trustRelationInfo := { beq := beqTrust }.
 
 
-Open Scope char_scope.
-
-Definition natToDigit (n : nat) : ascii :=
-  match n with
-    | 0 => "0"
-    | 1 => "1"
-    | 2 => "2"
-    | 3 => "3"
-    | 4 => "4"
-    | 5 => "5"
-    | 6 => "6"
-    | 7 => "7"
-    | 8 => "8"
-    | _ => "9"
-  end.
-
-Require Import Coq.Numbers.Natural.Peano.NPeano.
-Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
-  let acc' := String (natToDigit (n mod 10)) acc in
-  match time with
-    | 0 => acc'
-    | S time' =>
-      match n / 10 with
-        | 0 => acc'
-        | n' => writeNatAux time' n' acc'
-      end
-  end.
-
-Definition writeNat (n : nat) : string :=
-  writeNatAux n n "".
-
-Eval compute in writeNat 42.
 
 (*|
 
@@ -342,6 +310,45 @@ Class Show A : Type :=
   {
     show : A -> string
   }.
+
+
+Open Scope char_scope.
+
+Definition natToDigit (n : nat) : ascii :=
+  match n with
+    | 0 => "0"
+    | 1 => "1"
+    | 2 => "2"
+    | 3 => "3"
+    | 4 => "4"
+    | 5 => "5"
+    | 6 => "6"
+    | 7 => "7"
+    | 8 => "8"
+    | _ => "9"
+  end.
+
+Require Import Coq.Numbers.Natural.Peano.NPeano.
+Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
+  let acc' := String (natToDigit (n mod 10)) acc in
+  match time with
+    | 0 => acc'
+    | S time' =>
+      match n / 10 with
+        | 0 => acc'
+        | n' => writeNatAux time' n' acc'
+      end
+  end.
+
+Definition writeNat (n : nat) : string :=
+  writeNatAux n n "".
+
+Eval compute in writeNat 42.
+
+Instance : Show nat := { show := writeNat }.
+
+Open Scope string_scope.
+
 
 (*|
 For each datatype defined earlier, we define a string representation of it.
@@ -712,25 +719,179 @@ repeat (apply a1
 + apply [])
 .
 
+From Ltac2 Require Import Ltac2.
+
+Ltac2 do0 n t :=
+  let rec aux n t := match Int.equal n 0 with
+  | true => ()
+  | false => t (); aux (Int.sub n 1) t
+  end in
+  aux (n ()) t.
+
+
+Ltac2 proveClaimLtac2' d := do d (eapply or_elim1).
+Ltac2 proveClaimLtac2'' d := solve [proveClaimLtac2' 3].
+
+(* Ltac2 unshelve (t) := ltac1:(t |- unshelve t). *)
+
+(* Ltac2 Notation "unshelve_eapply"
+  cb(list1(thunk(seq(open_constr, with_bindings)), ","))
+  cl(opt(seq("in", ident, opt(seq("as", intropattern))))) :=
+  apply0 true true cb cl. *)
+
+Definition eQ := AtomicEvid "e_{?}".
+Definition CQ := AtomicClaim "C_{?}".
+Definition aQ := Actor "a_{?}".
+
+Ltac2 x_or_y () :=
+ Control.plus (
+   fun () => Control.plus (fun () => "1")
+    (fun _ => Control.plus (fun () => "2")
+      (fun _ => Control.plus (fun () => "3")
+        (fun _ => "4"))))
+          (fun _ => "5").
+
+Ltac2 Type exn ::= [ MyNewException(string) ].
+Ltac2 backtracking () :=
+ Control.plus (
+   fun () => Control.plus (fun () => Message.print (Message.of_string "1"); Control.zero (MyNewException ("e1")))
+    (fun _ => Control.plus (fun () => Message.print (Message.of_string "2"); Control.zero (MyNewException ("e2")))
+      (fun _ => Control.plus (fun () => Message.print (Message.of_string "3"); Control.zero (MyNewException ("e3")))
+        (fun _ => Message.print (Message.of_string "4"); Control.zero (MyNewException ("e4"))))))
+          (fun _ => Message.print (Message.of_string "5"); Control.zero (MyNewException ("e5"))).
+
+(* Ltac2 Eval backtracking (). *)
+
+Ltac2 get_x_and_y () :=
+  match Control.case x_or_y with
+  | Val xyf => let (x, yf) := xyf in
+               (x, yf Not_found)
+  | Err exn => Control.throw exn
+end.
+
+Ltac2 Eval get_x_and_y ().
+
+
+(* Ltac2 Type exn ::= [ MyNewException(string) ]. *)
+
+Ltac2 hello max_depth :=
+     Control.plus 
+       (Message.print (Message.of_string "1"); Control.zero (MyNewException ("e1")))
+       (fun e => Message.print (Message.of_string "2")).
+
+(* Ltac2 Eval hello 3. *)
+
+Ltac2 rec testing1 max_depth :=
+match Int.equal max_depth 0 with
+  | true => Control.zero (MyNewException ("Ran out of depth."))
+  | false => 
+    (* Message.print (Message.of_int max_depth); *)
+    
+    Control.plus (
+      fun () => Control.plus (fun () => Message.print (Message.of_string "1"); testing1 (Int.sub max_depth 1))
+        (fun _ => Control.plus (fun () => Message.print (Message.of_string "2"); testing1 (Int.sub max_depth 1))
+          (fun _ => Control.plus (fun () => Message.print (Message.of_string "3"); testing1 (Int.sub max_depth 1))
+            (fun _ => Message.print (Message.of_string "4"); testing1 (Int.sub max_depth 1)))))
+              (fun _ => Message.print (Message.of_string "5"); testing1 (Int.sub max_depth 1))
+end.
+
+(* Ltac2 Eval testing1 3. *)
+
+(* Ltac2 rec proveClaimLtac2_helper max_depth :=
+match Int.equal max_depth 0 with
+  | true => Control.zero (MyNewException ("Ran out of depth."))
+  | false => 
+    Message.print (Message.of_int max_depth);
+    
+    Control.plus (
+      fun () => Control.plus (fun () => try (ltac1:(unshelve eapply or_elim1); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "1"); proveClaimLtac2_helper (Int.sub max_depth 1))
+        (fun _ => Control.plus (fun () => try (ltac1:(unshelve eapply admit); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "2"); proveClaimLtac2_helper (Int.sub max_depth 1))
+          (fun _ => Control.plus (fun () => try (ltac1:(unshelve eapply or_intro1); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "3"); proveClaimLtac2_helper (Int.sub max_depth 1))
+            (fun _ => try (ltac1:(unshelve eapply or_elim2); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1)))))
+              (fun _ => try (ltac1:(unshelve eapply or_intro2); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "5"); proveClaimLtac2_helper (Int.sub max_depth 1))
+end. *)
+
+
+Ltac2 rec proveClaimLtac2_helper max_depth :=
+match Int.equal max_depth 1 with
+  | true => 
+    solve [apply eQ | eapply bot_elim | eapply leaf | eapply aQ | eapply CQ | eapply assume_bot]
+  | false => 
+    (* Message.print (Message.of_int max_depth); *)
+    
+    Control.plus (
+      fun () => Control.plus (fun () => try (( apply eQ); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "1"); proveClaimLtac2_helper (Int.sub max_depth 1))
+        (fun _ => Control.plus (fun () => try (( eapply bot_elim); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "2"); proveClaimLtac2_helper (Int.sub max_depth 1))
+          (fun _ => Control.plus (fun () => try (( eapply assume_bot); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "3"); proveClaimLtac2_helper (Int.sub max_depth 1)   )
+            (fun _ => Control.plus (fun () => try (( eapply aQ); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proveClaimLtac2_helper (Int.sub max_depth 1))
+              (fun _ => try (( eapply assume); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "5"); proveClaimLtac2_helper (Int.sub max_depth 1))))))
+                (fun _ => try (( apply CQ); proveClaimLtac2_helper (Int.sub max_depth 1)); Message.print (Message.of_string "6"); proveClaimLtac2_helper (Int.sub max_depth 1))
+end.
+
+(* solve [
+ (eapply or_elim1; do (Int.sub d 1) proveClaimLtac2_helper);
+ eapply or_elim2
+]. *)
+
+
+(* Ltac2 proveClaim2 depth :=
+  if constr:(false) then fail else
+   eapply or_elim1.
+|| unshelve eapply admit
+|| unshelve eapply or_intro1
+|| unshelve eapply or_elim2
+|| unshelve eapply or_intro2
+|| unshelve eapply and_elim1
+|| unshelve eapply and_intro
+|| unshelve eapply and_elim2
+|| unshelve eapply and_intro; simpl
+|| unshelve apply assume
+|| unshelve apply assume_bot
+|| unshelve apply leaf
+|| unshelve eapply (trust _ _ _ _ _ (Trust "T"))
+|| unshelve eapply (impl_intro [])
+|| simpl
+|| unshelve eapply bot_elim. *)
+
+(* Ltac2 Notation etransitivity := Std.unshelve (). *)
+
+Set Default Proof Mode "Ltac2".
+
+
+Set Ltac2 Backtrace.
+
 Definition exampleBottom : proofTreeOfClaim (C1).
 Proof.
-eexists _ _ _.
-(* eapply (impl_intro [] []). *)
+(eexists _ _ _).
+proveClaimLtac2_helper 2.
+Unshelve.
+Show Proof.
 eapply bot_elim.
 eapply assume_bot.
 eapply leaf.
+
+
+apply bot_elim.
+apply assume_bot.
+eapply bot_elim.
+eapply assume_bot.
+eapply leaf.
+(* eapply admit. *)
+(* apply and_elim1 with (e2 := eQ) (C2 := CQ). *)
+(proveClaimLtac2_helper 4).
+Show Proof.
 Unshelve.
-apply e1.
-apply a1.
+apply CQ.
+apply CQ.
 Defined.
 
 Eval compute in show exampleBottom.
 
-Definition automatedProof : proofTreeOfClaim (C2 /\' C3 /\' C1).
+(* Definition automatedProof : proofTreeOfClaim (C2 /\' C3 /\' C1).
 Proof.
 unshelve eexists _ _ _;
 proveClaim.
 Show Proof.
 Defined.
 
-Eval compute in show automatedProof.
+Eval compute in show automatedProof. *)
