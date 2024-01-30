@@ -675,18 +675,19 @@ eapply (trust _ _ _ _ _ (Trust "T")).
 eapply (impl_intro []).
 simpl.
 eapply bot_elim.
-apply assume.
+apply assume_bot.
 apply (admit _).
 Unshelve.
 1,8: apply a1.
-1,2,4,6: apply C2.
-1,2,3: apply e2.
+1,2: apply C2.
+1,2,5: apply e2.
+1,2: apply "C_2".
 Defined.
 
 Eval compute in show usingAll.
 
 Ltac proveClaim := 
-unshelve eexists _ _ _;
+(* unshelve eexists _ _ _; *)
 (repeat ( 
 idtac
 (* + unshelve eapply or_elim1 *)
@@ -697,8 +698,9 @@ idtac
 (* + unshelve eapply and_elim1 *)
 + unshelve eapply and_intro
 (* + unshelve eapply and_elim2 *)
-+ unshelve eapply and_intro
++ unshelve eapply and_intro; simpl
 + unshelve apply assume
++ unshelve apply assume_bot
 + unshelve apply leaf
 (* + unshelve eapply (trust _ _ _ _ _ (Trust "T")) *)
 + unshelve eapply (impl_intro [])
@@ -710,9 +712,25 @@ repeat (apply a1
 + apply [])
 .
 
+Definition exampleBottom : proofTreeOfClaim (C1).
+Proof.
+eexists _ _ _.
+(* eapply (impl_intro [] []). *)
+eapply bot_elim.
+eapply assume_bot.
+eapply leaf.
+Unshelve.
+apply e1.
+apply a1.
+Defined.
+
+Eval compute in show exampleBottom.
+
 Definition automatedProof : proofTreeOfClaim (C2 /\' C3 /\' C1).
 Proof.
+unshelve eexists _ _ _;
 proveClaim.
+Show Proof.
 Defined.
 
 Eval compute in show automatedProof.
