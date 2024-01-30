@@ -186,6 +186,11 @@ Inductive proofTreeOf : judgement -> Type :=
        (M : proofTreeOf (IsAVeracityClaim (AtomicClaim name))) 
                          :
   proofTreeOf ([e \by a \in (AtomicClaim name)] |- e \by a \in (AtomicClaim name))
+| assume_bot e a
+
+       (M : proofTreeOf (IsAVeracityClaim _|_)) 
+                         :
+  proofTreeOf ([e \by a \in _|_] |- e \by a \in _|_)
 
 | bot_elim Ps e a C
 
@@ -410,6 +415,7 @@ match p with
 | admit _ => []
 | leaf c => []
 | assume e a name M => getAllTrustRelationsUsed _ M
+| assume_bot e a M => getAllTrustRelationsUsed _ M
 | bot_elim Ps e a C M => getAllTrustRelationsUsed _ M
 | and_intro Ps Qs a e1 e2 C1 C2 L R => 
     getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
@@ -448,6 +454,9 @@ match p with
 | assume e a name M => showProofTreeOf_helper _ M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
     ++ showJudgement Ts ([e \by a \in (AtomicClaim name)] |- e \by a \in (AtomicClaim name)) ++ " $}"
+| assume_bot e a M => showProofTreeOf_helper _ M
+    ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
+    ++ showJudgement Ts ([e \by a \in _|_] |- e \by a \in _|_) ++ " $}"
 | bot_elim Ps e a C M => showProofTreeOf_helper _ M
     ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
     ++ showJudgement Ts (Ps |- (e \by a \in C))
