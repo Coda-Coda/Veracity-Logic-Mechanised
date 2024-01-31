@@ -1,7 +1,7 @@
 let pkgs = import (
   builtins.fetchTarball {
-  url = "https://github.com/nixos/nixpkgs/archive/e97b3e4186bcadf0ef1b6be22b8558eab1cdeb5d.tar.gz";
-  sha256 = "114ggf0xbwq16djg4qql3jljknk9xr8h7dw18ccalwqg9k1cgv0g";
+  url = "https://github.com/nixos/nixpkgs/archive/90f456026d284c22b3e3497be980b2e47d0b28ac.tar.gz";
+  sha256 = "164lsq7xjjvpga6l6lfi9wfsnshgfxnpa8lvb2imscdwgmajakrc";
 }) {}; in
 
 let
@@ -39,8 +39,8 @@ in
 
 pkgs.mkShell {
   buildInputs = with pkgs; [ 
-      coq_8_14
-      coqPackages_8_14.serapi
+      coq_8_17
+      coqPackages_8_17.serapi
       python-with-my-packages
     ];
   shellHook = ''
