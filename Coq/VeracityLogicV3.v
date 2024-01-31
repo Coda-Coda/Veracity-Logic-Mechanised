@@ -886,10 +886,10 @@ solve [ eapply leaf | eapply assume | eapply assume_bot | eapply bot_elim | eapp
     simpl; Control.plus (
      fun () => Control.plus (fun () => fail)
      
-     (fun _ => Control.plus (fun () => ( try (eapply trust); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying trust"); proofSearch (Int.sub max_depth 1))
      (fun _ => Control.plus (fun () => ( try (eapply leaf); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying leaf"); proofSearch (Int.sub max_depth 1))
-     (fun _ => Control.plus (fun () => ( try (eapply assume ); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying assume"); proofSearch (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => ( try (eapply (assume _ a1 )); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying assume"); proofSearch (Int.sub max_depth 1))
      (fun _ => Control.plus (fun () => ( try (eapply and_intro); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying and_intro"); proofSearch (Int.sub max_depth 1))
+     (fun _ => Control.plus (fun () => ( try (eapply trust); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying trust"); proofSearch (Int.sub max_depth 1))
      (* (fun _ => Control.plus (fun () => ( try (eapply or_intro1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying or_intro1"); proofSearch (Int.sub max_depth 1)) *)
      (* (fun _ => Control.plus (fun () => ( try (eapply or_intro2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying or_intro2"); proofSearch (Int.sub max_depth 1)) *)
      (* (fun _ => Control.plus (fun () => ( try (eapply and_elim1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying and_elim1"); proofSearch (Int.sub max_depth 1)) *)
@@ -928,7 +928,6 @@ try (autoProveWithDepth 4)
 . *)
 
 Ltac2 autoProve () :=
-eexists _ _ _;
 (autoProveWithProgressiveDepth 1).
 
 Ltac2 fillConstant () :=
@@ -936,8 +935,13 @@ solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | app
 
 (* Set Ltac2 Backtrace. *)
 
+(*|
+The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.
+|*)
+
 Definition exampleC1 : proofTreeOfClaim (C1).
 Proof.
+eexists _ _ a2.
 autoProve ().
 Unshelve.
 all: fillConstant ().
@@ -954,10 +958,16 @@ Eval compute in show exampleC1.
 (*|
 .. coq::
 |*)
+
 Set Default Proof Mode "Ltac2".
+
+(*|
+The following demonstrates automatically proving a larger claim.
+|*)
 
 Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C3 /\' C4 /\' C5).
 Proof.
+eexists _ _ _.
 autoProve ().
 Unshelve.
 all: fillConstant ().
