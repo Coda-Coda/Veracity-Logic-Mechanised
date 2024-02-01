@@ -770,80 +770,76 @@ repeat (apply a1
 + apply [])
 .
 
-From Ltac2 Require Import Ltac2.
-
 Definition eQ := AtomicEvid "e_{?}".
 Definition CQ := AtomicClaim "C_{?}".
 Definition aQ := Actor "a_{?}".
 
-Ltac2 maybePrintMessage1 s := Message.print (Message.of_string s).
-Ltac2 maybePrintMessage2 s := Message.print (Message.of_string s).
-Ltac2 Type exn ::= [ VeracityProofSearchException(string) ].
+Ltac maybePrintMessage1 s := idtac s.
+Ltac maybePrintMessage2 s := idtac s.
+(* Ltac2 Type exn ::= [ VeracityProofSearchException(string) ]. *)
 
-Ltac2 tryLeaf etc :=
+Ltac tryLeaf :=
 maybePrintMessage1 "Trying leaf";
-match! goal with
-   | [ |- proofTreeOf (IsAVeracityClaim _) ] => (maybePrintMessage2 "Applying leaf"); (eapply leaf); etc
+match goal with
+   | [ |- proofTreeOf (IsAVeracityClaim _) ] => (maybePrintMessage2 "Applying leaf"); (eapply leaf)
    | [ |- _ ] => fail
 end.
 
-Ltac2 tryAssumeWitha1 etc :=
+Ltac tryAssumeWitha1 :=
 (maybePrintMessage1 "Trying assume");
-match! goal with
-   | [ |- proofTreeOf _ ] => (maybePrintMessage2 "Applying assume"); eapply (assume _ a1); etc
-   | [ |- _ ] => Control.zero (VeracityProofSearchException "Didn't match")
+match goal with
+   | [ |- proofTreeOf _ ] => (maybePrintMessage2 "Applying assume"); eapply (assume _ a1)
+   | [ |- _ ] => fail
 end.
 
-Ltac2 tryAndIntro etc :=
+Ltac tryAndIntro :=
 (maybePrintMessage1 "Trying and_intro");
-match! goal with
-   | [ |- (proofTreeOf _ |- _ \by _ \in (_ /\' _)) ] => (maybePrintMessage2 "Applying and_intro"); eapply and_intro; Control.enter (fun _ => etc)
-   | [ |- _ ] => Control.zero (VeracityProofSearchException "Didn't match")
+match goal with
+   | [ |- (proofTreeOf _ |- _ \by _ \in (_ /\' _)) ] => (maybePrintMessage2 "Applying and_intro"); eapply and_intro
+   | [ |- _ ] => fail
 end.
 
-Ltac2 tryTrust etc :=
+Ltac tryTrust :=
 (maybePrintMessage1 "Trying trust");
-match! goal with
-   | [ |- proofTreeOf _ ] => (maybePrintMessage2 "Applying trust"); (eapply (trust _ _ _ _ _ _)); etc
-   | [ |- _ ] => Control.zero (VeracityProofSearchException "Didn't match")
+match goal with
+   | [ |- proofTreeOf _ ] => (maybePrintMessage2 "Applying trust"); (eapply (trust _ _ _ _ _ _))
+   | [ |- _ ] => fail
 end.
 
-Ltac2 fillConstant () :=
+Ltac fillConstant :=
 solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust "?") ].
 
-Set Default Proof Mode "Ltac2".
-(* Set Ltac2 Backtrace. *)
+Ltac tryEach :=
+   (progress tryTrust)
++  (progress tryAndIntro)
++  (progress tryAssumeWitha1)
++  (progress tryLeaf)
++  (progress fillConstant).
 
-Ltac2 tryEach () :=
-try (tryTrust ());
-try (tryAndIntro ());
-try (tryAssumeWitha1 ());
-try (tryLeaf ());
-try (fillConstant ()).
+Ltac autoProveWithDepthLimit x :=
+solve [do x (tryEach)].
 
-Ltac2 autoProveWithDepthLimit x :=
-solve [do x (tryEach ())].
-
-Ltac2 rec autoProveProgressiveSearch start_depth max_depth :=
+(* Ltac2 rec autoProveProgressiveSearch start_depth max_depth :=
 match Int.gt start_depth max_depth with
   | true => Message.print (Message.of_int start_depth); Message.print (Message.of_int max_depth); Control.zero (VeracityProofSearchException ("Ran out of depth."))
   (* | true => () *)
   | false => solve [autoProveWithDepthLimit start_depth | autoProveProgressiveSearch (Int.add start_depth 1) max_depth]
-end.
+end. *)
 
-Ltac2 autoProve max_depth := autoProveProgressiveSearch 1 max_depth.
+(* Ltac autoProve max_depth := autoProveWithDepthLimit max_depth. *)
 
 (*|
 The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.
 |*)
 
+
+
 Definition exampleC1 : proofTreeOfClaim (C2).
 Proof.
 eexists _ _ _.
-autoProve 1.
-
+solve [do 3 (tryEach)].
 Unshelve.
-all: fillConstant ().
+all: fillConstant.
 Show Proof.
 Defined.
 
@@ -858,22 +854,19 @@ Eval compute in show exampleC1.
 .. coq::
 |*)
 
-Set Default Proof Mode "Ltac2".
-
-
 (*|
 The following demonstrates automatically proving a larger claim.
 |*)
 (*  *)
-(* Set Default Goal Selector "!". *)
 
 Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C2 /\' C2 /\' C2).
 Proof.
 eexists _ _ _.
-Time autoProve 4. (* Finished transaction in 0.009 secs (0.009u,0.s) (successful) *)
+Time solve [do 6 (tryEach)]. (* Finished transaction in 13.672 secs (13.114u,0.232s) (successful) *)
+(* Time autoProve 4. Finished transaction in 0.009 secs (0.009u,0.s) (successful) *)
 (* Time autoProve ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
 Unshelve.
-all: fillConstant ().
+all: fillConstant.
 Show Proof.
 Defined.
 
