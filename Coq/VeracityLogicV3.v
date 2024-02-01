@@ -893,3 +893,45 @@ Eval compute in show automatedProof.
 |*)
 
 
+Ltac2 rec autoProveMain1 max_depth :=
+match Int.equal 0 max_depth with
+  | true => Control.zero (VeracityProofSearchException ("Ran out of depth."))
+  (* | true => () *)
+  | false => solve [
+      eapply and_intro; autoProveMain1 (Int.sub max_depth 1)
+    | eapply (impl_intro [] _); autoProveMain1 (Int.sub max_depth 1)
+    | eapply (assume l P "C_1"); autoProveMain1 (Int.sub max_depth 1)
+    | eapply (assume s P "C_2"); autoProveMain1 (Int.sub max_depth 1)
+    | eapply (assume c P "C_3"); autoProveMain1 (Int.sub max_depth 1)
+    | eapply leaf; autoProveMain1 (Int.sub max_depth 1)
+    | simpl; autoProveMain1 (Int.sub max_depth 1)
+    (* | eapply (trust _ _ _ _ _ _); autoProveMain1 (Int.sub max_depth 1) *)
+    | fillConstant (); autoProveMain1 (Int.sub max_depth 1)
+  ]
+end.
+
+Ltac2 rec autoProveHelper1 d :=
+ Message.print (Message.of_string "Depth:");
+ Message.print (Message.of_int d);
+ solve [ autoProveMain1 d | autoProveHelper1 (Int.add d 1) ].
+
+Ltac2 autoProve1 () := autoProveHelper1 1.
+
+Definition fromPaper1 : proofTreeOfClaim (C1 /\' C2 /\' C3).
+Proof.
+eexists _ _ _.
+autoProve1 ().
+Show Proof.
+Defined.
+
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in show fromPaper1.
+
+(*|
+.. coq::
+|*)
