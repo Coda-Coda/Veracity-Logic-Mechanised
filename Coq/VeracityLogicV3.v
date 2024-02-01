@@ -1072,8 +1072,9 @@ end.
 Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C2 /\' C2 /\' C2).
 Proof.
 eexists _ _ _.
-autoProveWithDepth 3.
-t 7.
+Fail autoProveWithDepth 3.
+(* UP TO HERE, getting a not focussed error. *)
+(* t 7. *)
 (* tryAndIntro (); Control.enter (fun _ => tryAssumeWitha1 ()). *)
 (* proofSearchTryCatch 2. *)
 (* try (tryAndIntro ()); Control.enter (fun _ => (try (tryAndIntro ()); Control.enter (fun _ => try (tryAssumeWitha1 ()); Control.enter (fun _ => try (tryLeaf ()); Control.enter (fun _ => ()))))). *)
@@ -1085,16 +1086,16 @@ tryAndIntro ().
 tryAndIntro (). *)
 (* Time autoProve ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
 Unshelve.
-all: fillConstant ().
+Fail all: fillConstant ().
 Show Proof.
-Defined.
+Abort.
 
 (*|
 .. coq:: unfold
    :class: coq-math
 |*)
 
-Eval compute in show automatedProof.
+(* Eval compute in show automatedProof. *)
 
 (*|
 .. coq::
