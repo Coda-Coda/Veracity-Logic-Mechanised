@@ -814,21 +814,17 @@ solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | app
 Set Default Proof Mode "Ltac2".
 (* Set Ltac2 Backtrace. *)
 
-Ltac2 tryEach () :=
-try (tryTrust ());
-try (tryAndIntro ());
-try (tryAssumeWitha1 ());
-try (tryLeaf ());
-try (fillConstant ()).
-
-Ltac2 autoProveWithDepthLimit x :=
-solve [do x (tryEach ())].
-
 Ltac2 rec autoProveProgressiveSearch start_depth max_depth :=
 match Int.gt start_depth max_depth with
-  | true => Message.print (Message.of_int start_depth); Message.print (Message.of_int max_depth); Control.zero (VeracityProofSearchException ("Ran out of depth."))
+  | true => fail
   (* | true => () *)
-  | false => solve [autoProveWithDepthLimit start_depth | autoProveProgressiveSearch (Int.add start_depth 1) max_depth]
+  | false => solve [
+      tryAndIntro (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
+    | tryAssumeWitha1 (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
+    | tryLeaf (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
+    | tryTrust (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
+    | fillConstant (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
+  ]
 end.
 
 Ltac2 autoProve max_depth := autoProveProgressiveSearch 1 max_depth.
@@ -840,8 +836,7 @@ The following demonstrates a constraing that the claim must be believed by actor
 Definition exampleC1 : proofTreeOfClaim (C2).
 Proof.
 eexists _ _ _.
-autoProve 1.
-
+autoProve 5.
 Unshelve.
 all: fillConstant ().
 Show Proof.
@@ -870,7 +865,7 @@ The following demonstrates automatically proving a larger claim.
 Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C2 /\' C2 /\' C2).
 Proof.
 eexists _ _ _.
-Time autoProve 4. (* Finished transaction in 0.009 secs (0.009u,0.s) (successful) *)
+Time autoProve 6. (* Finished transaction in 0.002 secs (0.002u,0.s) (successful) *)
 (* Time autoProve ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
 Unshelve.
 all: fillConstant ().
