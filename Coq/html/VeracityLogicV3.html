@@ -379,7 +379,7 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
  In a (removeDups l) &lt;-&gt; In a l)</div></blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Abort</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showProofTreeOf_helper</span> (<span class="nv">j</span> : judgement) (<span class="nv">p</span> : proofTreeOf j)
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showProofTreeOfHelper</span> (<span class="nv">j</span> : judgement) (<span class="nv">p</span> : proofTreeOf j)
   : string :=
 <span class="kr">let</span> <span class="nv">Ts</span> := (removeDups (getAllTrustRelationsUsed j p)) <span class="kr">in</span>
 <span class="kr">match</span> p <span class="kr">with</span>
@@ -387,52 +387,52 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 | leaf c =&gt; <span class="s2">&quot;\AxiomC{$ &quot;</span> 
              ++ show c 
              ++ <span class="s2">&quot; \textit{ is a veracity claim} $}&quot;</span>
-| assume e a name M =&gt; showProofTreeOf_helper _ M
+| assume e a name M =&gt; showProofTreeOfHelper _ M
     ++ <span class="s2">&quot; \RightLabel{ $ assume $}\UnaryInfC{$ &quot;</span>
     ++ showJudgement Ts ([e \<span class="bp">by</span> a \<span class="kr">in</span> (AtomicClaim name)] |- e \<span class="bp">by</span> a \<span class="kr">in</span> (AtomicClaim name)) ++ <span class="s2">&quot; $}&quot;</span>
-| assume_bot e a M =&gt; showProofTreeOf_helper _ M
+| assume_bot e a M =&gt; showProofTreeOfHelper _ M
     ++ <span class="s2">&quot; \RightLabel{ $ assume $}\UnaryInfC{$ &quot;</span>
     ++ showJudgement Ts ([e \<span class="bp">by</span> a \<span class="kr">in</span> _|_] |- e \<span class="bp">by</span> a \<span class="kr">in</span> _|_) ++ <span class="s2">&quot; $}&quot;</span>
-| bot_elim Ps e a C M =&gt; showProofTreeOf_helper _ M
+| bot_elim Ps e a C M =&gt; showProofTreeOfHelper _ M
     ++ <span class="s2">&quot; \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ &quot;</span>
     ++ showJudgement Ts (Ps |- (e \<span class="bp">by</span> a \<span class="kr">in</span> C))
     ++ <span class="s2">&quot; $}&quot;</span>
 | and_intro Ps Qs a e1 e2 C1 C2 L R =&gt; 
-    showProofTreeOf_helper _ L
- ++ showProofTreeOf_helper _ R 
+    showProofTreeOfHelper _ L
+ ++ showProofTreeOfHelper _ R 
  ++ <span class="s2">&quot; \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ &quot;</span>
  ++ showJudgement Ts ((Ps ++ Qs) |- (e1, e2) \<span class="bp">by</span> a \<span class="kr">in</span> (C1 /\&#39; C2)) ++ <span class="s2">&quot; $}&quot;</span>
-| and_elim1 Ps a e1 e2 C1 C2 M =&gt; showProofTreeOf_helper _ M
+| and_elim1 Ps a e1 e2 C1 C2 M =&gt; showProofTreeOfHelper _ M
  ++ <span class="s2">&quot; \RightLabel{ $ \land^{-1} $} \UnaryInfC{$ &quot;</span>
  ++ showJudgement Ts (Ps |- (e1 \<span class="bp">by</span> a \<span class="kr">in</span> C1))
  ++ <span class="s2">&quot; $}&quot;</span>
-| and_elim2 Ps a e1 e2 C1 C2 M =&gt; showProofTreeOf_helper _ M
+| and_elim2 Ps a e1 e2 C1 C2 M =&gt; showProofTreeOfHelper _ M
  ++ <span class="s2">&quot; \RightLabel{ $ \land^{-2} $} \UnaryInfC{$ &quot;</span>
  ++ showJudgement Ts (Ps |- (e2 \<span class="bp">by</span> a \<span class="kr">in</span> C2))
  ++ <span class="s2">&quot; $}&quot;</span>
-| or_intro1 Ps a e1 C1 C2 M =&gt; showProofTreeOf_helper _ M
+| or_intro1 Ps a e1 C1 C2 M =&gt; showProofTreeOfHelper _ M
  ++ <span class="s2">&quot; \RightLabel{ $ \lor^{+1} $} \UnaryInfC{$ &quot;</span>
  ++ showJudgement Ts (Ps |- ((Left e1) \<span class="bp">by</span> a \<span class="kr">in</span> (C1 \/&#39; C2)))
  ++ <span class="s2">&quot; $}&quot;</span>
-| or_intro2 Ps a e2 C1 C2 M =&gt; showProofTreeOf_helper _ M
+| or_intro2 Ps a e2 C1 C2 M =&gt; showProofTreeOfHelper _ M
  ++ <span class="s2">&quot; \RightLabel{ $ \lor^{+2} $} \UnaryInfC{$ &quot;</span>
  ++ showJudgement Ts (Ps |- ((Right e2) \<span class="bp">by</span> a \<span class="kr">in</span> (C1 \/&#39; C2)))
  ++ <span class="s2">&quot; $}&quot;</span>
-| or_elim1 Ps a e1 C1 C2 M =&gt; showProofTreeOf_helper _ M
+| or_elim1 Ps a e1 C1 C2 M =&gt; showProofTreeOfHelper _ M
  ++ <span class="s2">&quot; \RightLabel{ $ \lor^{-1} $} \UnaryInfC{$ &quot;</span>
  ++ showJudgement Ts (Ps |- (e1 \<span class="bp">by</span> a \<span class="kr">in</span> C1))
  ++ <span class="s2">&quot; $}&quot;</span>
-| or_elim2 Ps a e2 C1 C2 M =&gt; showProofTreeOf_helper _ M
+| or_elim2 Ps a e2 C1 C2 M =&gt; showProofTreeOfHelper _ M
  ++ <span class="s2">&quot; \RightLabel{ $ \lor^{-2} $} \UnaryInfC{$ &quot;</span>
  ++ showJudgement Ts (Ps |- (e2 \<span class="bp">by</span> a \<span class="kr">in</span> C2))
  ++ <span class="s2">&quot; $}&quot;</span>
 | trust Ps a1 a2 e C name L =&gt; 
-    showProofTreeOf_helper _ L
+    showProofTreeOfHelper _ L
  ++ <span class="s2">&quot; \AxiomC{$&quot;</span> ++ show a1 ++ show name ++ show a2 ++ <span class="s2">&quot;$} &quot;</span>
  ++ <span class="s2">&quot; \RightLabel{ $ trust\ &quot;</span> ++ show name
  ++ <span class="s2">&quot;$} \BinaryInfC{$ &quot;</span>
  ++ showJudgement Ts (Ps |- (e \<span class="bp">by</span> a1 \<span class="kr">in</span> C)) ++ <span class="s2">&quot; $}&quot;</span>
-| impl_intro Ps Qs a e1 e2 C1 C2 M =&gt; showProofTreeOf_helper _ M
+| impl_intro Ps Qs a e1 e2 C1 C2 M =&gt; showProofTreeOfHelper _ M
  ++ <span class="s2">&quot; \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ &quot;</span>
  ++ showJudgement Ts ((Ps ++ Qs) |- ((Lambda e1 e2) \<span class="bp">by</span> a \<span class="kr">in</span> (Implies C1 C2)))
  ++ <span class="s2">&quot; $}&quot;</span>
@@ -441,7 +441,7 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> string.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showProofTreeOf</span> <span class="nv">j</span> <span class="nv">p</span>
-  := <span class="s2">&quot;\begin{prooftree}&quot;</span> ++ showProofTreeOf_helper j p
+  := <span class="s2">&quot;\begin{prooftree}&quot;</span> ++ showProofTreeOfHelper j p
        ++ <span class="s2">&quot;\end{prooftree}&quot;</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showProofTreeOfInstance</span> (<span class="nv">j</span> : judgement)
   : <span class="kn">Show</span> (proofTreeOf j) := { show := showProofTreeOf j}.</span></span></pre></div>
@@ -850,25 +850,25 @@ maybePrintMessage1 <span class="s2">&quot;Trying leaf&quot;</span>;
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kt">Set</span> Default <span class="kn">Proof</span> Mode <span class="s2">&quot;Ltac2&quot;</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp"><span class="c">(* Set Ltac2 Backtrace. *)</span>
 
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2 rec</span> autoProveWithDepth max_depth :=
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2 rec</span> autoProveMain max_depth :=
 <span class="kr">match</span> Int.equal <span class="mi">0</span> max_depth <span class="kr">with</span>
   | true =&gt; Control.zero (VeracityProofSearchException (<span class="s2">&quot;Ran out of depth.&quot;</span>))
   <span class="c">(* | true =&gt; () *)</span>
   | false =&gt; <span class="kp">solve</span> [
-      tryAndIntro (); autoProveWithDepth (Int.sub max_depth <span class="mi">1</span>)
-    | tryAssumeWitha1 (); autoProveWithDepth (Int.sub max_depth <span class="mi">1</span>)
-    | tryLeaf (); autoProveWithDepth (Int.sub max_depth <span class="mi">1</span>)
-    | tryTrust (); autoProveWithDepth (Int.sub max_depth <span class="mi">1</span>)
-    | fillConstant (); autoProveWithDepth (Int.sub max_depth <span class="mi">1</span>)
+      <span class="nb">eapply</span> and_intro; autoProveMain (Int.sub max_depth <span class="mi">1</span>)
+    | <span class="nb">eapply</span> (assume _ a1); autoProveMain (Int.sub max_depth <span class="mi">1</span>)
+    | <span class="nb">eapply</span> leaf; autoProveMain (Int.sub max_depth <span class="mi">1</span>)
+    | <span class="nb">eapply</span> (trust _ _ _ _ _ _); autoProveMain (Int.sub max_depth <span class="mi">1</span>)
+    | fillConstant (); autoProveMain (Int.sub max_depth <span class="mi">1</span>)
   ]
 <span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2 rec</span> autoProve_helper d :=
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2 rec</span> autoProveHelper d :=
  Message.print (Message.of_string <span class="s2">&quot;Depth:&quot;</span>);
  Message.print (Message.of_int d);
- <span class="kp">solve</span> [ autoProveWithDepth d | autoProve_helper (Int.add d <span class="mi">1</span>) ].</span><span class="alectryon-wsp">
+ <span class="kp">solve</span> [ autoProveMain d | autoProveHelper (Int.add d <span class="mi">1</span>) ].</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> autoProve () := autoProve_helper <span class="mi">1</span>.</span></span></pre><p>The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.</p>
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> autoProve () := autoProveHelper <span class="mi">1</span>.</span></span></pre><p>The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.</p>
 <pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk69" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk69"><span class="kn">Definition</span> <span class="nf">exampleC1</span> : proofTreeOfClaim (C2).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim C2</div></blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6a" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6a"><span class="kn">Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim C2</div></blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6b" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6b"><span class="nb">eexists</span> _ _ _.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf <span class="nl">?Goal</span> |- <span class="nl">?Goal0</span> \<span class="bp">by</span> <span class="nl">?Goal1</span> \<span class="kr">in</span> C2</div></blockquote></div></div></small><span class="alectryon-wsp">
@@ -892,9 +892,10 @@ maybePrintMessage1 <span class="s2">&quot;Trying leaf&quot;</span>;
   <span class="nl">?Goal</span>
   |- <span class="nl">?Goal0</span> \<span class="bp">by</span> <span class="nl">?Goal1</span> \<span class="kr">in</span>
      (C1 /\&#39; C2 /\&#39; C3 /\&#39; C4 /\&#39; C5)</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk73" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk73"><span class="kn">Time</span> autoProve (). <span class="c">(* Finished transaction in 0.188 secs (0.181u,0.004s) (successful) *)</span></label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">2</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">3</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">4</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">5</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">6</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">7</span></blockquote><blockquote class="alectryon-message">Finished transaction <span class="kr">in</span> <span class="mi">0</span>.<span class="mi">059</span> secs (<span class="mi">0</span>.<span class="mi">059</span>u,<span class="mi">0</span>.s) (successful)</blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp"><span class="c">(* Time autoProveWithDepth 7. Finished transaction in 0.002 secs (0.002u,0.s) (successful) *)</span>
-<span class="c">(* Time autoProveWithDepth ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)</span>
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk73" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk73"><span class="kn">Time</span> autoProve ().  <span class="c">(* Finished transaction in 0.1 secs (0.099u,0.s) (successful) *)</span></label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">2</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">3</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">4</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">5</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">6</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">7</span></blockquote><blockquote class="alectryon-message">Finished transaction <span class="kr">in</span> <span class="mi">0</span>.<span class="mi">054</span> secs (<span class="mi">0</span>.<span class="mi">053</span>u,<span class="mi">0</span>.s) (successful)</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp"><span class="c">(* Time autoProve (). Using match statements Finished transaction in 0.188 secs (0.181u,0.004s) (successful) *)</span>
+<span class="c">(* Time autoProveMain 7. Finished transaction in 0.002 secs (0.002u,0.s) (successful) *)</span>
+<span class="c">(* Time autoProveMain ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)</span>
 </span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk74" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk74"><span class="kn">Unshelve</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">evid</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk75" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk75"><hr></label><div class="goal-conclusion">evid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk76" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk76"><hr></label><div class="goal-conclusion">evid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk77" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk77"><hr></label><div class="goal-conclusion">evid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk78" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk78"><hr></label><div class="goal-conclusion">evid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kp">all</span>: fillConstant ().</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk79" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk79"><span class="kn">Show Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">{|
