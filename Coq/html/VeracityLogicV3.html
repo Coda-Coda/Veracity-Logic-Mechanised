@@ -889,239 +889,523 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 <span class="c">    Message.print (Message.of_int max_depth);</span>
 
 <span class="c">    Control.plus (</span>
-<span class="c">      fun () =&gt; Control.plus (fun () =&gt; try (ltac1:(unshelve eapply or_elim1); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;1&quot;); proofSearch (Int.sub max_depth 1))</span>
-<span class="c">        (fun _ =&gt; Control.plus (fun () =&gt; try (ltac1:(unshelve eapply admit); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;2&quot;); proofSearch (Int.sub max_depth 1))</span>
-<span class="c">          (fun _ =&gt; Control.plus (fun () =&gt; try (ltac1:(unshelve eapply or_intro1); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;3&quot;); proofSearch (Int.sub max_depth 1))</span>
-<span class="c">            (fun _ =&gt; try (ltac1:(unshelve eapply or_elim2); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;4&quot;); proofSearch (Int.sub max_depth 1)))))</span>
-<span class="c">              (fun _ =&gt; try (ltac1:(unshelve eapply or_intro2); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;5&quot;); proofSearch (Int.sub max_depth 1))</span>
+<span class="c">      fun () =&gt; Control.plus (fun () =&gt; try (ltac1:(unshelve eapply or_elim1); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;1&quot;))</span>
+<span class="c">        (fun _ =&gt; Control.plus (fun () =&gt; try (ltac1:(unshelve eapply admit); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;2&quot;))</span>
+<span class="c">          (fun _ =&gt; Control.plus (fun () =&gt; try (ltac1:(unshelve eapply or_intro1); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;3&quot;))</span>
+<span class="c">            (fun _ =&gt; try (ltac1:(unshelve eapply or_elim2); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;4&quot;)))))</span>
+<span class="c">              (fun _ =&gt; try (ltac1:(unshelve eapply or_intro2); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string &quot;5&quot;))</span>
 <span class="c">end. *)</span>
 
 </span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6a" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6a"><span class="kn">Require</span> <span class="kn">Ltac2</span>.Ltac1.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Use of “<span class="kn">Require</span>” <span class="kn">inside</span> a section <span class="kr">is</span> fragile. It <span class="kr">is</span>
 not recommended to use this functionality <span class="kr">in</span> finished
 proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> <span class="nb">unshelve</span> tac :=
-  <span class="kr">let</span> <span class="nv">f</span> := ltac1:(tac |- <span class="nb">unshelve</span> (<span class="kr">let</span> <span class="nv">__</span> := <span class="kr">match goal with</span> _ =&gt; tac () <span class="kr">end</span> <span class="kr">in</span> <span class="kp">idtac</span>)) <span class="kr">in</span>
-  f (Ltac1.lambda (<span class="kr">fun</span> <span class="nv">_</span> =&gt; tac (); Ltac1.of_constr &#39;I)).</span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> <span class="nb">unshelve</span> (tac) := ltac1:(tac |- <span class="nb">unshelve</span> (tac)).</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp"><span class="c">(* `unshelve` thanks to @JasonGross, see https://github.com/coq/coq/issues/14289#issuecomment-1916236664 *)</span>
 
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> maybePrintMessage s := ().</span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> maybePrintMessage1 s := Message.print (Message.of_string s).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> maybePrintMessage2 s := Message.print (Message.of_string s).</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2 rec</span> proofSearch max_depth :=
-<span class="kr">match</span> Int.equal max_depth <span class="mi">1</span> <span class="kr">with</span>
-  | true =&gt; 
-<span class="kp">solve</span> [ <span class="nb">eapply</span> leaf | <span class="nb">eapply</span> assume | <span class="nb">eapply</span> assume_bot | <span class="nb">eapply</span> bot_elim | <span class="nb">eapply</span> and_intro | <span class="nb">eapply</span> and_elim1 |
-           <span class="nb">eapply</span> and_elim2 | <span class="nb">eapply</span> or_intro1 | <span class="nb">eapply</span> or_intro2 | <span class="nb">eapply</span> or_elim1 | <span class="nb">eapply</span> or_elim2 | <span class="nb">eapply</span> trust | <span class="nb">eapply</span> impl_intro |
-           <span class="nb">simpl</span> | <span class="nb">apply</span> CQ | <span class="nb">apply</span> aQ | <span class="nb">apply</span> eQ | <span class="nb">apply</span> ([] : list singleJudgement) | <span class="nb">apply</span> (Trust <span class="s2">&quot;?&quot;</span>) ]
-    <span class="c">(* solve [ unshelve (fun _ =&gt; eapply leaf ) | unshelve (fun _ =&gt; eapply assume ) | unshelve (fun _ =&gt; eapply assume_bot ) | unshelve (fun _ =&gt; eapply bot_elim ) | unshelve (fun _ =&gt; eapply and_intro ) | unshelve (fun _ =&gt; eapply and_elim1 ) | unshelve (fun _ =&gt;</span>
-<span class="c">           eapply and_elim2 ) | unshelve (fun _ =&gt; eapply or_intro1 ) | unshelve (fun _ =&gt; eapply or_intro2 ) | unshelve (fun _ =&gt; eapply or_elim1 ) | unshelve (fun _ =&gt; eapply or_elim2 ) | unshelve (fun _ =&gt; eapply trust ) | unshelve (fun _ =&gt; eapply impl_intro ) | unshelve (fun _ =&gt;</span>
-<span class="c">           simpl ) | unshelve (fun _ =&gt; apply CQ ) | unshelve (fun _ =&gt; apply aQ ) | unshelve (fun _ =&gt; apply eQ ) | unshelve (fun _ =&gt; apply ([] : list singleJudgement) ) | unshelve (fun _ =&gt; apply (Trust &quot;?&quot;)) ] *)</span>
-  | false =&gt; 
-    <span class="c">(* Message.print (Message.of_int max_depth); *)</span>
-
-    <span class="nb">simpl</span>; Control.plus (
-     <span class="kr">fun</span> () =&gt; Control.plus (<span class="kr">fun</span> () =&gt; <span class="kp">fail</span>)
-
-     (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.plus (<span class="kr">fun</span> () =&gt; ( <span class="kp">try</span> (<span class="nb">eapply</span> leaf); proofSearch (Int.sub max_depth <span class="mi">1</span>)); (maybePrintMessage <span class="s2">&quot;Trying leaf&quot;</span>); proofSearch (Int.sub max_depth <span class="mi">1</span>))
-     (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.plus (<span class="kr">fun</span> () =&gt; ( <span class="kp">try</span> (<span class="nb">eapply</span> (assume _ a1 )); proofSearch (Int.sub max_depth <span class="mi">1</span>)); (maybePrintMessage <span class="s2">&quot;Trying assume&quot;</span>); proofSearch (Int.sub max_depth <span class="mi">1</span>))
-     (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.plus (<span class="kr">fun</span> () =&gt; ( <span class="kp">try</span> (<span class="nb">eapply</span> and_intro); proofSearch (Int.sub max_depth <span class="mi">1</span>)); (maybePrintMessage <span class="s2">&quot;Trying and_intro&quot;</span>); proofSearch (Int.sub max_depth <span class="mi">1</span>))
-     (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.plus (<span class="kr">fun</span> () =&gt; ( <span class="kp">try</span> (<span class="nb">eapply</span> trust); proofSearch (Int.sub max_depth <span class="mi">1</span>)); (maybePrintMessage <span class="s2">&quot;Trying trust&quot;</span>); proofSearch (Int.sub max_depth <span class="mi">1</span>))
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_intro1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying or_intro1&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_intro2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying or_intro2&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply and_elim1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying and_elim1&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply and_elim2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying and_elim2&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_elim1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying or_elim1&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_elim2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying or_elim2&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply impl_intro); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying impl_intro&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply bot_elim); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying bot_elim&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply assume_bot); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying assume_bot&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-     <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply admit ); proofSearch (Int.sub max_depth 1)); (maybePrintMessage &quot;Trying admit&quot;); proofSearch (Int.sub max_depth 1)) *)</span>
-
-     (<span class="kr">fun</span> <span class="nv">_</span> =&gt; <span class="kp">fail</span> ))))))
-     (<span class="kr">fun</span> <span class="nv">_</span> =&gt; <span class="kp">fail</span> )
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> tryCatch t1 t2 t3 :=
+  <span class="kr">match</span> Control.<span class="nb">case</span> t1 <span class="kr">with</span>
+  | Val _ =&gt; t2
+  | Err exn =&gt; t3
 <span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kt">Set</span> Default <span class="kn">Proof</span> Mode <span class="s2">&quot;Ltac2&quot;</span>.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> autoProveWithDepth max_depth :=
-proofSearch max_depth.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2 rec</span> autoProveWithProgressiveDepth d :=
-Message.print (Message.of_string <span class="s2">&quot;Trying depth:&quot;</span>);
-Message.print (Message.of_int d);
-<span class="kp">try</span> (autoProveWithDepth d);
-<span class="kp">try</span> (autoProveWithProgressiveDepth (Int.add d <span class="mi">1</span>)).</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
-<span class="c">(* Ltac2 rec autoProveWithProgressiveDepth d :=</span>
-<span class="c">Message.print (Message.of_string &quot;Trying depth: 1&quot;);</span>
-<span class="c">try (autoProveWithDepth 1);</span>
-<span class="c">Message.print (Message.of_string &quot;Trying depth: 2&quot;);</span>
-<span class="c">try (autoProveWithDepth 2);</span>
-<span class="c">Message.print (Message.of_string &quot;Trying depth: 3&quot;);</span>
-<span class="c">try (autoProveWithDepth 3);</span>
-<span class="c">Message.print (Message.of_string &quot;Trying depth: 4&quot;);</span>
-<span class="c">try (autoProveWithDepth 4)</span>
-<span class="c">. *)</span>
+<span class="c">(* Require Import Lia.</span>
+<span class="c">Goal 1=1.</span>
+<span class="c">Proof.</span>
+<span class="c">ifcatch (fun _ =&gt; progress (reflexivity)) (fun _ =&gt; ()) (fun _ =&gt; admit).</span>
+<span class="c">ltac1:(lia). *)</span>
 
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> autoProve () :=
-(autoProveWithProgressiveDepth <span class="mi">1</span>).</span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> tryLeaf etc :=
+maybePrintMessage1 <span class="s2">&quot;Trying leaf&quot;</span>;
+<span class="kr">match! goal with</span>
+   | [ |- proofTreeOf (IsAVeracityClaim _) ] =&gt; (maybePrintMessage2 <span class="s2">&quot;Applying leaf&quot;</span>); <span class="kp">try</span> ltac1:(<span class="nb">unshelve</span> (<span class="nb">eapply</span> leaf)); etc
+   | [ |- _ ] =&gt; <span class="kp">fail</span>
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> tryAssumeWitha1 etc :=
+(maybePrintMessage1 <span class="s2">&quot;Trying assume&quot;</span>);
+<span class="kr">match! goal with</span>
+   | [ |- proofTreeOf _ ] =&gt; (maybePrintMessage2 <span class="s2">&quot;Applying assume&quot;</span>); <span class="kp">try</span> ltac1:(<span class="nb">unshelve</span> (<span class="nb">eapply</span> (assume _ a1))); etc
+   | [ |- _ ] =&gt; Control.zero (MyNewException <span class="s2">&quot;Didn&#39;t match&quot;</span>)
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> tryAndIntro etc :=
+(maybePrintMessage1 <span class="s2">&quot;Trying and_intro&quot;</span>);
+<span class="kr">match! goal with</span>
+   | [ |- (proofTreeOf _ |- _ \<span class="bp">by</span> _ \<span class="kr">in</span> (_ /\&#39; _)) ] =&gt; (maybePrintMessage2 <span class="s2">&quot;Applying and_intro&quot;</span>); <span class="kp">try</span> ltac1:(<span class="nb">unshelve</span> (<span class="nb">eapply</span> and_intro)); Control.enter (<span class="kr">fun</span> <span class="nv">_</span> =&gt; etc)
+   <span class="c">(* | [ |- (proofTreeOf _ |- _ \by _ \in (_ /\&#39; _)) ] =&gt; (maybePrintMessage2 &quot;Applying and_intro&quot;); try (eapply (and_intro)); etc *)</span>
+   | [ |- _ ] =&gt; Control.zero (MyNewException <span class="s2">&quot;Didn&#39;t match&quot;</span>)
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> tryTrust etc :=
+(maybePrintMessage1 <span class="s2">&quot;Trying trust&quot;</span>);
+<span class="kr">match! goal with</span>
+   | [ |- proofTreeOf _ ] =&gt; (maybePrintMessage2 <span class="s2">&quot;Applying trust&quot;</span>); <span class="kp">try</span> ltac1:(<span class="nb">unshelve</span> (<span class="nb">eapply</span> trust)); etc
+   | [ |- _ ] =&gt; Control.zero (MyNewException <span class="s2">&quot;Didn&#39;t match&quot;</span>)
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> fillConstant () :=
 <span class="kp">solve</span> [ <span class="nb">apply</span> CQ | <span class="nb">apply</span> aQ | <span class="nb">apply</span> eQ | <span class="nb">apply</span> ([] : list singleJudgement) | <span class="nb">apply</span> (Trust <span class="s2">&quot;?&quot;</span>) ].</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-<span class="c">(* Set Ltac2 Backtrace. *)</span></span></pre><p>The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.</p>
-<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6b" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6b"><span class="kn">Definition</span> <span class="nf">exampleC1</span> : proofTreeOfClaim (C1).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim C1</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6c" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6c"><span class="kn">Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim C1</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6d" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6d"><span class="nb">eexists</span> _ _ a2.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf <span class="nl">?Goal</span> |- <span class="nl">?Goal0</span> \<span class="bp">by</span> a2 \<span class="kr">in</span> C1</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6e" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6e">autoProve ().</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Trying depth:</blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message">Trying depth:</blockquote><blockquote class="alectryon-message"><span class="mi">2</span></blockquote><blockquote class="alectryon-message">Trying depth:</blockquote><blockquote class="alectryon-message"><span class="mi">3</span></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6f" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6f"><span class="kn">Unshelve</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">evid</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2 rec</span> proofSearchTryCatch max_depth :=
+Message.print (Message.of_int max_depth);
+<span class="kr">match</span> Int.equal max_depth <span class="mi">0</span> <span class="kr">with</span>
+  | true =&gt; Control.zero (MyNewException <span class="s2">&quot;Hit bottom&quot;</span>)
+<span class="c">(* solve [ eapply leaf | eapply assume | eapply assume_bot | eapply bot_elim | eapply and_intro | eapply and_elim1 |</span>
+<span class="c">          eapply and_elim2 | eapply or_intro1 | eapply or_intro2 | eapply or_elim1 | eapply or_elim2 | eapply trust | eapply impl_intro |</span>
+<span class="c">          simpl | apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust &quot;?&quot;) ] *)</span>
+    <span class="c">(* solve [ unshelve (fun _ =&gt; eapply leaf ) | unshelve (fun _ =&gt; eapply assume ) | unshelve (fun _ =&gt; eapply assume_bot ) | unshelve (fun _ =&gt; eapply bot_elim ) | unshelve (fun _ =&gt; eapply and_intro ) | unshelve (fun _ =&gt; eapply and_elim1 ) | unshelve (fun _ =&gt;</span>
+<span class="c">          eapply and_elim2 ) | unshelve (fun _ =&gt; eapply or_intro1 ) | unshelve (fun _ =&gt; eapply or_intro2 ) | unshelve (fun _ =&gt; eapply or_elim1 ) | unshelve (fun _ =&gt; eapply or_elim2 ) | unshelve (fun _ =&gt; eapply trust ) | unshelve (fun _ =&gt; eapply impl_intro ) | unshelve (fun _ =&gt;</span>
+<span class="c">          simpl ) | unshelve (fun _ =&gt; apply CQ ) | unshelve (fun _ =&gt; apply aQ ) | unshelve (fun _ =&gt; apply eQ ) | unshelve (fun _ =&gt; apply ([] : list singleJudgement) ) | unshelve (fun _ =&gt; apply (Trust &quot;?&quot;)) ] *)</span>
+  | false =&gt; 
+    <span class="c">(* Message.print (Message.of_int max_depth); *)</span>
+
+    <span class="nb">simpl</span>; Control.plus (
+    <span class="kr">fun</span> () =&gt; Control.plus (<span class="kr">fun</span> () =&gt; Control.zero (MyNewException <span class="s2">&quot;()&quot;</span>))
+
+    (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.plus (<span class="kr">fun</span> () =&gt; ( tryLeaf (proofSearchTryCatch (Int.sub max_depth <span class="mi">1</span>)) ))
+    (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.plus (<span class="kr">fun</span> () =&gt; ( tryAssumeWitha1 (proofSearchTryCatch (Int.sub max_depth <span class="mi">1</span>)) ))
+    (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.plus (<span class="kr">fun</span> () =&gt; ( tryAndIntro (proofSearchTryCatch (Int.sub max_depth <span class="mi">1</span>)) ))
+    (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.plus (<span class="kr">fun</span> () =&gt; ( tryTrust (proofSearchTryCatch (Int.sub max_depth <span class="mi">1</span>)) ))
+
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_intro1); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying or_intro1&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_intro2); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying or_intro2&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply and_elim1); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying and_elim1&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply and_elim2); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying and_elim2&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_elim1); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying or_elim1&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_elim2); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying or_elim2&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply impl_intro); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying impl_intro&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply bot_elim); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying bot_elim&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply assume_bot); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying assume_bot&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+    <span class="c">(* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply admit ); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying admit&quot;); proofSearchTryCatch (Int.sub max_depth 1)) *)</span>
+
+    (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.zero (MyNewException <span class="s2">&quot;()&quot;</span>) ))))))
+    (<span class="kr">fun</span> <span class="nv">_</span> =&gt; () )
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+<span class="c">(* Ltac2 rec proofSearch max_depth :=</span>
+<span class="c">match Int.equal max_depth 0 with</span>
+<span class="c">  | true =&gt; fail</span>
+<span class="c">    (* solve [ unshelve (fun _ =&gt; eapply leaf ) | unshelve (fun _ =&gt; eapply assume ) | unshelve (fun _ =&gt; eapply assume_bot ) | unshelve (fun _ =&gt; eapply bot_elim ) | unshelve (fun _ =&gt; eapply and_intro ) | unshelve (fun _ =&gt; eapply and_elim1 ) | unshelve (fun _ =&gt;</span>
+<span class="c">          eapply and_elim2 ) | unshelve (fun _ =&gt; eapply or_intro1 ) | unshelve (fun _ =&gt; eapply or_intro2 ) | unshelve (fun _ =&gt; eapply or_elim1 ) | unshelve (fun _ =&gt; eapply or_elim2 ) | unshelve (fun _ =&gt; eapply trust ) | unshelve (fun _ =&gt; eapply impl_intro ) | unshelve (fun _ =&gt;</span>
+<span class="c">          simpl ) | unshelve (fun _ =&gt; apply CQ ) | unshelve (fun _ =&gt; apply aQ ) | unshelve (fun _ =&gt; apply eQ ) | unshelve (fun _ =&gt; apply ([] : list singleJudgement) ) | unshelve (fun _ =&gt; apply (Trust &quot;?&quot;)) ] *)</span>
+<span class="c">  | false =&gt; </span>
+<span class="c">    (* Message.print (Message.of_int max_depth); *)</span>
+
+<span class="c">    simpl; Control.plus (</span>
+<span class="c">    fun () =&gt; Control.plus (fun () =&gt; fail)</span>
+
+<span class="c">    (fun _ =&gt; Control.plus (fun () =&gt; ( progress (eapply leaf); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying leaf&quot;))</span>
+<span class="c">    (fun _ =&gt; Control.plus (fun () =&gt; ( progress (eapply (assume _ a1 )); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying assume&quot;))</span>
+<span class="c">    (fun _ =&gt; Control.plus (fun () =&gt; ( progress (eapply and_intro); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying and_intro&quot;))</span>
+<span class="c">    (fun _ =&gt; Control.plus (fun () =&gt; ( progress (eapply trust); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying trust&quot;))</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_intro1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying or_intro1&quot;)) *)</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_intro2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying or_intro2&quot;)) *)</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply and_elim1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying and_elim1&quot;)) *)</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply and_elim2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying and_elim2&quot;)) *)</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_elim1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying or_elim1&quot;)) *)</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply or_elim2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying or_elim2&quot;)) *)</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply impl_intro); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying impl_intro&quot;)) *)</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply bot_elim); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying bot_elim&quot;)) *)</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply assume_bot); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying assume_bot&quot;)) *)</span>
+<span class="c">    (* (fun _ =&gt; Control.plus (fun () =&gt; ( try (eapply admit ); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 &quot;Trying admit&quot;)) *)</span>
+
+<span class="c">    (fun _ =&gt; fail ))))))</span>
+<span class="c">    (fun _ =&gt; fail )</span>
+<span class="c">end. *)</span>
+
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kt">Set</span> Default <span class="kn">Proof</span> Mode <span class="s2">&quot;Ltac2&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> autoProveWithDepth max_depth :=
+proofSearchTryCatch max_depth.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+<span class="c">(* Ltac2 rec autoProveWithProgressiveDepth d :=</span>
+<span class="c">Message.print (Message.of_string &quot;Trying depth:&quot;);</span>
+<span class="c">Message.print (Message.of_int d);</span>
+<span class="c">try (autoProveWithDepth d);</span>
+<span class="c">try (autoProveWithProgressiveDepth (Int.add d 1)). *)</span>
+
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2 rec</span> autoProveWithProgressiveDepth d :=
+Message.print (Message.of_string <span class="s2">&quot;Trying depth: 1&quot;</span>);
+<span class="kp">try</span> (autoProveWithDepth <span class="mi">1</span>);
+Message.print (Message.of_string <span class="s2">&quot;Trying depth: 2&quot;</span>);
+<span class="kp">try</span> (autoProveWithDepth <span class="mi">2</span>);
+Message.print (Message.of_string <span class="s2">&quot;Trying depth: 3&quot;</span>);
+<span class="kp">try</span> (autoProveWithDepth <span class="mi">3</span>);
+Message.print (Message.of_string <span class="s2">&quot;Trying depth: 4&quot;</span>);
+<span class="kp">try</span> (autoProveWithDepth <span class="mi">4</span>);
+Message.print (Message.of_string <span class="s2">&quot;Trying depth: 5&quot;</span>);
+<span class="kp">try</span> (autoProveWithDepth <span class="mi">5</span>);
+Message.print (Message.of_string <span class="s2">&quot;Trying depth: 6&quot;</span>);
+<span class="kp">try</span> (autoProveWithDepth <span class="mi">6</span>)
+.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> autoProve () :=
+(autoProveWithProgressiveDepth <span class="mi">1</span>).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+
+
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Set Ltac2 Backtrace</span>.</span></span></pre><p>The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.</p>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6b" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6b"><span class="kn">Definition</span> <span class="nf">exampleC1</span> : proofTreeOfClaim (C2).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim C2</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6c" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6c"><span class="kn">Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim C2</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6d" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6d"><span class="nb">eexists</span> _ _ _.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf <span class="nl">?Goal</span> |- <span class="nl">?Goal0</span> \<span class="bp">by</span> <span class="nl">?Goal1</span> \<span class="kr">in</span> C2</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp"><span class="c">(* tryAssumeWitha1 ().</span>
+<span class="c">tryLeaf (). *)</span>
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6e" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6e">autoProveWithDepth <span class="mi">3</span>.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message"><span class="mi">3</span></blockquote><blockquote class="alectryon-message"><span class="mi">2</span></blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message">Trying leaf</blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message">Trying assume</blockquote><blockquote class="alectryon-message">Applying assume</blockquote><blockquote class="alectryon-message">Trying leaf</blockquote><blockquote class="alectryon-message">Applying leaf</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp"><span class="c">(* progress (eapply assume).</span>
+<span class="c">progress (eapply leaf). *)</span>
+<span class="c">(* autoProve (). *)</span>
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk6f" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk6f"><span class="kn">Unshelve</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">evid</div></blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kp">all</span>: fillConstant ().</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk70" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk70"><span class="kn">Show Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">{|
-  _l := [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)];
+  _l := [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)];
   _e := eQ;
-  _a := a2;
+  _a := a1;
   _p :=
-    trust [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)] a2 a1 eQ
-      C1 (Trust <span class="s2">&quot;?&quot;</span> : trustRelationInfo)
-      (assume eQ a1 <span class="s2">&quot;C_1&quot;</span> (leaf (AtomicClaim <span class="s2">&quot;C_1&quot;</span>))
-       :
-       proofTreeOf
-         [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)]
-         |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C1)
+    ((assume eQ a1 <span class="s2">&quot;C_2&quot;</span> (leaf (AtomicClaim <span class="s2">&quot;C_2&quot;</span>))
+      :
+      proofTreeOf
+        [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]
+        |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C2)
+     :
+     proofTreeOf
+       [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]
+       |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C2)
     :
     proofTreeOf
-      [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)]
-      |- eQ \<span class="bp">by</span> a2 \<span class="kr">in</span> C1
+      [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]
+      |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C2
 |}</blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv3-v-chk71" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk71"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> show exampleC1.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ C_1 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{?}^{a_{1}} \in C_1 \vdash_{} e_{?}^{a_{1}} \in C_1 $} \AxiomC{$a_{2}?a_{1}$}  \RightLabel{ $ trust\ ?$} \BinaryInfC{$ e_{?}^{a_{1}} \in C_1 \vdash_{?} e_{?}^{a_{2}} \in C_1 $}\end{prooftree}&quot;</span>
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv3-v-chk71" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk71"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> show exampleC1.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ C_2 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{?}^{a_{1}} \in C_2 \vdash_{} e_{?}^{a_{1}} \in C_2 $}\end{prooftree}&quot;</span>
 : string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kt">Set</span> Default <span class="kn">Proof</span> Mode <span class="s2">&quot;Ltac2&quot;</span>.</span></span></pre><p>The following demonstrates automatically proving a larger claim.</p>
-<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk72" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk72"><span class="kn">Definition</span> <span class="nf">automatedProof</span> : proofTreeOfClaim (C1 /\&#39; C2 /\&#39; C3 /\&#39; C4 /\&#39; C5).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim (C1 /\&#39; C2 /\&#39; C3 /\&#39; C4 /\&#39; C5)</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk73" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk73"><span class="kn">Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim (C1 /\&#39; C2 /\&#39; C3 /\&#39; C4 /\&#39; C5)</div></blockquote></div></div></small><span class="alectryon-wsp">
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-wsp"><span class="c">(*  *)</span>
+<span class="c">(* Set Default Goal Selector &quot;!&quot;. *)</span>
+
+
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> tryEach () :=
+<span class="kp">try</span> (tryTrust ());
+<span class="kp">try</span> (tryAndIntro ());
+<span class="kp">try</span> (tryAssumeWitha1 ());
+<span class="kp">try</span> (tryLeaf ()).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2</span> t x :=
+<span class="kp">solve</span> [<span class="kp">do</span> x (tryEach ()); Control.enter (<span class="kr">fun</span> <span class="nv">_</span> =&gt; fillConstant ())].</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Ltac2 rec</span> sp2 max_depth :=
+<span class="kr">match</span> Int.equal max_depth <span class="mi">0</span> <span class="kr">with</span>
+  <span class="c">(* | true =&gt; Control.zero (MyNewException (&quot;Ran out of depth.&quot;)) *)</span>
+  | true =&gt; ()
+  | false =&gt; tryEach (); sp2 (Int.sub max_depth <span class="mi">1</span>)
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk72" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk72"><span class="kn">Definition</span> <span class="nf">automatedProof</span> : proofTreeOfClaim (C1 /\&#39; C2 /\&#39; C2 /\&#39; C2 /\&#39; C2).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim (C1 /\&#39; C2 /\&#39; C2 /\&#39; C2 /\&#39; C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk73" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk73"><span class="kn">Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim (C1 /\&#39; C2 /\&#39; C2 /\&#39; C2 /\&#39; C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk74" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk74"><span class="nb">eexists</span> _ _ _.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
   <span class="nl">?Goal</span>
   |- <span class="nl">?Goal0</span> \<span class="bp">by</span> <span class="nl">?Goal1</span> \<span class="kr">in</span>
-     (C1 /\&#39; C2 /\&#39; C3 /\&#39; C4 /\&#39; C5)</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk75" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk75">autoProve ().</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Trying depth:</blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message">Trying depth:</blockquote><blockquote class="alectryon-message"><span class="mi">2</span></blockquote><blockquote class="alectryon-message">Trying depth:</blockquote><blockquote class="alectryon-message"><span class="mi">3</span></blockquote><blockquote class="alectryon-message">Trying depth:</blockquote><blockquote class="alectryon-message"><span class="mi">4</span></blockquote><blockquote class="alectryon-message">Trying depth:</blockquote><blockquote class="alectryon-message"><span class="mi">5</span></blockquote><blockquote class="alectryon-message">Trying depth:</blockquote><blockquote class="alectryon-message"><span class="mi">6</span></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk76" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk76"><span class="kn">Unshelve</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">evid</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk77" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk77"><hr></label><div class="goal-conclusion">evid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk78" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk78"><hr></label><div class="goal-conclusion">evid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk79" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk79"><hr></label><div class="goal-conclusion">evid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk7a" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk7a"><hr></label><div class="goal-conclusion">evid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kp">all</span>: fillConstant ().</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk7b" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk7b"><span class="kn">Show Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">{|
-  _l :=
-    ((([eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)] ++
-       [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]) ++
-      [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_3&quot;</span>)]) ++
-     [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_4&quot;</span>)]) ++
-    [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_5&quot;</span>)];
-  _e := (eQ, eQ, eQ, eQ, eQ);
-  _a := a1;
-  _p :=
-    and_intro
-      ((([eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)] ++
-         [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]) ++
-        [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_3&quot;</span>)]) ++
-       [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_4&quot;</span>)])
-      [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_5&quot;</span>)] a1
-      (eQ, eQ, eQ, eQ) eQ (C1 /\&#39; C2 /\&#39; C3 /\&#39; C4) C5
-      (and_intro
-         (([eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)] ++
-           [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]) ++
-          [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_3&quot;</span>)])
-         [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_4&quot;</span>)] a1
-         (eQ, eQ, eQ) eQ (C1 /\&#39; C2 /\&#39; C3) C4
-         (and_intro
-            ([eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)] ++
-             [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)])
-            [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_3&quot;</span>)] a1
-            (eQ, eQ) eQ (C1 /\&#39; C2) C3
-            (and_intro
-               [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)]
-               [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)] a1
-               eQ eQ C1 C2
-               (assume eQ a1 <span class="s2">&quot;C_1&quot;</span>
-                  (leaf (AtomicClaim <span class="s2">&quot;C_1&quot;</span>))
-                :
-                proofTreeOf
-                  [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)]
-                  |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C1)
-               (assume eQ a1 <span class="s2">&quot;C_2&quot;</span>
-                  (leaf (AtomicClaim <span class="s2">&quot;C_2&quot;</span>))
-                :
-                proofTreeOf
-                  [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]
-                  |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C2)
-             :
-             proofTreeOf
-               ([eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)] ++
-                [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)])
-               |- (eQ, eQ) \<span class="bp">by</span> a1 \<span class="kr">in</span> (C1 /\&#39; C2))
-            ((assume eQ a1 <span class="s2">&quot;C_3&quot;</span>
-                (leaf (AtomicClaim <span class="s2">&quot;C_3&quot;</span>))
-              :
-              proofTreeOf
-                [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_3&quot;</span>)]
-                |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C3)
-             :
-             proofTreeOf
-               [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_3&quot;</span>)]
-               |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C3)
-          :
-          proofTreeOf
-            (([eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)] ++
-              [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]) ++
-             [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_3&quot;</span>)])
-            |- (eQ, eQ, eQ) \<span class="bp">by</span> a1 \<span class="kr">in</span>
-               (C1 /\&#39; C2 /\&#39; C3))
-         (((assume eQ a1 <span class="s2">&quot;C_4&quot;</span>
-              (leaf (AtomicClaim <span class="s2">&quot;C_4&quot;</span>))
-            :
-            proofTreeOf
-              [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_4&quot;</span>)]
-              |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C4)
-           :
-           proofTreeOf
-             [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_4&quot;</span>)]
-             |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C4)
-          :
-          proofTreeOf
-            [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_4&quot;</span>)]
-            |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C4)
-       :
-       proofTreeOf
-         ((([eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)] ++
-            [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]) ++
-           [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_3&quot;</span>)]) ++
-          [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_4&quot;</span>)])
-         |- (eQ, eQ, eQ, eQ) \<span class="bp">by</span> a1 \<span class="kr">in</span>
-            (C1 /\&#39; C2 /\&#39; C3 /\&#39; C4))
-      ((((assume eQ a1 <span class="s2">&quot;C_5&quot;</span>
-            (leaf (AtomicClaim <span class="s2">&quot;C_5&quot;</span>))
-          :
-          proofTreeOf
-            [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_5&quot;</span>)]
-            |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C5)
-         :
-         proofTreeOf
-           [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_5&quot;</span>)]
-           |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C5)
-        :
-        proofTreeOf
-          [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_5&quot;</span>)]
-          |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C5)
-       :
-       proofTreeOf
-         [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_5&quot;</span>)]
-         |- eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> C5)
-    :
-    proofTreeOf
-      (((([eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_1&quot;</span>)] ++
-          [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_2&quot;</span>)]) ++
-         [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_3&quot;</span>)]) ++
-        [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_4&quot;</span>)]) ++
-       [eQ \<span class="bp">by</span> a1 \<span class="kr">in</span> (AtomicClaim <span class="s2">&quot;C_5&quot;</span>)])
-      |- (eQ, eQ, eQ, eQ, eQ) \<span class="bp">by</span> a1 \<span class="kr">in</span>
-         (C1 /\&#39; C2 /\&#39; C3 /\&#39; C4 /\&#39; C5)
-|}</blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv3-v-chk7c" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk7c"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> show automatedProof.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ C_1 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{?}^{a_{1}} \in C_1 \vdash_{} e_{?}^{a_{1}} \in C_1 $}\AxiomC{$ C_2 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{?}^{a_{1}} \in C_2 \vdash_{} e_{?}^{a_{1}} \in C_2 $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e_{?}^{a_{1}} \in C_1, e_{?}^{a_{1}} \in C_2 \vdash_{} (e_{?}, e_{?})^{a_{1}} \in C_1 \wedge C_2 $}\AxiomC{$ C_3 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{?}^{a_{1}} \in C_3 \vdash_{} e_{?}^{a_{1}} \in C_3 $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e_{?}^{a_{1}} \in C_1, e_{?}^{a_{1}} \in C_2, e_{?}^{a_{1}} \in C_3 \vdash_{} ((e_{?}, e_{?}), e_{?})^{a_{1}} \in C_1 \wedge C_2 \wedge C_3 $}\AxiomC{$ C_4 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{?}^{a_{1}} \in C_4 \vdash_{} e_{?}^{a_{1}} \in C_4 $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e_{?}^{a_{1}} \in C_1, e_{?}^{a_{1}} \in C_2, e_{?}^{a_{1}} \in C_3, e_{?}^{a_{1}} \in C_4 \vdash_{} (((e_{?}, e_{?}), e_{?}), e_{?})^{a_{1}} \in C_1 \wedge C_2 \wedge C_3 \wedge C_4 $}\AxiomC{$ C_5 \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{?}^{a_{1}} \in C_5 \vdash_{} e_{?}^{a_{1}} \in C_5 $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e_{?}^{a_{1}} \in C_1, e_{?}^{a_{1}} \in C_2, e_{?}^{a_{1}} \in C_3, e_{?}^{a_{1}} \in C_4, e_{?}^{a_{1}} \in C_5 \vdash_{} ((((e_{?}, e_{?}), e_{?}), e_{?}), e_{?})^{a_{1}} \in C_1 \wedge C_2 \wedge C_3 \wedge C_4 \wedge C_5 $}\end{prooftree}&quot;</span>
-: string</blockquote></div></div></small></span></pre></div>
+     (C1 /\&#39; C2 /\&#39; C2 /\&#39; C2 /\&#39; C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk75" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk75"><span class="kn">Fail</span> autoProveWithDepth <span class="mi">3</span>.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message"><span class="mi">3</span></blockquote><blockquote class="alectryon-message"><span class="mi">2</span></blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message">Trying leaf</blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message">Trying assume</blockquote><blockquote class="alectryon-message">Applying assume</blockquote><blockquote class="alectryon-message">Trying leaf</blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message"><span class="mi">0</span></blockquote><blockquote class="alectryon-message">Trying and_intro</blockquote><blockquote class="alectryon-message">Applying and_intro</blockquote><blockquote class="alectryon-message">Trying leaf</blockquote><blockquote class="alectryon-message">The command has indeed failed <span class="kr">with</span> message:
+Backtrace:
+Call autoProveWithDepth
+Call proofSearchTryCatch
+Call {<span class="kr">let</span> <span class="nv">_</span> :=
+        Message.print (Message.of_int max_depth) <span class="kr">in</span>
+      <span class="kr">match</span> Int.equal max_depth <span class="mi">0</span> <span class="kr">with</span>
+      | true =&gt;
+          Control.zero (MyNewException <span class="s2">&quot;Hit bottom&quot;</span>)
+      | false =&gt;
+          <span class="kr">let</span> <span class="nv">_</span> :=
+            <span class="kr">let</span> <span class="nv">cl</span> := None <span class="kr">with</span> pl := None <span class="kr">with</span> s :=
+              {
+              Std.rBeta
+              :=
+              true;
+              Std.rMatch
+              :=
+              true;
+              Std.rFix
+              :=
+              true;
+              Std.rCofix
+              :=
+              true;
+              Std.rZeta
+              :=
+              true;
+              Std.rDelta
+              :=
+              true;
+              Std.rConst
+              :=
+              []
+              } <span class="kr">in</span>
+            Std.<span class="nb">simpl</span> s pl (default_on_concl cl) <span class="kr">in</span>
+          Control.plus
+            (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+             Control.plus
+               (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                Control.zero (MyNewException <span class="s2">&quot;()&quot;</span>))
+               (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                Control.plus
+                  (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                   tryLeaf
+                     (proofSearchTryCatch
+                        (Int.sub max_depth <span class="mi">1</span>)))
+                  (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                   Control.plus
+                     (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                      tryAssumeWitha1
+                        (proofSearchTryCatch
+                           (Int.sub max_depth <span class="mi">1</span>)))
+                     (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                      Control.plus
+                        (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                         tryAndIntro
+                           (proofSearchTryCatch
+                              (Int.sub max_depth <span class="mi">1</span>)))
+                        (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                         Control.plus
+                           (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                            tryTrust
+                              (proofSearchTryCatch ...))
+                           (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                            Control.zero
+                              (MyNewException <span class="s2">&quot;()&quot;</span>)))))))
+            (<span class="kr">fun</span> <span class="nv">_</span> =&gt; ())
+
+      <span class="kr">end</span>}
+Call Control.plus
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:plus&gt;
+Call {Control.plus
+        (<span class="kr">fun</span> <span class="nv">_</span> =&gt; Control.zero (MyNewException <span class="s2">&quot;()&quot;</span>))
+        (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+         Control.plus
+           (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+            tryLeaf
+              (proofSearchTryCatch
+                 (Int.sub max_depth <span class="mi">1</span>)))
+           (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+            Control.plus
+              (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+               tryAssumeWitha1
+                 (proofSearchTryCatch
+                    (Int.sub max_depth <span class="mi">1</span>)))
+              (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+               Control.plus
+                 (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                  tryAndIntro
+                    (proofSearchTryCatch
+                       (Int.sub max_depth <span class="mi">1</span>)))
+                 (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                  Control.plus
+                    (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                     tryTrust
+                       (proofSearchTryCatch
+                          (Int.sub max_depth <span class="mi">1</span>)))
+                    (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                     Control.zero
+                       (MyNewException <span class="s2">&quot;()&quot;</span>))))))}
+Call Control.plus
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:plus&gt;
+Call {Control.plus
+        (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+         tryLeaf
+           (proofSearchTryCatch (Int.sub max_depth <span class="mi">1</span>)))
+        (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+         Control.plus
+           (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+            tryAssumeWitha1
+              (proofSearchTryCatch
+                 (Int.sub max_depth <span class="mi">1</span>)))
+           (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+            Control.plus
+              (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+               tryAndIntro
+                 (proofSearchTryCatch
+                    (Int.sub max_depth <span class="mi">1</span>)))
+              (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+               Control.plus
+                 (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                  tryTrust
+                    (proofSearchTryCatch
+                       (Int.sub max_depth <span class="mi">1</span>)))
+                 (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                  Control.zero (MyNewException <span class="s2">&quot;()&quot;</span>)))))}
+Call Control.plus
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:plus&gt;
+Call {tryLeaf
+        (proofSearchTryCatch (Int.sub max_depth <span class="mi">1</span>))}
+Call tryLeaf
+Call Pattern.one_goal_match0
+Call Control.<span class="kp">once</span>
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:<span class="kp">once</span>&gt;
+Call {Pattern.multi_goal_match0 rev pats}
+Call Pattern.multi_goal_match0
+Call {<span class="kr">match</span> m <span class="kr">with</span>
+      | [] =&gt; Control.zero (Match_failure )
+      | :: p m =&gt;
+          <span class="kr">let</span> <span class="nv">next</span> := <span class="kr">fun</span> <span class="nv">_</span> =&gt; interp m <span class="kr">in</span>
+          <span class="kr">let</span> <span class="nv">p0</span> := p <span class="kr">in</span>
+          <span class="kr">match</span> p0 <span class="kr">with</span>
+          | (pat, f) =&gt;
+              <span class="kr">let</span> <span class="nv">p1</span> := pat <span class="kr">in</span>
+              <span class="kr">match</span> p1 <span class="kr">with</span>
+              | (phyps, pconcl) =&gt;
+                  <span class="kr">let</span> <span class="nv">cur</span> :=
+                    <span class="kr">fun</span> <span class="nv">_</span> =&gt;
+                    <span class="kr">let</span> <span class="nv">p2</span> :=
+                      Pattern.matches_goal rev phyps
+                        pconcl <span class="kr">in</span>
+                    <span class="kr">match</span> p2 <span class="kr">with</span>
+                    |
+                        (hids, hbctx, hctx, <span class="nb">subst</span>,
+                          cctx) =&gt;
+                        f hids hbctx hctx <span class="nb">subst</span> cctx
+                    <span class="kr">end</span> <span class="kr">in</span>
+                  Control.plus cur next
+              <span class="kr">end</span>
+          <span class="kr">end</span>
+
+      <span class="kr">end</span>}
+Call Control.plus
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:plus&gt;
+Call {<span class="kr">let</span> <span class="nv">p2</span> := Pattern.matches_goal rev phyps pconcl
+        <span class="kr">in</span>
+      <span class="kr">match</span> p2 <span class="kr">with</span>
+      | (hids, hbctx, hctx, <span class="nb">subst</span>, cctx) =&gt;
+          f hids hbctx hctx <span class="nb">subst</span> cctx
+      <span class="kr">end</span>}
+Call Pattern.matches_goal
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:pattern_matches_goal&gt;
+Uncaught <span class="kn">Ltac2</span> exception: Not_focussed</blockquote></div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  <span class="nl">?Goal</span>
+  |- <span class="nl">?Goal0</span> \<span class="bp">by</span> <span class="nl">?Goal1</span> \<span class="kr">in</span>
+     (C1 /\&#39; C2 /\&#39; C2 /\&#39; C2 /\&#39; C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp"><span class="c">(* UP TO HERE, getting a not focussed error. *)</span>
+<span class="c">(* t 7. *)</span>
+<span class="c">(* tryAndIntro (); Control.enter (fun _ =&gt; tryAssumeWitha1 ()). *)</span>
+<span class="c">(* proofSearchTryCatch 2. *)</span>
+<span class="c">(* try (tryAndIntro ()); Control.enter (fun _ =&gt; (try (tryAndIntro ()); Control.enter (fun _ =&gt; try (tryAssumeWitha1 ()); Control.enter (fun _ =&gt; try (tryLeaf ()); Control.enter (fun _ =&gt; ()))))). *)</span>
+<span class="c">(* tryAndIntro (); Control.enter (fun _ =&gt; try (tryAndIntro ())). *)</span>
+<span class="c">(* tryAndIntro ().</span>
+<span class="c">tryAndIntro ().</span>
+<span class="c">tryAndIntro ().</span>
+<span class="c">tryAndIntro ().</span>
+<span class="c">tryAndIntro (). *)</span>
+<span class="c">(* Time autoProve ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)</span>
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk76" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk76"><span class="kn">Unshelve</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  <span class="nl">?Goal</span>
+  |- <span class="nl">?Goal0</span> \<span class="bp">by</span> <span class="nl">?Goal1</span> \<span class="kr">in</span>
+     (C1 /\&#39; C2 /\&#39; C2 /\&#39; C2 /\&#39; C2)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk77" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk77"><hr></label><div class="goal-conclusion">list singleJudgement</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk78" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk78"><hr></label><div class="goal-conclusion">evid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk79" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk79"><hr></label><div class="goal-conclusion">actor</div></blockquote></div></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk7a" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk7a"><span class="kn">Fail</span> <span class="kp">all</span>: fillConstant ().</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">The command has indeed failed <span class="kr">with</span> message:
+Backtrace:
+Call fillConstant
+Call solve0
+Call {<span class="kr">match</span> tacs <span class="kr">with</span>
+      | [] =&gt; Control.zero (Tactic_failure None)
+      | :: tac tacs =&gt;
+          Control.enter
+            (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+             orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+               (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs))
+
+      <span class="kr">end</span>}
+Call Control.enter
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:enter&gt;
+Call {orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+        (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs)}
+Call orelse
+Call {solve0 tacs}
+Call {<span class="kr">match</span> tacs <span class="kr">with</span>
+      | [] =&gt; Control.zero (Tactic_failure None)
+      | :: tac tacs =&gt;
+          Control.enter
+            (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+             orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+               (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs))
+
+      <span class="kr">end</span>}
+Call Control.enter
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:enter&gt;
+Call {orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+        (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs)}
+Call orelse
+Call {solve0 tacs}
+Call {<span class="kr">match</span> tacs <span class="kr">with</span>
+      | [] =&gt; Control.zero (Tactic_failure None)
+      | :: tac tacs =&gt;
+          Control.enter
+            (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+             orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+               (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs))
+
+      <span class="kr">end</span>}
+Call Control.enter
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:enter&gt;
+Call {orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+        (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs)}
+Call orelse
+Call {solve0 tacs}
+Call {<span class="kr">match</span> tacs <span class="kr">with</span>
+      | [] =&gt; Control.zero (Tactic_failure None)
+      | :: tac tacs =&gt;
+          Control.enter
+            (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+             orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+               (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs))
+
+      <span class="kr">end</span>}
+Call Control.enter
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:enter&gt;
+Call {orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+        (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs)}
+Call orelse
+Call {solve0 tacs}
+Call {<span class="kr">match</span> tacs <span class="kr">with</span>
+      | [] =&gt; Control.zero (Tactic_failure None)
+      | :: tac tacs =&gt;
+          Control.enter
+            (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+             orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+               (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs))
+
+      <span class="kr">end</span>}
+Call Control.enter
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:enter&gt;
+Call {orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+        (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs)}
+Call orelse
+Call {solve0 tacs}
+Call {<span class="kr">match</span> tacs <span class="kr">with</span>
+      | [] =&gt; Control.zero (Tactic_failure None)
+      | :: tac tacs =&gt;
+          Control.enter
+            (<span class="kr">fun</span> <span class="nv">_</span> =&gt;
+             orelse (<span class="kr">fun</span> <span class="nv">_</span> =&gt; complete tac)
+               (<span class="kr">fun</span> <span class="nv">_</span> =&gt; solve0 tacs))
+
+      <span class="kr">end</span>}
+Call Control.zero
+Prim &lt;coq-core.plugins.<span class="kr">ltac2</span>:zero&gt;
+Backtrace:
+
+Uncaught <span class="kn">Ltac2</span> exception: Tactic_failure (None)</blockquote></div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  <span class="nl">?Goal</span>
+  |- <span class="nl">?Goal0</span> \<span class="bp">by</span> <span class="nl">?Goal1</span> \<span class="kr">in</span>
+     (C1 /\&#39; C2 /\&#39; C2 /\&#39; C2 /\&#39; C2)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk7b" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk7b"><hr></label><div class="goal-conclusion">list singleJudgement</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk7c" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk7c"><hr></label><div class="goal-conclusion">evid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk7d" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk7d"><hr></label><div class="goal-conclusion">actor</div></blockquote></div></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv3-v-chk7e" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv3-v-chk7e"><span class="kn">Show Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">{|
+  _l := <span class="nl">?Goal</span>;
+  _e := <span class="nl">?Goal0</span>;
+  _a := <span class="nl">?Goal1</span>;
+  _p := <span class="nl">?Goal2</span>
+|}</blockquote></div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  <span class="nl">?Goal</span>
+  |- <span class="nl">?Goal0</span> \<span class="bp">by</span> <span class="nl">?Goal1</span> \<span class="kr">in</span>
+     (C1 /\&#39; C2 /\&#39; C2 /\&#39; C2 /\&#39; C2)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk7f" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk7f"><hr></label><div class="goal-conclusion">list singleJudgement</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk80" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk80"><hr></label><div class="goal-conclusion">evid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv3-v-chk81" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv3-v-chk81"><hr></label><div class="goal-conclusion">actor</div></blockquote></div></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Abort</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-wsp"><span class="c">(* Eval compute in show automatedProof. *)</span></span></pre></div>
 </div>
 </div></body>
 </html>
