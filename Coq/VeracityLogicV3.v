@@ -776,8 +776,10 @@ Definition eQ := AtomicEvid "e_{?}".
 Definition CQ := AtomicClaim "C_{?}".
 Definition aQ := Actor "a_{?}".
 
-Ltac2 maybePrintMessage1 s := Message.print (Message.of_string s).
-Ltac2 maybePrintMessage2 s := Message.print (Message.of_string s).
+(* Ltac2 maybePrintMessage1 s := Message.print (Message.of_string s). *)
+(* Ltac2 maybePrintMessage2 s := Message.print (Message.of_string s). *)
+Ltac2 maybePrintMessage1 s := ().
+Ltac2 maybePrintMessage2 s := ().
 Ltac2 Type exn ::= [ VeracityProofSearchException(string) ].
 
 Ltac2 tryLeaf etc :=
@@ -814,20 +816,25 @@ solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | app
 Set Default Proof Mode "Ltac2".
 (* Set Ltac2 Backtrace. *)
 
-Ltac2 rec autoProveProgressiveSearch start_depth max_depth :=
-match Int.gt start_depth max_depth with
-  | true => fail
+Ltac2 rec autoProveWithDepth max_depth :=
+match Int.equal 0 max_depth with
+  | true => Control.zero (VeracityProofSearchException ("Ran out of depth."))
   (* | true => () *)
   | false => solve [
-      tryAndIntro (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
-    | tryAssumeWitha1 (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
-    | tryLeaf (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
-    | tryTrust (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
-    | fillConstant (); autoProveProgressiveSearch (Int.add start_depth 1) max_depth
+      tryAndIntro (); autoProveWithDepth (Int.sub max_depth 1)
+    | tryAssumeWitha1 (); autoProveWithDepth (Int.sub max_depth 1)
+    | tryLeaf (); autoProveWithDepth (Int.sub max_depth 1)
+    | tryTrust (); autoProveWithDepth (Int.sub max_depth 1)
+    | fillConstant (); autoProveWithDepth (Int.sub max_depth 1)
   ]
 end.
 
-Ltac2 autoProve max_depth := autoProveProgressiveSearch 1 max_depth.
+Ltac2 rec autoProve_helper d :=
+ Message.print (Message.of_string "Depth:");
+ Message.print (Message.of_int d);
+ solve [ autoProveWithDepth d | autoProve_helper (Int.add d 1) ].
+
+Ltac2 autoProve () := autoProve_helper 1.
 
 (*|
 The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.
@@ -836,7 +843,7 @@ The following demonstrates a constraing that the claim must be believed by actor
 Definition exampleC1 : proofTreeOfClaim (C2).
 Proof.
 eexists _ _ _.
-autoProve 5.
+autoProve ().
 Unshelve.
 all: fillConstant ().
 Show Proof.
@@ -862,11 +869,12 @@ The following demonstrates automatically proving a larger claim.
 (*  *)
 (* Set Default Goal Selector "!". *)
 
-Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C2 /\' C2 /\' C2).
+Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C3 /\' C4 /\' C5).
 Proof.
 eexists _ _ _.
-Time autoProve 6. (* Finished transaction in 0.002 secs (0.002u,0.s) (successful) *)
-(* Time autoProve ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
+Time autoProve (). (* Finished transaction in 0.188 secs (0.181u,0.004s) (successful) *)
+(* Time autoProveWithDepth 7. Finished transaction in 0.002 secs (0.002u,0.s) (successful) *)
+(* Time autoProveWithDepth ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
 Unshelve.
 all: fillConstant ().
 Show Proof.
