@@ -450,7 +450,7 @@ Lemma removeDupsCorrect : (forall l, NoDup (removeDups l)) /\ forall l a, In a (
 Proof.
 Abort.
 
-Fixpoint showProofTreeOf_helper (j : judgement) (p : proofTreeOf j)
+Fixpoint showProofTreeOfHelper (j : judgement) (p : proofTreeOf j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 match p with
@@ -458,52 +458,52 @@ match p with
 | leaf c => "\AxiomC{$ " 
              ++ show c 
              ++ " \textit{ is a veracity claim} $}"
-| assume e a name M => showProofTreeOf_helper _ M
+| assume e a name M => showProofTreeOfHelper _ M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
     ++ showJudgement Ts ([e \by a \in (AtomicClaim name)] |- e \by a \in (AtomicClaim name)) ++ " $}"
-| assume_bot e a M => showProofTreeOf_helper _ M
+| assume_bot e a M => showProofTreeOfHelper _ M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
     ++ showJudgement Ts ([e \by a \in _|_] |- e \by a \in _|_) ++ " $}"
-| bot_elim Ps e a C M => showProofTreeOf_helper _ M
+| bot_elim Ps e a C M => showProofTreeOfHelper _ M
     ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
     ++ showJudgement Ts (Ps |- (e \by a \in C))
     ++ " $}"
 | and_intro Ps Qs a e1 e2 C1 C2 L R => 
-    showProofTreeOf_helper _ L
- ++ showProofTreeOf_helper _ R 
+    showProofTreeOfHelper _ L
+ ++ showProofTreeOfHelper _ R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
  ++ showJudgement Ts ((Ps ++ Qs) |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
-| and_elim1 Ps a e1 e2 C1 C2 M => showProofTreeOf_helper _ M
+| and_elim1 Ps a e1 e2 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \land^{-1} $} \UnaryInfC{$ "
  ++ showJudgement Ts (Ps |- (e1 \by a \in C1))
  ++ " $}"
-| and_elim2 Ps a e1 e2 C1 C2 M => showProofTreeOf_helper _ M
+| and_elim2 Ps a e1 e2 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \land^{-2} $} \UnaryInfC{$ "
  ++ showJudgement Ts (Ps |- (e2 \by a \in C2))
  ++ " $}"
-| or_intro1 Ps a e1 C1 C2 M => showProofTreeOf_helper _ M
+| or_intro1 Ps a e1 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{+1} $} \UnaryInfC{$ "
  ++ showJudgement Ts (Ps |- ((Left e1) \by a \in (C1 \/' C2)))
  ++ " $}"
-| or_intro2 Ps a e2 C1 C2 M => showProofTreeOf_helper _ M
+| or_intro2 Ps a e2 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{+2} $} \UnaryInfC{$ "
  ++ showJudgement Ts (Ps |- ((Right e2) \by a \in (C1 \/' C2)))
  ++ " $}"
-| or_elim1 Ps a e1 C1 C2 M => showProofTreeOf_helper _ M
+| or_elim1 Ps a e1 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{-1} $} \UnaryInfC{$ "
  ++ showJudgement Ts (Ps |- (e1 \by a \in C1))
  ++ " $}"
-| or_elim2 Ps a e2 C1 C2 M => showProofTreeOf_helper _ M
+| or_elim2 Ps a e2 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{-2} $} \UnaryInfC{$ "
  ++ showJudgement Ts (Ps |- (e2 \by a \in C2))
  ++ " $}"
 | trust Ps a1 a2 e C name L => 
-    showProofTreeOf_helper _ L
+    showProofTreeOfHelper _ L
  ++ " \AxiomC{$" ++ show a1 ++ show name ++ show a2 ++ "$} "
  ++ " \RightLabel{ $ trust\ " ++ show name
  ++ "$} \BinaryInfC{$ "
  ++ showJudgement Ts (Ps |- (e \by a1 \in C)) ++ " $}"
-| impl_intro Ps Qs a e1 e2 C1 C2 M => showProofTreeOf_helper _ M
+| impl_intro Ps Qs a e1 e2 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
  ++ showJudgement Ts ((Ps ++ Qs) |- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
  ++ " $}"
@@ -512,7 +512,7 @@ end.
 Open Scope string.
 
 Definition showProofTreeOf j p
-  := "\begin{prooftree}" ++ showProofTreeOf_helper j p
+  := "\begin{prooftree}" ++ showProofTreeOfHelper j p
        ++ "\end{prooftree}".
 Instance showProofTreeOfInstance (j : judgement)
   : Show (proofTreeOf j) := { show := showProofTreeOf j}.
@@ -816,25 +816,25 @@ solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | app
 Set Default Proof Mode "Ltac2".
 (* Set Ltac2 Backtrace. *)
 
-Ltac2 rec autoProveWithDepth max_depth :=
+Ltac2 rec autoProveMain max_depth :=
 match Int.equal 0 max_depth with
   | true => Control.zero (VeracityProofSearchException ("Ran out of depth."))
   (* | true => () *)
   | false => solve [
-      tryAndIntro (); autoProveWithDepth (Int.sub max_depth 1)
-    | tryAssumeWitha1 (); autoProveWithDepth (Int.sub max_depth 1)
-    | tryLeaf (); autoProveWithDepth (Int.sub max_depth 1)
-    | tryTrust (); autoProveWithDepth (Int.sub max_depth 1)
-    | fillConstant (); autoProveWithDepth (Int.sub max_depth 1)
+      eapply and_intro; autoProveMain (Int.sub max_depth 1)
+    | eapply (assume _ a1); autoProveMain (Int.sub max_depth 1)
+    | eapply leaf; autoProveMain (Int.sub max_depth 1)
+    | eapply (trust _ _ _ _ _ _); autoProveMain (Int.sub max_depth 1)
+    | fillConstant (); autoProveMain (Int.sub max_depth 1)
   ]
 end.
 
-Ltac2 rec autoProve_helper d :=
+Ltac2 rec autoProveHelper d :=
  Message.print (Message.of_string "Depth:");
  Message.print (Message.of_int d);
- solve [ autoProveWithDepth d | autoProve_helper (Int.add d 1) ].
+ solve [ autoProveMain d | autoProveHelper (Int.add d 1) ].
 
-Ltac2 autoProve () := autoProve_helper 1.
+Ltac2 autoProve () := autoProveHelper 1.
 
 (*|
 The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.
@@ -872,9 +872,10 @@ The following demonstrates automatically proving a larger claim.
 Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C3 /\' C4 /\' C5).
 Proof.
 eexists _ _ _.
-Time autoProve (). (* Finished transaction in 0.188 secs (0.181u,0.004s) (successful) *)
-(* Time autoProveWithDepth 7. Finished transaction in 0.002 secs (0.002u,0.s) (successful) *)
-(* Time autoProveWithDepth ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
+Time autoProve ().  (* Finished transaction in 0.1 secs (0.099u,0.s) (successful) *)
+(* Time autoProve (). Using match statements Finished transaction in 0.188 secs (0.181u,0.004s) (successful) *)
+(* Time autoProveMain 7. Finished transaction in 0.002 secs (0.002u,0.s) (successful) *)
+(* Time autoProveMain ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
 Unshelve.
 all: fillConstant ().
 Show Proof.
