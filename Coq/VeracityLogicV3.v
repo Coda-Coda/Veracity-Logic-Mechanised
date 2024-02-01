@@ -855,68 +855,144 @@ match Int.equal max_depth 0 with
     Message.print (Message.of_int max_depth);
     
     Control.plus (
-      fun () => Control.plus (fun () => try (ltac1:(unshelve eapply or_elim1); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "1"); proofSearch (Int.sub max_depth 1))
-        (fun _ => Control.plus (fun () => try (ltac1:(unshelve eapply admit); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "2"); proofSearch (Int.sub max_depth 1))
-          (fun _ => Control.plus (fun () => try (ltac1:(unshelve eapply or_intro1); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "3"); proofSearch (Int.sub max_depth 1))
-            (fun _ => try (ltac1:(unshelve eapply or_elim2); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "4"); proofSearch (Int.sub max_depth 1)))))
-              (fun _ => try (ltac1:(unshelve eapply or_intro2); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "5"); proofSearch (Int.sub max_depth 1))
+      fun () => Control.plus (fun () => try (ltac1:(unshelve eapply or_elim1); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "1"))
+        (fun _ => Control.plus (fun () => try (ltac1:(unshelve eapply admit); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "2"))
+          (fun _ => Control.plus (fun () => try (ltac1:(unshelve eapply or_intro1); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "3"))
+            (fun _ => try (ltac1:(unshelve eapply or_elim2); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "4")))))
+              (fun _ => try (ltac1:(unshelve eapply or_intro2); proofSearch (Int.sub max_depth 1)); Message.print (Message.of_string "5"))
 end. *)
 
 Require Ltac2.Ltac1.
 
-Ltac2 unshelve tac :=
-  let f := ltac1:(tac |- unshelve (let __ := match goal with _ => tac () end in idtac)) in
-  f (Ltac1.lambda (fun _ => tac (); Ltac1.of_constr 'I)).
+Ltac2 unshelve (tac) := ltac1:(tac |- unshelve (tac)).
 (* `unshelve` thanks to @JasonGross, see https://github.com/coq/coq/issues/14289#issuecomment-1916236664 *)
 
-Ltac2 maybePrintMessage s := ().
+Ltac2 maybePrintMessage1 s := Message.print (Message.of_string s).
+Ltac2 maybePrintMessage2 s := Message.print (Message.of_string s).
 
-Ltac2 rec proofSearch max_depth :=
-match Int.equal max_depth 1 with
-  | true => 
-solve [ eapply leaf | eapply assume | eapply assume_bot | eapply bot_elim | eapply and_intro | eapply and_elim1 |
-           eapply and_elim2 | eapply or_intro1 | eapply or_intro2 | eapply or_elim1 | eapply or_elim2 | eapply trust | eapply impl_intro |
-           simpl | apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust "?") ]
+Ltac2 tryCatch t1 t2 t3 :=
+  match Control.case t1 with
+  | Val _ => t2
+  | Err exn => t3
+end.
+
+(* Require Import Lia.
+Goal 1=1.
+Proof.
+ifcatch (fun _ => progress (reflexivity)) (fun _ => ()) (fun _ => admit).
+ltac1:(lia). *)
+
+Ltac2 tryLeaf etc :=
+maybePrintMessage1 "Trying leaf";
+match! goal with
+   | [ |- proofTreeOf (IsAVeracityClaim _) ] => (maybePrintMessage2 "Applying leaf"); try ltac1:(unshelve (eapply leaf)); etc
+   | [ |- _ ] => fail
+end.
+
+Ltac2 tryAssumeWitha1 etc :=
+(maybePrintMessage1 "Trying assume");
+match! goal with
+   | [ |- proofTreeOf _ ] => (maybePrintMessage2 "Applying assume"); try ltac1:(unshelve (eapply (assume _ a1))); etc
+   | [ |- _ ] => Control.zero (MyNewException "Didn't match")
+end.
+
+Ltac2 tryAndIntro etc :=
+(maybePrintMessage1 "Trying and_intro");
+match! goal with
+   | [ |- (proofTreeOf _ |- _ \by _ \in (_ /\' _)) ] => (maybePrintMessage2 "Applying and_intro"); try ltac1:(unshelve (eapply and_intro)); Control.enter (fun _ => etc)
+   (* | [ |- (proofTreeOf _ |- _ \by _ \in (_ /\' _)) ] => (maybePrintMessage2 "Applying and_intro"); try (eapply (and_intro)); etc *)
+   | [ |- _ ] => Control.zero (MyNewException "Didn't match")
+end.
+
+Ltac2 tryTrust etc :=
+(maybePrintMessage1 "Trying trust");
+match! goal with
+   | [ |- proofTreeOf _ ] => (maybePrintMessage2 "Applying trust"); try ltac1:(unshelve (eapply trust)); etc
+   | [ |- _ ] => Control.zero (MyNewException "Didn't match")
+end.
+
+Ltac2 fillConstant () :=
+solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust "?") ].
+
+Ltac2 rec proofSearchTryCatch max_depth :=
+Message.print (Message.of_int max_depth);
+match Int.equal max_depth 0 with
+  | true => Control.zero (MyNewException "Hit bottom")
+(* solve [ eapply leaf | eapply assume | eapply assume_bot | eapply bot_elim | eapply and_intro | eapply and_elim1 |
+          eapply and_elim2 | eapply or_intro1 | eapply or_intro2 | eapply or_elim1 | eapply or_elim2 | eapply trust | eapply impl_intro |
+          simpl | apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust "?") ] *)
     (* solve [ unshelve (fun _ => eapply leaf ) | unshelve (fun _ => eapply assume ) | unshelve (fun _ => eapply assume_bot ) | unshelve (fun _ => eapply bot_elim ) | unshelve (fun _ => eapply and_intro ) | unshelve (fun _ => eapply and_elim1 ) | unshelve (fun _ =>
-           eapply and_elim2 ) | unshelve (fun _ => eapply or_intro1 ) | unshelve (fun _ => eapply or_intro2 ) | unshelve (fun _ => eapply or_elim1 ) | unshelve (fun _ => eapply or_elim2 ) | unshelve (fun _ => eapply trust ) | unshelve (fun _ => eapply impl_intro ) | unshelve (fun _ =>
-           simpl ) | unshelve (fun _ => apply CQ ) | unshelve (fun _ => apply aQ ) | unshelve (fun _ => apply eQ ) | unshelve (fun _ => apply ([] : list singleJudgement) ) | unshelve (fun _ => apply (Trust "?")) ] *)
+          eapply and_elim2 ) | unshelve (fun _ => eapply or_intro1 ) | unshelve (fun _ => eapply or_intro2 ) | unshelve (fun _ => eapply or_elim1 ) | unshelve (fun _ => eapply or_elim2 ) | unshelve (fun _ => eapply trust ) | unshelve (fun _ => eapply impl_intro ) | unshelve (fun _ =>
+          simpl ) | unshelve (fun _ => apply CQ ) | unshelve (fun _ => apply aQ ) | unshelve (fun _ => apply eQ ) | unshelve (fun _ => apply ([] : list singleJudgement) ) | unshelve (fun _ => apply (Trust "?")) ] *)
   | false => 
     (* Message.print (Message.of_int max_depth); *)
     
     simpl; Control.plus (
-     fun () => Control.plus (fun () => fail)
-     
-     (fun _ => Control.plus (fun () => ( try (eapply leaf); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying leaf"); proofSearch (Int.sub max_depth 1))
-     (fun _ => Control.plus (fun () => ( try (eapply (assume _ a1 )); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying assume"); proofSearch (Int.sub max_depth 1))
-     (fun _ => Control.plus (fun () => ( try (eapply and_intro); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying and_intro"); proofSearch (Int.sub max_depth 1))
-     (fun _ => Control.plus (fun () => ( try (eapply trust); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying trust"); proofSearch (Int.sub max_depth 1))
-     (* (fun _ => Control.plus (fun () => ( try (eapply or_intro1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying or_intro1"); proofSearch (Int.sub max_depth 1)) *)
-     (* (fun _ => Control.plus (fun () => ( try (eapply or_intro2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying or_intro2"); proofSearch (Int.sub max_depth 1)) *)
-     (* (fun _ => Control.plus (fun () => ( try (eapply and_elim1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying and_elim1"); proofSearch (Int.sub max_depth 1)) *)
-     (* (fun _ => Control.plus (fun () => ( try (eapply and_elim2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying and_elim2"); proofSearch (Int.sub max_depth 1)) *)
-     (* (fun _ => Control.plus (fun () => ( try (eapply or_elim1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying or_elim1"); proofSearch (Int.sub max_depth 1)) *)
-     (* (fun _ => Control.plus (fun () => ( try (eapply or_elim2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying or_elim2"); proofSearch (Int.sub max_depth 1)) *)
-     (* (fun _ => Control.plus (fun () => ( try (eapply impl_intro); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying impl_intro"); proofSearch (Int.sub max_depth 1)) *)
-     (* (fun _ => Control.plus (fun () => ( try (eapply bot_elim); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying bot_elim"); proofSearch (Int.sub max_depth 1)) *)
-     (* (fun _ => Control.plus (fun () => ( try (eapply assume_bot); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying assume_bot"); proofSearch (Int.sub max_depth 1)) *)
-     (* (fun _ => Control.plus (fun () => ( try (eapply admit ); proofSearch (Int.sub max_depth 1)); (maybePrintMessage "Trying admit"); proofSearch (Int.sub max_depth 1)) *)
-     
-     (fun _ => fail ))))))
-     (fun _ => fail )
+    fun () => Control.plus (fun () => Control.zero (MyNewException "()"))
+    
+    (fun _ => Control.plus (fun () => ( tryLeaf (proofSearchTryCatch (Int.sub max_depth 1)) ))
+    (fun _ => Control.plus (fun () => ( tryAssumeWitha1 (proofSearchTryCatch (Int.sub max_depth 1)) ))
+    (fun _ => Control.plus (fun () => ( tryAndIntro (proofSearchTryCatch (Int.sub max_depth 1)) ))
+    (fun _ => Control.plus (fun () => ( tryTrust (proofSearchTryCatch (Int.sub max_depth 1)) ))
+
+    (* (fun _ => Control.plus (fun () => ( try (eapply or_intro1); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying or_intro1"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply or_intro2); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying or_intro2"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply and_elim1); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying and_elim1"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply and_elim2); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying and_elim2"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply or_elim1); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying or_elim1"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply or_elim2); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying or_elim2"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply impl_intro); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying impl_intro"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply bot_elim); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying bot_elim"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply assume_bot); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying assume_bot"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply admit ); proofSearchTryCatch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying admit"); proofSearchTryCatch (Int.sub max_depth 1)) *)
+    
+    (fun _ => Control.zero (MyNewException "()") ))))))
+    (fun _ => () )
 end.
+
+(* Ltac2 rec proofSearch max_depth :=
+match Int.equal max_depth 0 with
+  | true => fail
+    (* solve [ unshelve (fun _ => eapply leaf ) | unshelve (fun _ => eapply assume ) | unshelve (fun _ => eapply assume_bot ) | unshelve (fun _ => eapply bot_elim ) | unshelve (fun _ => eapply and_intro ) | unshelve (fun _ => eapply and_elim1 ) | unshelve (fun _ =>
+          eapply and_elim2 ) | unshelve (fun _ => eapply or_intro1 ) | unshelve (fun _ => eapply or_intro2 ) | unshelve (fun _ => eapply or_elim1 ) | unshelve (fun _ => eapply or_elim2 ) | unshelve (fun _ => eapply trust ) | unshelve (fun _ => eapply impl_intro ) | unshelve (fun _ =>
+          simpl ) | unshelve (fun _ => apply CQ ) | unshelve (fun _ => apply aQ ) | unshelve (fun _ => apply eQ ) | unshelve (fun _ => apply ([] : list singleJudgement) ) | unshelve (fun _ => apply (Trust "?")) ] *)
+  | false => 
+    (* Message.print (Message.of_int max_depth); *)
+    
+    simpl; Control.plus (
+    fun () => Control.plus (fun () => fail)
+    
+    (fun _ => Control.plus (fun () => ( progress (eapply leaf); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying leaf"))
+    (fun _ => Control.plus (fun () => ( progress (eapply (assume _ a1 )); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying assume"))
+    (fun _ => Control.plus (fun () => ( progress (eapply and_intro); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying and_intro"))
+    (fun _ => Control.plus (fun () => ( progress (eapply trust); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying trust"))
+    (* (fun _ => Control.plus (fun () => ( try (eapply or_intro1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying or_intro1")) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply or_intro2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying or_intro2")) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply and_elim1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying and_elim1")) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply and_elim2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying and_elim2")) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply or_elim1); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying or_elim1")) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply or_elim2); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying or_elim2")) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply impl_intro); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying impl_intro")) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply bot_elim); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying bot_elim")) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply assume_bot); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying assume_bot")) *)
+    (* (fun _ => Control.plus (fun () => ( try (eapply admit ); proofSearch (Int.sub max_depth 1)); (maybePrintMessage1 "Trying admit")) *)
+    
+    (fun _ => fail ))))))
+    (fun _ => fail )
+end. *)
 
 Set Default Proof Mode "Ltac2".
 
 Ltac2 autoProveWithDepth max_depth :=
-proofSearch max_depth.
+proofSearchTryCatch max_depth.
 
-Ltac2 rec autoProveWithProgressiveDepth d :=
+(* Ltac2 rec autoProveWithProgressiveDepth d :=
 Message.print (Message.of_string "Trying depth:");
 Message.print (Message.of_int d);
 try (autoProveWithDepth d);
-try (autoProveWithProgressiveDepth (Int.add d 1)).
+try (autoProveWithProgressiveDepth (Int.add d 1)). *)
 
-(* Ltac2 rec autoProveWithProgressiveDepth d :=
+Ltac2 rec autoProveWithProgressiveDepth d :=
 Message.print (Message.of_string "Trying depth: 1");
 try (autoProveWithDepth 1);
 Message.print (Message.of_string "Trying depth: 2");
@@ -924,25 +1000,33 @@ try (autoProveWithDepth 2);
 Message.print (Message.of_string "Trying depth: 3");
 try (autoProveWithDepth 3);
 Message.print (Message.of_string "Trying depth: 4");
-try (autoProveWithDepth 4)
-. *)
+try (autoProveWithDepth 4);
+Message.print (Message.of_string "Trying depth: 5");
+try (autoProveWithDepth 5);
+Message.print (Message.of_string "Trying depth: 6");
+try (autoProveWithDepth 6)
+.
 
 Ltac2 autoProve () :=
 (autoProveWithProgressiveDepth 1).
 
-Ltac2 fillConstant () :=
-solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust "?") ].
 
-(* Set Ltac2 Backtrace. *)
+
+Set Ltac2 Backtrace.
 
 (*|
 The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.
 |*)
 
-Definition exampleC1 : proofTreeOfClaim (C1).
+Definition exampleC1 : proofTreeOfClaim (C2).
 Proof.
-eexists _ _ a2.
-autoProve ().
+eexists _ _ _.
+(* tryAssumeWitha1 ().
+tryLeaf (). *)
+autoProveWithDepth 3.
+(* progress (eapply assume).
+progress (eapply leaf). *)
+(* autoProve (). *)
 Unshelve.
 all: fillConstant ().
 Show Proof.
@@ -961,14 +1045,45 @@ Eval compute in show exampleC1.
 
 Set Default Proof Mode "Ltac2".
 
+
 (*|
 The following demonstrates automatically proving a larger claim.
 |*)
+(*  *)
+(* Set Default Goal Selector "!". *)
 
-Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C3 /\' C4 /\' C5).
+
+Ltac2 tryEach () :=
+try (tryTrust ());
+try (tryAndIntro ());
+try (tryAssumeWitha1 ());
+try (tryLeaf ()).
+
+Ltac2 t x :=
+solve [do x (tryEach ()); Control.enter (fun _ => fillConstant ())].
+
+Ltac2 rec sp2 max_depth :=
+match Int.equal max_depth 0 with
+  (* | true => Control.zero (MyNewException ("Ran out of depth.")) *)
+  | true => ()
+  | false => tryEach (); sp2 (Int.sub max_depth 1)
+end.
+
+Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C2 /\' C2 /\' C2).
 Proof.
 eexists _ _ _.
-autoProve ().
+autoProveWithDepth 3.
+t 7.
+(* tryAndIntro (); Control.enter (fun _ => tryAssumeWitha1 ()). *)
+(* proofSearchTryCatch 2. *)
+(* try (tryAndIntro ()); Control.enter (fun _ => (try (tryAndIntro ()); Control.enter (fun _ => try (tryAssumeWitha1 ()); Control.enter (fun _ => try (tryLeaf ()); Control.enter (fun _ => ()))))). *)
+(* tryAndIntro (); Control.enter (fun _ => try (tryAndIntro ())). *)
+(* tryAndIntro ().
+tryAndIntro ().
+tryAndIntro ().
+tryAndIntro ().
+tryAndIntro (). *)
+(* Time autoProve ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
 Unshelve.
 all: fillConstant ().
 Show Proof.
