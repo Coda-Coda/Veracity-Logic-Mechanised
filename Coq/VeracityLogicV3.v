@@ -70,7 +70,8 @@ Inductive evid :=
   | Pair (e1 e2 : evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
-  | Lambda (e1 e2 : evid).
+  | Lambda (e1 e2 : evid)
+  | Apply (e1 e2 : evid).
 
 Inductive claim :=
   | AtomicClaim (name : string)
@@ -157,6 +158,8 @@ match e1,e2 with
 | Right e11,_ => false
 | Lambda e11 e12,Lambda e21 e22 => beqEvid e11 e21 && beqEvid e12 e22
 | Lambda e11 e12,_ => false
+| Apply e11 e12,Apply e21 e22 => beqEvid e11 e21 && beqEvid e12 e22
+| Apply e11 e12,_ => false
 end.
 Instance : Beq evid := { beq := beqEvid }.
 
@@ -207,17 +210,11 @@ The remaining rules will be easy to add, this will be done in 2024.
 Inductive proofTreeOf : judgement -> Type :=
 | admit p : proofTreeOf p
 | leaf c : proofTreeOf (IsAVeracityClaim c)
-| assume e a name
+| assume e a C
 
-       (M : proofTreeOf (IsAVeracityClaim (AtomicClaim name))) 
+       (M : proofTreeOf (IsAVeracityClaim C)) 
                          :
-  proofTreeOf ( |- e \by a \in (AtomicClaim name))
-| assume_bot e a
-
-       (M : proofTreeOf (IsAVeracityClaim _|_)) 
-                         :
-  proofTreeOf ( |- e \by a \in _|_)
-
+  proofTreeOf ( |- e \by a \in C)
 | bot_elim e a C
 
         (M : proofTreeOf ( |- (e \by a \in _|_)))
@@ -286,7 +283,7 @@ proofTreeOf
 (L: proofTreeOf ( |- e1 \by a \in (Implies C1 C2)))
                            (R: proofTreeOf ( |- e2 \by a \in C1))
                         :
-    proofTreeOf ( |- e2 \by a \in C2)
+    proofTreeOf ( |- (Apply e1 e2) \by a \in C2)
 .
 (*|
 This is the :coq:`and_intro` rule as Coq sees it:
@@ -426,8 +423,9 @@ match e with
                       ++ (showEvid e2) ++ ")"
   | Left e => "i(" ++ showEvid e ++ ")"
   | Right e => "j(" ++ showEvid e ++ ")"
-  | Lambda e1 e2 => "\lambda " ++ showEvid e1 ++ " \rightarrow "
-                       ++ showEvid e2
+  | Lambda e1 e2 => "(\lambda " ++ showEvid e1 ++ " \rightarrow "
+                       ++ showEvid e2 ++ ")"
+  | Apply e1 e2 => showEvid e1 ++ "(" ++ showEvid e2 ++ ")"
 end.
 Instance : Show evid := { show := showEvid }.
 
@@ -488,7 +486,6 @@ match p with
 | admit _ => []
 | leaf c => []
 | assume e a name M => getAllTrustRelationsUsed _ M
-| assume_bot e a M => getAllTrustRelationsUsed _ M
 | bot_elim e a C M => getAllTrustRelationsUsed _ M
 | and_intro a e1 e2 C1 C2 L R => 
     getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
@@ -509,8 +506,7 @@ Fixpoint getAssumptions (j : judgement) (p : proofTreeOf j) : list singleJudgeme
 match p with
 | admit _ => []
 | leaf c => []
-| assume e a name M => e \by a \in (AtomicClaim name) :: getAssumptions _ M
-| assume_bot e a M => e \by a \in _|_ :: getAssumptions _ M
+| assume e a c M => e \by a \in c :: getAssumptions _ M
 | bot_elim e a C M => getAssumptions _ M
 | and_intro a e1 e2 C1 C2 L R => 
     getAssumptions _ L ++ getAssumptions _ R 
@@ -549,12 +545,9 @@ match p with
 | leaf c => "\AxiomC{$ " 
              ++ show c 
              ++ " \textit{ is a veracity claim} $}"
-| assume e a name M => showProofTreeOfHelper _ M
+| assume e a c M => showProofTreeOfHelper _ M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
-    ++ showJudgement Ps Ts ( |- e \by a \in (AtomicClaim name)) ++ " $}"
-| assume_bot e a M => showProofTreeOfHelper _ M
-    ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
-    ++ showJudgement Ps Ts ( |- e \by a \in _|_) ++ " $}"
+    ++ showJudgement Ps Ts ( |- e \by a \in c) ++ " $}"
 | bot_elim e a C M => showProofTreeOfHelper _ M
     ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
     ++ showJudgement Ps Ts ( |- (e \by a \in C))
@@ -602,7 +595,7 @@ match p with
      showProofTreeOfHelper _ L
  ++ showProofTreeOfHelper _ R 
  ++ " \RightLabel{ $ \rightarrow^{-} $} \BinaryInfC{$ "
- ++ showJudgement Ps Ts ( |- e2 \by a \in C2) ++ " $}"
+ ++ showJudgement Ps Ts ( |- (Apply e1 e2) \by a \in C2) ++ " $}"
 end.
 
 Open Scope string.
@@ -807,13 +800,12 @@ eapply (trust _ _ _ _ (Trust "T")).
 eapply (impl_intro ).
 simpl.
 eapply bot_elim.
-apply assume_bot.
-apply (admit _).
+apply (assume _ _ _|_).
+apply leaf.
 Unshelve.
 1,8: apply a1.
-1,2: apply C2.
-1,2,5,6: apply e2.
-1,2: apply "C_2".
+1,2,4,6: apply C2.
+all: apply e2.
 Defined.
 
 (*|
@@ -842,7 +834,6 @@ idtac
 (* + unshelve eapply and_elim2 *)
 + unshelve eapply and_intro; simpl
 + unshelve apply assume
-+ unshelve apply assume_bot
 + unshelve apply leaf
 (* + unshelve eapply (trust _ _ _ _ _ (Trust "T")) *)
 + unshelve eapply (impl_intro)
@@ -984,9 +975,9 @@ match Int.equal 0 max_depth with
   | false => solve [
       eapply and_intro; autoProveMain1 (Int.sub max_depth 1)
     | eapply (impl_intro); autoProveMain1 (Int.sub max_depth 1)
-    | eapply (assume l P "C_1"); autoProveMain1 (Int.sub max_depth 1)
-    | eapply (assume s P "C_2"); autoProveMain1 (Int.sub max_depth 1)
-    | eapply (assume c P "C_3"); autoProveMain1 (Int.sub max_depth 1)
+    | eapply (assume l P C1); autoProveMain1 (Int.sub max_depth 1)
+    | eapply (assume s P C2); autoProveMain1 (Int.sub max_depth 1)
+    | eapply (assume c P C3); autoProveMain1 (Int.sub max_depth 1)
     | eapply leaf; autoProveMain1 (Int.sub max_depth 1)
     | simpl; autoProveMain1 (Int.sub max_depth 1)
     (* | eapply (trust _ _ _ _ _ _); autoProveMain1 (Int.sub max_depth 1) *)
@@ -1021,19 +1012,27 @@ Eval compute in show fromPaper1.
 |*)
 
 
-Definition healthy := AtomicClaim "healthy".
-Definition nonToxic := AtomicClaim "nonToxic".
-Definition organic := AtomicClaim "organic".
+Definition healthy := AtomicClaim "H".
+Definition nonToxic := AtomicClaim "N".
+Definition organic := AtomicClaim "O".
+Definition belief := AtomicEvid "b".
+Definition testing := AtomicEvid "t".
+Definition audit := AtomicEvid "a".
+Definition retailer := (Actor "r").
+Definition vineyard := (Actor "v").
+Definition winery := (Actor "w").
+
 
 Definition exampleFromJosh : proofTreeOfClaim healthy.
-eexists _ (Actor "retailer").
-eapply (impl_elim _ (AtomicEvid "belief") ((AtomicEvid "testing"), (AtomicEvid "audit")) (nonToxic /\' organic)).
-eapply admit.
-eapply and_intro.
-eapply (trust (Actor "retailer") (Actor "vineyard") _ _ (Trust "T")).
+eexists _ retailer.
+eapply (impl_elim _ belief (testing, audit) (nonToxic /\' organic)).
 eapply assume.
 eapply leaf.
-eapply (trust (Actor "retailer") (Actor "winery") _ _ (Trust "T")).
+eapply and_intro.
+eapply (trust retailer vineyard _ _ (Trust "T")).
+eapply assume.
+eapply leaf.
+eapply (trust retailer winery _ _ (Trust "T")).
 eapply assume.
 eapply leaf.
 Unshelve.
@@ -1057,12 +1056,10 @@ Eval compute in show exampleFromJosh.
 Definition whiteboardExample : proofTreeOfClaim (Implies C1 C2).
 Proof.
 eexists _ _.
-eapply impl_intro.
-eapply (trust _ _ _ _ _).
-eapply assume.
+eapply (impl_intro e1).
+eapply (trust a2 _ e2 _ (Trust "T")).
+eapply (assume e2 a2).
 eapply leaf.
-Unshelve.
-all: fillConstant ().
 Defined.
 
 
