@@ -1052,6 +1052,52 @@ Eval compute in show exampleFromJosh.
 .. coq::
 |*)
 
+Ltac2 rec autoProveMain2 max_depth :=
+match Int.equal 0 max_depth with
+  | true => Control.zero (VeracityProofSearchException ("Ran out of depth."))
+  (* | true => () *)
+  | false => solve [
+      eapply and_intro; autoProveMain2 (Int.sub max_depth 1)
+    | eapply (impl_elim); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (trust retailer vineyard _ _ (Trust "T")); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (trust retailer winery _ _ (Trust "T")); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (assume testing vineyard nonToxic); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (assume belief retailer (Implies (nonToxic /\' organic) healthy)); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (assume audit winery organic); autoProveMain2 (Int.sub max_depth 1)
+    | eapply leaf; autoProveMain2 (Int.sub max_depth 1)
+    (* | simpl; autoProveMain2 (Int.sub max_depth 1) *)
+    (* | eapply (trust _ _ _ _ _ _); autoProveMain2 (Int.sub max_depth 1) *)
+    | fillConstant (); autoProveMain2 (Int.sub max_depth 1)
+  ]
+end.
+
+Ltac2 rec autoProveHelper2 d max_depth :=
+ Message.print (Message.of_string "Depth:");
+ Message.print (Message.of_int d);
+ match Int.lt d max_depth with
+ | true => solve [ autoProveMain2 d | autoProveHelper2 (Int.add d 1) max_depth ]
+ | false => Message.print(Message.of_string "Reached max depth, possibly unprovable by these tactics.")
+end.
+Ltac2 autoProve2 () := autoProveHelper2 1 20.
+
+
+Definition exampleFromJoshAuto : proofTreeOfClaim healthy.
+eexists _ retailer.
+autoProve2 ().
+Show Proof.
+Defined.
+
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in show exampleFromJoshAuto.
+
+(*|
+.. coq::
+|*)
 
 Definition whiteboardExample : proofTreeOfClaim (Implies C1 C2).
 Proof.
