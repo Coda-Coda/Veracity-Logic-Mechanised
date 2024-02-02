@@ -39,9 +39,9 @@ in
 
 pkgs.mkShell {
   buildInputs = with pkgs; [ 
-      coq_8_16
-      coqPackages_8_16.serapi
-      coqPackages_8_16.coqide
+      coq_8_17
+      coqPackages_8_17.serapi
+      coqPackages_8_17.coqide
       python-with-my-packages
     ];
   shellHook = ''
