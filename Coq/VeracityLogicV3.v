@@ -1018,9 +1018,9 @@ Definition organic := AtomicClaim "O".
 Definition belief := AtomicEvid "b".
 Definition testing := AtomicEvid "t".
 Definition audit := AtomicEvid "a".
-Definition retailer := (Actor "r").
-Definition vineyard := (Actor "v").
-Definition winery := (Actor "w").
+Definition retailer := Actor "r".
+Definition vineyard := Actor "v".
+Definition winery := Actor "w".
 
 
 Definition exampleFromJosh : proofTreeOfClaim healthy.
