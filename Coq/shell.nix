@@ -41,6 +41,7 @@ pkgs.mkShell {
   buildInputs = with pkgs; [ 
       coq_8_17
       coqPackages_8_17.serapi
+      coqPackages_8_17.coqide
       python-with-my-packages
     ];
   shellHook = ''
