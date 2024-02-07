@@ -58,6 +58,7 @@ Require Import List.
 Import ListNotations.
 Require Import String.
 Require Import Coq.Strings.Ascii.
+Require Import Coq.Numbers.Natural.Peano.NPeano.
 
 (*|
 .. coq:: all
@@ -289,7 +290,7 @@ proofTreeOf
 This is the :coq:`and_intro` rule as Coq sees it:
 |*)
 
-Check and_intro. (* .unfold *)
+(* Check and_intro. *)
 
 (*|
 
@@ -358,9 +359,9 @@ Definition j2 := |- e4 \by a4 \in c4.
 Example use of notation:
 |*)
 
-Check |- e1 \by a1 \in c1.
-Check e1 \by a1 \in c1.
-Check |- e1 \by a1 \in c1.
+(* Check |- e1 \by a1 \in c1. *)
+(* Check e1 \by a1 \in c1. *)
+(* Check |- e1 \by a1 \in c1. *)
 
 (*|
 Machinery for printing to LaTeX
@@ -390,7 +391,7 @@ Definition natToDigit (n : nat) : ascii :=
     | _ => "9"
   end.
 
-Require Import Coq.Numbers.Natural.Peano.NPeano.
+
 Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
   let acc' := String (natToDigit (n mod 10)) acc in
   match time with
@@ -405,7 +406,7 @@ Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
 Definition writeNat (n : nat) : string :=
   writeNatAux n n "".
 
-Eval compute in writeNat 42.
+(* Eval compute in writeNat 42. *)
 
 Instance : Show nat := { show := writeNat }.
 
@@ -477,8 +478,8 @@ Definition showJudgement (Ps : list singleJudgement) (Ts : list trustRelationInf
   | IsAVeracityClaim c => show c ++ " \em{ is a veracity claim}"
   end.
 
-Eval compute in showJudgement [] [] j1.
-Eval compute in showJudgement [e1 \by a1 \in c1] [] j1.
+(* Eval compute in showJudgement [] [] j1. *)
+(* Eval compute in showJudgement [e1 \by a1 \in c1] [] j1. *)
 
 Fixpoint getAllTrustRelationsUsed (j : judgement) (p : proofTreeOf j)
   : list trustRelationInfo :=
@@ -644,7 +645,7 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in (show concreteProofTreeExampleWith2Conjuncts).
+(* Eval compute in (show concreteProofTreeExampleWith2Conjuncts). *)
 
 (*|
 .. coq::
@@ -666,7 +667,7 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
+(* Eval compute in (show concreteProofTreeExampleWith3Conjuncts). *)
 
 (*|
 .. coq::
@@ -691,7 +692,7 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
+(* Eval compute in (show concreteProofTreeExampleWith3Conjuncts). *)
 
 (*|
 .. coq::
@@ -709,7 +710,7 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in (show concreteProofTreeExampleTrust).
+(* Eval compute in (show concreteProofTreeExampleTrust). *)
 
 (*|
 .. coq::
@@ -727,7 +728,7 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust). 
+(* Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust).  *)
 
 (*|
 .. coq::
@@ -740,7 +741,7 @@ eapply (trust Q Q _ _ (Trust "U")).
 eapply (trust Q Q _ _ (Trust "V")).
 eapply (trust _ _ _ _ (Trust "U")).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
-Show Proof.
+(* Show Proof. *)
 Defined.
 
 (*|
@@ -749,7 +750,7 @@ Defined.
 |*)
 
 
-Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras). 
+(* Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).  *)
 
 (*|
 .. coq::
@@ -776,7 +777,7 @@ Defined.
 |*)
 
 
-Eval compute in show exampleWithProofOf.
+(* Eval compute in show exampleWithProofOf. *)
 
 
 (*|
@@ -814,7 +815,7 @@ Defined.
 |*)
 
 
-Eval compute in show usingAll.
+(* Eval compute in show usingAll. *)
 
 (*|
 .. coq::
@@ -845,172 +846,12 @@ repeat (apply a1
 + apply [])
 .
 
-From Ltac2 Require Import Ltac2.
-
 Definition eQ := AtomicEvid "e_{?}".
 Definition CQ := AtomicClaim "C_{?}".
 Definition aQ := Actor "a_{?}".
 
-(* Ltac2 maybePrintMessage1 s := Message.print (Message.of_string s). *)
-(* Ltac2 maybePrintMessage2 s := Message.print (Message.of_string s). *)
-Ltac2 maybePrintMessage1 s := ().
-Ltac2 maybePrintMessage2 s := ().
-Ltac2 Type exn ::= [ VeracityProofSearchException(string) ].
-
-Ltac2 tryLeaf etc :=
-maybePrintMessage1 "Trying leaf";
-match! goal with
-   | [ |- proofTreeOf (IsAVeracityClaim _) ] => (maybePrintMessage2 "Applying leaf"); (eapply leaf); etc
-   | [ |- _ ] => fail
-end.
-
-Ltac2 tryAssumeWitha1 etc :=
-(maybePrintMessage1 "Trying assume");
-match! goal with
-   | [ |- proofTreeOf _ ] => (maybePrintMessage2 "Applying assume"); eapply (assume _ a1); etc
-   | [ |- _ ] => Control.zero (VeracityProofSearchException "Didn't match")
-end.
-
-Ltac2 tryAndIntro etc :=
-(maybePrintMessage1 "Trying and_intro");
-match! goal with
-   | [ |- (proofTreeOf _ |- _ \by _ \in (_ /\' _)) ] => (maybePrintMessage2 "Applying and_intro"); eapply and_intro; Control.enter (fun _ => etc)
-   | [ |- _ ] => Control.zero (VeracityProofSearchException "Didn't match")
-end.
-
-Ltac2 tryTrust etc :=
-(maybePrintMessage1 "Trying trust");
-match! goal with
-   | [ |- proofTreeOf _ ] => (maybePrintMessage2 "Applying trust"); (eapply (trust _ _ _ _ _ _)); etc
-   | [ |- _ ] => Control.zero (VeracityProofSearchException "Didn't match")
-end.
-
-Ltac2 fillConstant () :=
+Ltac fillConstant :=
 solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust "?") ].
-
-Set Default Proof Mode "Ltac2".
-(* Set Ltac2 Backtrace. *)
-
-Ltac2 rec autoProveMain max_depth :=
-match Int.equal 0 max_depth with
-  | true => Control.zero (VeracityProofSearchException ("Ran out of depth."))
-  (* | true => () *)
-  | false => solve [
-      eapply and_intro; autoProveMain (Int.sub max_depth 1)
-    | eapply (assume _ a1); autoProveMain (Int.sub max_depth 1)
-    | eapply leaf; autoProveMain (Int.sub max_depth 1)
-    | eapply (trust _ _ _ _ _); autoProveMain (Int.sub max_depth 1)
-    | fillConstant (); autoProveMain (Int.sub max_depth 1)
-  ]
-end.
-
-Ltac2 rec autoProveHelper d :=
- Message.print (Message.of_string "Depth:");
- Message.print (Message.of_int d);
- solve [ autoProveMain d | autoProveHelper (Int.add d 1) ].
-
-Ltac2 autoProve () := autoProveHelper 1.
-
-(*|
-The following demonstrates a constraing that the claim must be believed by actor 2, and we have constrained only assuming claims for actor 1 in the tactic.
-|*)
-
-Definition exampleC1 : proofTreeOfClaim (C2).
-Proof.
-eexists _ _.
-autoProve ().
-Unshelve.
-all: fillConstant ().
-Show Proof.
-Defined.
-
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-Eval compute in show exampleC1.
-
-(*|
-.. coq::
-|*)
-
-Set Default Proof Mode "Ltac2".
-
-
-(*|
-The following demonstrates automatically proving a larger claim.
-|*)
-(*  *)
-(* Set Default Goal Selector "!". *)
-
-Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C3 /\' C4 /\' C5).
-Proof.
-eexists _ _.
-Time autoProve ().  (* Finished transaction in 0.1 secs (0.099u,0.s) (successful) *)
-(* Time autoProve (). Using match statements Finished transaction in 0.188 secs (0.181u,0.004s) (successful) *)
-(* Time autoProveMain 7. Finished transaction in 0.002 secs (0.002u,0.s) (successful) *)
-(* Time autoProveMain ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
-Unshelve.
-all: fillConstant ().
-Show Proof.
-Defined.
-
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-Eval compute in show automatedProof.
-
-(*|
-.. coq::
-|*)
-
-
-Ltac2 rec autoProveMain1 max_depth :=
-match Int.equal 0 max_depth with
-  | true => Control.zero (VeracityProofSearchException ("Ran out of depth."))
-  (* | true => () *)
-  | false => solve [
-      eapply and_intro; autoProveMain1 (Int.sub max_depth 1)
-    | eapply (impl_intro); autoProveMain1 (Int.sub max_depth 1)
-    | eapply (assume l P C1); autoProveMain1 (Int.sub max_depth 1)
-    | eapply (assume s P C2); autoProveMain1 (Int.sub max_depth 1)
-    | eapply (assume c P C3); autoProveMain1 (Int.sub max_depth 1)
-    | eapply leaf; autoProveMain1 (Int.sub max_depth 1)
-    | simpl; autoProveMain1 (Int.sub max_depth 1)
-    (* | eapply (trust _ _ _ _ _ _); autoProveMain1 (Int.sub max_depth 1) *)
-    | fillConstant (); autoProveMain1 (Int.sub max_depth 1)
-  ]
-end.
-
-Ltac2 rec autoProveHelper1 d :=
- Message.print (Message.of_string "Depth:");
- Message.print (Message.of_int d);
- solve [ autoProveMain1 d | autoProveHelper1 (Int.add d 1) ].
-
-Ltac2 autoProve1 () := autoProveHelper1 1.
-
-Definition fromPaper1 : proofTreeOfClaim (C1 /\' C2 /\' C3).
-Proof.
-eexists _ _.
-autoProve1 ().
-Show Proof.
-Defined.
-
-
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-Eval compute in show fromPaper1.
-
-(*|
-.. coq::
-|*)
-
 
 Definition healthy := AtomicClaim "H".
 Definition nonToxic := AtomicClaim "N".
@@ -1036,8 +877,8 @@ eapply (trust retailer winery _ _ (Trust "T")).
 eapply assume.
 eapply leaf.
 Unshelve.
-all: fillConstant ().
-Show Proof.
+all: fillConstant.
+(* Show Proof. *)
 Defined.
 
 
@@ -1046,58 +887,12 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in show exampleFromJosh.
+(* Eval compute in show exampleFromJosh. *)
 
 (*|
 .. coq::
 |*)
 
-Ltac2 rec autoProveMain2 max_depth :=
-match Int.equal 0 max_depth with
-  | true => Control.zero (VeracityProofSearchException ("Ran out of depth."))
-  (* | true => () *)
-  | false => solve [
-      eapply and_intro; autoProveMain2 (Int.sub max_depth 1)
-    | eapply (impl_elim); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (trust retailer vineyard _ _ (Trust "T")); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (trust retailer winery _ _ (Trust "T")); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (assume testing vineyard nonToxic); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (assume belief retailer (Implies (nonToxic /\' organic) healthy)); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (assume audit winery organic); autoProveMain2 (Int.sub max_depth 1)
-    | eapply leaf; autoProveMain2 (Int.sub max_depth 1)
-    (* | simpl; autoProveMain2 (Int.sub max_depth 1) *)
-    (* | eapply (trust _ _ _ _ _ _); autoProveMain2 (Int.sub max_depth 1) *)
-    | fillConstant (); autoProveMain2 (Int.sub max_depth 1)
-  ]
-end.
-
-Ltac2 rec autoProveHelper2 d max_depth :=
- Message.print (Message.of_string "Depth:");
- Message.print (Message.of_int d);
- match Int.lt d max_depth with
- | true => solve [ autoProveMain2 d | autoProveHelper2 (Int.add d 1) max_depth ]
- | false => Message.print(Message.of_string "Reached max depth, possibly unprovable by these tactics.")
-end.
-Ltac2 autoProve2 () := autoProveHelper2 1 20.
-
-
-Definition exampleFromJoshAuto : proofTreeOfClaim healthy.
-eexists _ retailer.
-autoProve2 ().
-Show Proof.
-Defined.
-
-
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-Eval compute in show exampleFromJoshAuto.
-
-(*|
-.. coq::
-|*)
 
 Definition whiteboardExample : proofTreeOfClaim (Implies C1 C2).
 Proof.
@@ -1114,8 +909,21 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in show whiteboardExample.
+(* Eval compute in show whiteboardExample. *)
 
 (*|
 .. coq::
 |*)
+
+Definition replaceThisWithThePrologProof : proofTreeOfClaim (Implies C1 C2).
+Proof.
+eexists _ _.
+eapply (impl_intro e1).
+eapply (trust a2 _ e2 _ (Trust "T")).
+eapply (assume e2 a2).
+eapply leaf.
+Defined.
+
+Eval compute in show replaceThisWithThePrologProof.
+
+End VeracityLogic.
