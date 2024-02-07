@@ -602,8 +602,12 @@ end.
 Open Scope string.
 
 Definition showProofTreeOf j p
-  := "\begin{prooftree}" ++ showProofTreeOfHelper j p
-       ++ "\end{prooftree}".
+  := "---------
+
+\begin{prooftree}" ++ showProofTreeOfHelper j p
+       ++ "\end{prooftree}
+
+---------".
 Instance showProofTreeOfInstance (j : judgement)
   : Show (proofTreeOf j) := { show := showProofTreeOf j}.
 
