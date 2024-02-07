@@ -1,2 +1,7 @@
 *.thy~
 *.thy#
+*.glob
+*.vo
+*.vos
+*.vok
+*.aux
