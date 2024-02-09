@@ -816,6 +816,8 @@ Eval compute in (show concreteProofTreeExampleWith2Conjuncts).
 .. coq::
 |*)
 
+Eval compute in (showLong concreteProofTreeExampleWith2Conjuncts).
+
 Definition concreteProofTreeExampleWith3Conjuncts : 
 proofTreeOf ( ||- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)).
 epose proof (and_intro) P (l, s) c (C1 /\' C2) C3.
@@ -837,6 +839,8 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showLong concreteProofTreeExampleWith3Conjuncts).
 
 (*|
 We can also combine existing trees into new trees, when appropriate. For example:
@@ -863,6 +867,8 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 .. coq::
 |*)
 
+Eval compute in (showLong concreteProofTreeExampleWith3Conjuncts).
+
 Definition concreteProofTreeExampleTrust : 
 proofTreeOf ||- e \by a1 \in (C).
 apply (trust a1 a2 e C trustT).
@@ -881,6 +887,7 @@ Eval compute in (show concreteProofTreeExampleTrust).
 .. coq::
 |*)
 
+Eval compute in (showLong concreteProofTreeExampleTrust).
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
 proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
@@ -899,6 +906,7 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust).
 .. coq::
 |*)
 
+Eval compute in (showLong concreteProofTreeExampleWith3ConjunctsWithTrust).
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
 proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
@@ -921,6 +929,7 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).
 .. coq::
 |*)
 
+Eval compute in (showLong concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras). 
 
 Record proofTreeOfClaim (c : claim) := {
   _e : evid;
@@ -949,6 +958,8 @@ Eval compute in show exampleWithProofOf.
 (*|
 .. coq::
 |*)
+
+Eval compute in showLong exampleWithProofOf.
 
 Definition usingAll : proofTreeOfClaim (Implies _|_ C1).
 Proof.
@@ -986,6 +997,8 @@ Eval compute in show usingAll.
 (*|
 .. coq::
 |*)
+
+Eval compute in showLong usingAll.
 
 Ltac proveClaim := 
 (* unshelve eexists _ _ _; *)
@@ -1102,6 +1115,8 @@ Eval compute in show exampleC1.
 .. coq::
 |*)
 
+Eval compute in showLong exampleC1.
+
 Set Default Proof Mode "Ltac2".
 
 
@@ -1134,6 +1149,7 @@ Eval compute in show automatedProof.
 .. coq::
 |*)
 
+Eval compute in showLong automatedProof.
 
 Ltac2 rec autoProveMain1 max_depth :=
 match Int.equal 0 max_depth with
@@ -1178,6 +1194,7 @@ Eval compute in show fromPaper1.
 .. coq::
 |*)
 
+Eval compute in showLong fromPaper1.
 
 Definition healthy := AtomicClaim (NamePair "H" "healthy").
 Definition nonToxic := AtomicClaim (NamePair "N" "non-toxic").
@@ -1218,6 +1235,8 @@ Eval compute in show exampleFromJosh.
 (*|
 .. coq::
 |*)
+
+Eval compute in showLong exampleFromJosh.
 
 Ltac2 rec autoProveMain2 max_depth :=
 match Int.equal 0 max_depth with
@@ -1265,6 +1284,8 @@ Eval compute in show exampleFromJoshAuto.
 (*|
 .. coq::
 |*)
+
+Eval compute in (showLong exampleFromJoshAuto).
 
 Definition whiteboardExample : proofTreeOfClaim (Implies C1 C2).
 Proof.
