@@ -522,7 +522,7 @@ Instance : Show singleJudgement := { show := showSingleJudgement }.
 
 Definition showLongSingleJudgement (s : singleJudgement) := 
   match s with
-    | SingleJudgement e a c => showLong c ++ " is supported by " ++ showLong e ++ " which " ++ showLong a ++ " uses"
+    | SingleJudgement e a c => showLong c ++ " is supported by $" ++ showLong e ++ "$ which " ++ showLong a ++ " uses"
   end.
 Instance : ShowLong singleJudgement := { showLong := showLongSingleJudgement }.
 
