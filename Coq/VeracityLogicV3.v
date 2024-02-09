@@ -65,8 +65,11 @@ Require Import Coq.Strings.Ascii.
 
 Section VeracityLogic.
 
+Inductive namePair :=
+  | NamePair (short long : string).
+
 Inductive evid :=
-  | AtomicEvid (name : string)
+  | AtomicEvid (name : namePair)
   | Pair (e1 e2 : evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
@@ -74,14 +77,14 @@ Inductive evid :=
   | Apply (e1 e2 : evid).
 
 Inductive claim :=
-  | AtomicClaim (name : string)
+  | AtomicClaim (name : namePair)
   | Bottom
   | And (c1 c2 : claim)
   | Or  (c1 c2 : claim)
   | Implies  (c1 c2 : claim).
 
 Inductive actor :=
-  | Actor (s : string).
+  | Actor (s : namePair).
 
 Inductive singleJudgement :=
   | SingleJudgement (e : evid) (a : actor) (c: claim).
@@ -114,7 +117,7 @@ We define a tagged type representing a trust relation.
 |*)
 
 Inductive trustRelationInfo :=
-  | Trust (name : string).
+  | Trust (name : namePair).
 
 (*|
 
@@ -127,15 +130,23 @@ Class Beq A : Type :=
     beq : A -> A -> bool
   }.
 
+Instance : Beq string := { beq := String.eqb }.
+
+Definition beqNamePair (n1 n2 : namePair) : bool :=
+match n1,n2 with
+| NamePair short1 long1,NamePair short2 long2 => beq short1 short2 && beq long1 long2
+end.
+Instance : Beq namePair := { beq := beqNamePair }.
+
 Definition beqTrust (t1 t2 : trustRelationInfo) : bool :=
 match t1,t2 with
-| Trust name1,Trust name2 => String.eqb name1 name2
+| Trust name1,Trust name2 => beq name1 name2
 end.
 Instance : Beq trustRelationInfo := { beq := beqTrust }.
 
 Definition beqActor (a1 a2 : actor) : bool :=
 match a1,a2 with
-| Actor name1,Actor name2 => String.eqb name1 name2
+| Actor name1,Actor name2 => beq name1 name2
 end.
 Instance : Beq actor := { beq := beqActor }.
 
@@ -148,7 +159,7 @@ Instance : Beq actor := { beq := beqActor }.
 
 Fixpoint beqEvid (e1 e2 : evid) : bool :=
 match e1,e2 with
-| AtomicEvid name1,AtomicEvid name2 => String.eqb name1 name2
+| AtomicEvid name1,AtomicEvid name2 => beq name1 name2
 | AtomicEvid name1,_ => false
 | Pair e11 e12,Pair e21 e22 => beqEvid e11 e21 && beqEvid e12 e22
 | Pair e11 e12,_ => false
@@ -172,7 +183,7 @@ Instance : Beq evid := { beq := beqEvid }.
 
 Fixpoint beqClaim (c1 c2 : claim) : bool :=
 match c1,c2 with
-| AtomicClaim name1,AtomicClaim name2 => String.eqb name1 name2
+| AtomicClaim name1,AtomicClaim name2 => beq name1 name2
 | AtomicClaim name1,_ => false
 | Bottom,Bottom => true
 | Bottom,_ => false
@@ -318,22 +329,25 @@ Example actors, evidence, claims and judgements
 
 Open Scope string.
 
-Definition e := AtomicEvid "e".
-Definition C := AtomicClaim "C".
+Definition e := AtomicEvid (NamePair "e" "example evidence e").
+Definition C := AtomicClaim (NamePair "C" "example evidence C").
 
-Definition a1 := Actor "a_{1}".
-Definition e1 := AtomicEvid "e_{1}".
-Definition c1 := AtomicClaim "c_{1}".
+Definition a1 := Actor (NamePair "a_{1}" "actor 1").
+Definition e1 := AtomicEvid (NamePair "e_{1}" "example evidence 1").
+Definition c1 := AtomicClaim (NamePair "c_{1}" "example claim 1").
 
-Definition a2 := Actor "a_{2}".
-Definition e2 := AtomicEvid "e_{2}".
-Definition c2 := AtomicClaim "c_{2}".
+Definition a2 := Actor (NamePair "a_{2}" "actor 2").
+Definition e2 := AtomicEvid (NamePair "e_{2}" "example evidence 2").
+Definition c2 := AtomicClaim (NamePair "c_{2}" "example claim 2").
 
-Definition a3 := Actor "a_{3}".
-Definition e3 := AtomicEvid "e_{3}".
-Definition c3 := AtomicClaim "c_{3}".
+Definition a3 := Actor (NamePair "a_{3}" "actor 3").
+Definition e3 := AtomicEvid (NamePair "e_{3}" "example evidence 3").
+Definition c3 := AtomicClaim (NamePair "c_{3}" "example claim 3").
 
-Definition a4 := Actor "a_{4}".
+Definition a4 := Actor (NamePair "a_{4}" "actor 4").
+Definition e4 := AtomicEvid (NamePair "e_{4}" "example evidence 4").
+Definition c4 := AtomicClaim (NamePair "c_{4}" "example claim 4").
+
 (*|
 We can also assume arbitrary evidence/claims exist. This currently doesn't work well with printing to Latex. An experimental alternative is demonstrated in the experimental-NamedC-and-NamedE branch.
 |*)
@@ -371,6 +385,12 @@ Machinery for printing to LaTeX
 Class Show A : Type :=
   {
     show : A -> string
+  }.
+
+(*| We also define a typeclass for showing longer versions, used for the english-language output. |*)
+Class ShowLong A : Type :=
+  {
+    showL : A -> string
   }.
 
 
@@ -418,7 +438,7 @@ For each datatype defined earlier, we define a string representation of it.
 
 Fixpoint showEvid (e : evid) :=
 match e with
-  | AtomicEvid name => name
+  | AtomicEvid (NamePair name _) => name
   | Pair e1 e2 => "(" ++ (showEvid e1) ++ ", "
                       ++ (showEvid e2) ++ ")"
   | Left e => "i(" ++ showEvid e ++ ")"
@@ -431,7 +451,7 @@ Instance : Show evid := { show := showEvid }.
 
 Fixpoint showClaim (c : claim) :=
 match c with
-  | AtomicClaim name => name
+  | AtomicClaim (NamePair name _) => name
   | Bottom => "\bot"
   | And c1 c2 => showClaim c1 ++ " \wedge " ++ showClaim c2
   | Or c1 c2 => showClaim c1 ++ " \vee " ++ showClaim c2
@@ -441,13 +461,13 @@ Instance : Show claim := { show := showClaim }.
 
 Definition showActor (a : actor) := 
   match a with
-    | Actor s => s 
+    | Actor (NamePair s _) => s 
   end.
 Instance : Show actor := { show := showActor }.
 
 Definition showTrustRelationInfo (t : trustRelationInfo) := 
   match t with
-    | Trust name => name
+    | Trust (NamePair name _) => name
   end.
 Instance : Show trustRelationInfo := { show := showTrustRelationInfo }.
 
@@ -617,16 +637,20 @@ The proof trees visualised in this section are **automatically generated** by Co
 
 |*)
 
-Definition l := AtomicEvid "l".
-Definition s := AtomicEvid "s".
-Definition c := AtomicEvid "c".
-Definition P := Actor "P".
-Definition Q := Actor "Q".
-Definition C1 := AtomicClaim "C_1".
-Definition C2 := AtomicClaim "C_2".
-Definition C3 := AtomicClaim "C_3".
-Definition C4 := AtomicClaim "C_4".
-Definition C5 := AtomicClaim "C_5".
+Definition l := AtomicEvid (NamePair "l" "example evidence l").
+Definition s := AtomicEvid (NamePair "s" "example evidence s").
+Definition c := AtomicEvid (NamePair "c" "example evidence c").
+Definition P := Actor (NamePair "P" "Penelope").
+Definition Q := Actor (NamePair "Q" "Quintin").
+Definition C1 := AtomicClaim (NamePair "C_1" "claim 1").
+Definition C2 := AtomicClaim (NamePair "C_2" "claim 2").
+Definition C3 := AtomicClaim (NamePair "C_3" "claim 3").
+Definition C4 := AtomicClaim (NamePair "C_4" "claim 4").
+Definition C5 := AtomicClaim (NamePair "C_5" "claim 5").
+
+Definition trustT := Trust (NamePair "T" "T").
+Definition trustU := Trust (NamePair "U" "U").
+Definition trustV := Trust (NamePair "V" "V").
 
 Definition concreteProofTreeExampleWith2Conjuncts : 
 proofTreeOf ( ||- (l, s) \by P \in (C1 /\' C2)).
@@ -699,7 +723,7 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 
 Definition concreteProofTreeExampleTrust : 
 proofTreeOf ||- e \by a1 \in (C).
-apply (trust a1 a2 e C (Trust "T")).
+apply (trust a1 a2 e C trustT).
 apply assume.
 apply leaf.
 Defined.
@@ -718,7 +742,7 @@ Eval compute in (show concreteProofTreeExampleTrust).
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
 proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
-eapply (trust _ _ _ _ (Trust "U")).
+eapply (trust _ _ _ _ trustU).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
 
@@ -736,9 +760,9 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust).
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
 proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
-eapply (trust Q Q _ _ (Trust "U")).
-eapply (trust Q Q _ _ (Trust "V")).
-eapply (trust _ _ _ _ (Trust "U")).
+eapply (trust Q Q _ _ trustU).
+eapply (trust Q Q _ _ trustV).
+eapply (trust _ _ _ _ trustU).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Show Proof.
 Defined.
@@ -796,7 +820,7 @@ eapply and_elim2.
 eapply and_intro.
 apply assume; apply leaf.
 2: apply assume; apply leaf.
-eapply (trust _ _ _ _ (Trust "T")).
+eapply (trust _ _ _ _ trustT).
 eapply (impl_intro ).
 simpl.
 eapply bot_elim.
@@ -847,9 +871,9 @@ repeat (apply a1
 
 From Ltac2 Require Import Ltac2.
 
-Definition eQ := AtomicEvid "e_{?}".
-Definition CQ := AtomicClaim "C_{?}".
-Definition aQ := Actor "a_{?}".
+Definition eQ := AtomicEvid (NamePair "e_{?}" "unknown evidence").
+Definition CQ := AtomicClaim (NamePair "C_{?}" "unknown claim").
+Definition aQ := Actor (NamePair "a_{?}" "unknown actor").
 
 (* Ltac2 maybePrintMessage1 s := Message.print (Message.of_string s). *)
 (* Ltac2 maybePrintMessage2 s := Message.print (Message.of_string s). *)
@@ -1012,15 +1036,15 @@ Eval compute in show fromPaper1.
 |*)
 
 
-Definition healthy := AtomicClaim "H".
-Definition nonToxic := AtomicClaim "N".
-Definition organic := AtomicClaim "O".
-Definition belief := AtomicEvid "b".
-Definition testing := AtomicEvid "t".
-Definition audit := AtomicEvid "a".
-Definition retailer := Actor "r".
-Definition vineyard := Actor "v".
-Definition winery := Actor "w".
+Definition healthy := AtomicClaim (NamePair "H" "healthy").
+Definition nonToxic := AtomicClaim (NamePair "N" "non-toxic").
+Definition organic := AtomicClaim (NamePair "O" "organic").
+Definition belief := AtomicEvid (NamePair "b" "belief").
+Definition testing := AtomicEvid (NamePair "t" "testing").
+Definition audit := AtomicEvid (NamePair "a" "audit").
+Definition retailer := Actor (NamePair "r" "retailer").
+Definition vineyard := Actor (NamePair "v" "vineyard").
+Definition winery := Actor (NamePair "w" "winery").
 
 
 Definition exampleFromJosh : proofTreeOfClaim healthy.
@@ -1029,10 +1053,10 @@ eapply (impl_elim _ belief (testing, audit) (nonToxic /\' organic)).
 eapply assume.
 eapply leaf.
 eapply and_intro.
-eapply (trust retailer vineyard _ _ (Trust "T")).
+eapply (trust retailer vineyard _ _ trustT).
 eapply assume.
 eapply leaf.
-eapply (trust retailer winery _ _ (Trust "T")).
+eapply (trust retailer winery _ _ trustT).
 eapply assume.
 eapply leaf.
 Unshelve.
@@ -1059,8 +1083,8 @@ match Int.equal 0 max_depth with
   | false => solve [
       eapply and_intro; autoProveMain2 (Int.sub max_depth 1)
     | eapply (impl_elim); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (trust retailer vineyard _ _ (Trust "T")); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (trust retailer winery _ _ (Trust "T")); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (trust retailer vineyard _ _ trustT); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (trust retailer winery _ _ trustT); autoProveMain2 (Int.sub max_depth 1)
     | eapply (assume testing vineyard nonToxic); autoProveMain2 (Int.sub max_depth 1)
     | eapply (assume belief retailer (Implies (nonToxic /\' organic) healthy)); autoProveMain2 (Int.sub max_depth 1)
     | eapply (assume audit winery organic); autoProveMain2 (Int.sub max_depth 1)
@@ -1103,7 +1127,7 @@ Definition whiteboardExample : proofTreeOfClaim (Implies C1 C2).
 Proof.
 eexists _ _.
 eapply (impl_intro e1).
-eapply (trust a2 _ e2 _ (Trust "T")).
+eapply (trust a2 _ e2 _ trustT).
 eapply (assume e2 a2).
 eapply leaf.
 Defined.
