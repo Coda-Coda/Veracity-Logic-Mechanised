@@ -1282,8 +1282,10 @@ Defined.
 |*)
 
 Eval compute in show whiteboardExample.
-Eval compute in (showLong whiteboardExample).
 
 (*|
 .. coq::
 |*)
+
+Eval compute in (showLong whiteboardExample).
+
