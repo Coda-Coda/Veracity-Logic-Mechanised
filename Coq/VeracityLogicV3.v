@@ -675,81 +675,69 @@ match p with
 | admit p => indent ++ "we stopped the proof at this point and assumed it was provable."
 | leaf c => indent ++ showLong c ++ " is a veracity claim."
 | assume e a c M => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by assumption,
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
-++ indent ++ "by assumption."
 | bot_elim e a C M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by the logical principle of explosion,
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
-++ indent ++ "by the logical principle of explosion."
 | and_intro a e1 e2 C1 C2 L R => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by a logical rule for 'and',
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ L ++ "
 "
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ R ++ "
 "
-++ indent ++ "by a logical rule for 'and'."
 | and_elim1 a e1 e2 C1 C2 M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by a logical rule for 'and',
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
-++ indent ++ "by a logical rule for 'and'."
 | and_elim2 a e1 e2 C1 C2 M => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by a logical rule for 'and',
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
-++ indent ++ "by a logical rule for 'and'."
 | or_intro1 a e1 C1 C2 M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by a logical rule for 'or',
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
-++ indent ++ "by a logical rule for 'or'."
 | or_intro2 a e2 C1 C2 M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by a logical rule for 'or',
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
-++ indent ++ "by a logical rule for 'or'."
 | or_elim1 a e1 C1 C2 M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by a logical rule for 'or',
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
-++ indent ++ "by a logical rule for 'or'."
 | or_elim2 a e2 C1 C2 M => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by a logical rule for 'or',
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
-++ indent ++ "by a logical rule for 'or'."
 | trust a1 a2 e C name L => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by the trust relation " ++ showLong name ++ ",
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ L ++ "
 "
-++ indent ++ "by the trust relation " ++ showLong name ++ "."
 | impl_intro e1 C1 a e2 C2 M => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by a logical rule for implication,
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
-++ indent ++ "by a logical rule for implication."
 | impl_elim a e1 e2 C1 C2 L R => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts _ p ++ " because, by a logical rule for implication,
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ L ++ "
 "
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ R ++ "
 "
-++ indent ++ "by a logical rule for implication."
 end.
 
 Open Scope string.
