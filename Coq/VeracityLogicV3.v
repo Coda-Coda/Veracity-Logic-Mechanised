@@ -672,8 +672,8 @@ Fixpoint showLongProofTreeOfHelper (indent : string) (j : judgement) (p : proofT
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
 match p with
-| admit p => "we stopped the proof at this point and assumed it was provable."
-| leaf c => showLong c ++ " is a veracity claim."
+| admit p => indent ++ "we stopped the proof at this point and assumed it was provable."
+| leaf c => indent ++ showLong c ++ " is a veracity claim."
 | assume e a c M => 
 indent ++ showLongJudgement Ps Ts _ p ++ " because
 " 
