@@ -1271,7 +1271,7 @@ Proof.
 eexists _ _.
 eapply (impl_intro e1).
 eapply (trust a2 _ e2 _ trustT).
-eapply (assume e2 a2).
+eapply (assume e2 a1).
 eapply leaf.
 Defined.
 
