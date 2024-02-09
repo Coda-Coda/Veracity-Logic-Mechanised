@@ -539,7 +539,7 @@ Definition showJudgement (Ps : list singleJudgement) (Ts : list trustRelationInf
 Eval compute in showJudgement [] [] j1.
 Eval compute in showJudgement [e1 \by a1 \in c1] [] j1.
 
-Definition showLongJudgement (Ps : list singleJudgement) (Ts : list trustRelationInfo) (j : judgement) (p : proofTreeOf j) :=
+Definition showLongJudgement (Ps : list singleJudgement) (Ts : list trustRelationInfo) (j : judgement) :=
   match j with
   | Entail s => 
       match Ps with
@@ -675,19 +675,19 @@ match p with
 | admit p => "we stopped the proof at this point and assumed it was provable."
 | leaf c => showLong c ++ " is a veracity claim."
 | assume e a c M => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- e \by a \in c) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by assumption."
 | bot_elim e a C M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- (e \by a \in C)) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by the logical principle of explosion."
 | and_intro a e1 e2 C1 C2 L R => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- (e1, e2) \by a \in (C1 /\' C2)) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ L ++ "
 "
@@ -695,55 +695,55 @@ indent ++ showLongJudgement Ps Ts _ p ++ " because
 "
 ++ indent ++ "by a logical rule for 'and'."
 | and_elim1 a e1 e2 C1 C2 M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- (e1 \by a \in C1)) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'and'."
 | and_elim2 a e1 e2 C1 C2 M => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- (e2 \by a \in C2)) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'and'."
 | or_intro1 a e1 C1 C2 M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- ((Left e1) \by a \in (C1 \/' C2))) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
 | or_intro2 a e2 C1 C2 M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- ((Right e2) \by a \in (C1 \/' C2))) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
 | or_elim1 a e1 C1 C2 M =>
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- (e1 \by a \in C1)) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
 | or_elim2 a e2 C1 C2 M => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- (e2 \by a \in C2)) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
 | trust a1 a2 e C name L => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- (e \by a1 \in C)) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ L ++ "
 "
 ++ indent ++ "by the trust relation " ++ showLong name ++ "."
 | impl_intro e1 C1 a e2 C2 M => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- ((Lambda e1 e2) \by a \in (Implies C1 C2))) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for implication."
 | impl_elim a e1 e2 C1 C2 L R => 
-indent ++ showLongJudgement Ps Ts _ p ++ " because
+indent ++ showLongJudgement Ps Ts ( ||- (Apply e1 e2) \by a \in C2) ++ " because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ L ++ "
 "
