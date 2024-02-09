@@ -507,7 +507,7 @@ Instance showListInstance {A : Type} `{Show A} : Show (list A)
 Fixpoint showLongList {A} `{ShowLong A} (l : list A) :=
   match l with
     | [] => "no items"
-    | [h] => "and " ++ showLong h
+    | [h] => showLong h
     | h1 :: (h2 :: tl) as tl' => showLong h1 ++ ", " ++ showLongList tl'
   end.
 Instance showLongListInstance {A : Type} `{ShowLong A} : ShowLong (list A) 
