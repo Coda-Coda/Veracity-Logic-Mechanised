@@ -448,7 +448,20 @@ match e with
   | Apply e1 e2 => showEvid e1 ++ "(" ++ showEvid e2 ++ ")"
 end.
 Instance : Show evid := { show := showEvid }.
-Instance : ShowLong evid := { showLong := showEvid }.
+
+Fixpoint showLongEvid (e : evid) :=
+match e with
+  | AtomicEvid (NamePair _ name) => name
+  | Pair e1 e2 => "(" ++ (showLongEvid e1) ++ ", "
+                      ++ (showLongEvid e2) ++ ")"
+  | Left e => "i(" ++ showLongEvid e ++ ")"
+  | Right e => "j(" ++ showLongEvid e ++ ")"
+  | Lambda e1 e2 => "(\lambda " ++ showLongEvid e1 ++ " \rightarrow "
+                       ++ showLongEvid e2 ++ ")"
+  | Apply e1 e2 => showLongEvid e1 ++ "(" ++ showLongEvid e2 ++ ")"
+end.
+
+Instance : ShowLong evid := { showLong := showLongEvid }.
 
 Fixpoint showClaim (c : claim) :=
 match c with
