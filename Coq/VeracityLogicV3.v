@@ -100,7 +100,7 @@ Inductive judgement :=
 Next, we introduce some notation for Coq.
 |*)
 
-Notation "|- S" := (Entail S) (at level 3).
+Notation "||- S" := (Entail S) (at level 3).
 Notation "E \by A \in C" := (SingleJudgement E A C) (at level 2).
 Infix "/\'" := And (at level 81, left associativity).
 Infix "\/'" := Or (at level 86, left associativity). 
@@ -214,76 +214,76 @@ Inductive proofTreeOf : judgement -> Type :=
 
        (M : proofTreeOf (IsAVeracityClaim C)) 
                          :
-  proofTreeOf ( |- e \by a \in C)
+  proofTreeOf ( ||- e \by a \in C)
 | bot_elim e a C
 
-        (M : proofTreeOf ( |- (e \by a \in _|_)))
+        (M : proofTreeOf ( ||- (e \by a \in _|_)))
                            :
-           proofTreeOf ( |- (e \by a \in C))
+           proofTreeOf ( ||- (e \by a \in C))
 
 | and_intro a e1 e2 C1 C2
 
-(L: proofTreeOf ( |- e1 \by a \in C1))
-                           (R: proofTreeOf ( |- e2 \by a \in C2))
+(L: proofTreeOf ( ||- e1 \by a \in C1))
+                           (R: proofTreeOf ( ||- e2 \by a \in C2))
                         :
-    proofTreeOf ( |- (e1, e2) \by a \in (C1 /\' C2))
+    proofTreeOf ( ||- (e1, e2) \by a \in (C1 /\' C2))
 
 | and_elim1 a e1 e2 C1 C2
 
-    (M : proofTreeOf ( |- ((e1, e2) \by a \in (C1 /\' C2))))
+    (M : proofTreeOf ( ||- ((e1, e2) \by a \in (C1 /\' C2))))
                            :
-             proofTreeOf ( |- (e1 \by a \in C1))
+             proofTreeOf ( ||- (e1 \by a \in C1))
 
 | and_elim2 a e1 e2 C1 C2
 
-    (M : proofTreeOf ( |- ((e1, e2) \by a \in (C1 /\' C2))))
+    (M : proofTreeOf ( ||- ((e1, e2) \by a \in (C1 /\' C2))))
                           :
-        proofTreeOf ( |- (e2 \by a \in C2))
+        proofTreeOf ( ||- (e2 \by a \in C2))
 
 | or_intro1 a e1 C1 C2
 
-           (M: proofTreeOf ( |- (e1 \by a \in C1)))
+           (M: proofTreeOf ( ||- (e1 \by a \in C1)))
                           :
-    proofTreeOf ( |- ((Left e1) \by a \in (C1 \/' C2)))
+    proofTreeOf ( ||- ((Left e1) \by a \in (C1 \/' C2)))
 
 | or_intro2 a e2 C1 C2
 
-           (M: proofTreeOf ( |- (e2 \by a \in C2)))
+           (M: proofTreeOf ( ||- (e2 \by a \in C2)))
                           :
-    proofTreeOf ( |- ((Right e2) \by a \in (C1 \/' C2)))
+    proofTreeOf ( ||- ((Right e2) \by a \in (C1 \/' C2)))
 
 | or_elim1 a e1 C1 C2
 
-      (M: proofTreeOf ( |- ((Left e1) \by a \in (C1 \/' C2))))
+      (M: proofTreeOf ( ||- ((Left e1) \by a \in (C1 \/' C2))))
                           :
-        proofTreeOf ( |- (e1 \by a \in C1))
+        proofTreeOf ( ||- (e1 \by a \in C1))
 
 | or_elim2 a e2 C1 C2
 
-      (M : proofTreeOf ( |- ((Right e2) \by a \in (C1 \/' C2))))
+      (M : proofTreeOf ( ||- ((Right e2) \by a \in (C1 \/' C2))))
                             :
-          proofTreeOf ( |- (e2 \by a \in C2))
+          proofTreeOf ( ||- (e2 \by a \in C2))
 
 | trust a1 a2 e C (name : trustRelationInfo)
 
-(L: proofTreeOf ( |- (e \by a2 \in C)))
+(L: proofTreeOf ( ||- (e \by a2 \in C)))
                           :
-            proofTreeOf ( |- (e \by a1 \in C))
+            proofTreeOf ( ||- (e \by a1 \in C))
 
 | impl_intro (e1 : evid) (C1 : claim) a e2 C2
 
 (M: proofTreeOf
-                      ( |- (e2 \by a \in C2)))
+                      ( ||- (e2 \by a \in C2)))
                               :
 proofTreeOf
-              ( |- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
+              ( ||- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
 
 | impl_elim a e1 e2 C1 C2
 
-(L: proofTreeOf ( |- e1 \by a \in (Implies C1 C2)))
-                           (R: proofTreeOf ( |- e2 \by a \in C1))
+(L: proofTreeOf ( ||- e1 \by a \in (Implies C1 C2)))
+                           (R: proofTreeOf ( ||- e2 \by a \in C1))
                         :
-    proofTreeOf ( |- (Apply e1 e2) \by a \in C2)
+    proofTreeOf ( ||- (Apply e1 e2) \by a \in C2)
 .
 (*|
 This is the :coq:`and_intro` rule as Coq sees it:
@@ -351,16 +351,16 @@ Definition sj3 := e3 \by a3 \in c3.
 Example Judgments:
 |*)
 
-Definition j1 := |- e2 \by a2 \in c2.
-Definition j2 := |- e4 \by a4 \in c4.
+Definition j1 := ||- e2 \by a2 \in c2.
+Definition j2 := ||- e4 \by a4 \in c4.
 
 (*|
 Example use of notation:
 |*)
 
-Check |- e1 \by a1 \in c1.
+Check ||- e1 \by a1 \in c1.
 Check e1 \by a1 \in c1.
-Check |- e1 \by a1 \in c1.
+Check ||- e1 \by a1 \in c1.
 
 (*|
 Machinery for printing to LaTeX
@@ -547,55 +547,55 @@ match p with
              ++ " \textit{ is a veracity claim} $}"
 | assume e a c M => showProofTreeOfHelper _ M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
-    ++ showJudgement Ps Ts ( |- e \by a \in c) ++ " $}"
+    ++ showJudgement Ps Ts ( ||- e \by a \in c) ++ " $}"
 | bot_elim e a C M => showProofTreeOfHelper _ M
     ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
-    ++ showJudgement Ps Ts ( |- (e \by a \in C))
+    ++ showJudgement Ps Ts ( ||- (e \by a \in C))
     ++ " $}"
 | and_intro a e1 e2 C1 C2 L R => 
     showProofTreeOfHelper _ L
  ++ showProofTreeOfHelper _ R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
- ++ showJudgement Ps Ts ( |- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
+ ++ showJudgement Ps Ts ( ||- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
 | and_elim1 a e1 e2 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \land^{-1} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( |- (e1 \by a \in C1))
+ ++ showJudgement Ps Ts ( ||- (e1 \by a \in C1))
  ++ " $}"
 | and_elim2 a e1 e2 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \land^{-2} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( |- (e2 \by a \in C2))
+ ++ showJudgement Ps Ts ( ||- (e2 \by a \in C2))
  ++ " $}"
 | or_intro1 a e1 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{+1} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( |- ((Left e1) \by a \in (C1 \/' C2)))
+ ++ showJudgement Ps Ts ( ||- ((Left e1) \by a \in (C1 \/' C2)))
  ++ " $}"
 | or_intro2 a e2 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{+2} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( |- ((Right e2) \by a \in (C1 \/' C2)))
+ ++ showJudgement Ps Ts ( ||- ((Right e2) \by a \in (C1 \/' C2)))
  ++ " $}"
 | or_elim1 a e1 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{-1} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( |- (e1 \by a \in C1))
+ ++ showJudgement Ps Ts ( ||- (e1 \by a \in C1))
  ++ " $}"
 | or_elim2 a e2 C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{-2} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( |- (e2 \by a \in C2))
+ ++ showJudgement Ps Ts ( ||- (e2 \by a \in C2))
  ++ " $}"
 | trust a1 a2 e C name L => 
     showProofTreeOfHelper _ L
  ++ " \AxiomC{$" ++ show a1 ++ show name ++ show a2 ++ "$} "
  ++ " \RightLabel{ $ trust\ " ++ show name
  ++ "$} \BinaryInfC{$ "
- ++ showJudgement Ps Ts ( |- (e \by a1 \in C)) ++ " $}"
+ ++ showJudgement Ps Ts ( ||- (e \by a1 \in C)) ++ " $}"
 | impl_intro e1 C1 a e2 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( |- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
+ ++ showJudgement Ps Ts ( ||- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
  ++ " $}"
 | impl_elim a e1 e2 C1 C2 L R => 
      showProofTreeOfHelper _ L
  ++ showProofTreeOfHelper _ R 
  ++ " \RightLabel{ $ \rightarrow^{-} $} \BinaryInfC{$ "
- ++ showJudgement Ps Ts ( |- (Apply e1 e2) \by a \in C2) ++ " $}"
+ ++ showJudgement Ps Ts ( ||- (Apply e1 e2) \by a \in C2) ++ " $}"
 end.
 
 Open Scope string.
@@ -629,7 +629,7 @@ Definition C4 := AtomicClaim "C_4".
 Definition C5 := AtomicClaim "C_5".
 
 Definition concreteProofTreeExampleWith2Conjuncts : 
-proofTreeOf ( |- (l, s) \by P \in (C1 /\' C2)).
+proofTreeOf ( ||- (l, s) \by P \in (C1 /\' C2)).
 epose proof (and_intro _ _ _ C1 C2).
 simpl in H.
 apply H.
@@ -651,7 +651,7 @@ Eval compute in (show concreteProofTreeExampleWith2Conjuncts).
 |*)
 
 Definition concreteProofTreeExampleWith3Conjuncts : 
-proofTreeOf ( |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)).
+proofTreeOf ( ||- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)).
 epose proof (and_intro) P (l, s) c (C1 /\' C2) C3.
 simpl in H.
 apply H.
@@ -677,7 +677,7 @@ We can also combine existing trees into new trees, when appropriate. For example
 |*)
 
 Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
-proofTreeOf  |- ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
+proofTreeOf  ||- ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
 epose proof (and_intro) P (l, s) c (C1 /\' C2) C3.
 simpl in H.
 apply H.
@@ -698,7 +698,7 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 |*)
 
 Definition concreteProofTreeExampleTrust : 
-proofTreeOf |- e \by a1 \in (C).
+proofTreeOf ||- e \by a1 \in (C).
 apply (trust a1 a2 e C (Trust "T")).
 apply assume.
 apply leaf.
@@ -717,7 +717,7 @@ Eval compute in (show concreteProofTreeExampleTrust).
 
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
-proofTreeOf |- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
+proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
 eapply (trust _ _ _ _ (Trust "U")).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
@@ -735,7 +735,7 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust).
 
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
-proofTreeOf |- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
+proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
 eapply (trust Q Q _ _ (Trust "U")).
 eapply (trust Q Q _ _ (Trust "V")).
 eapply (trust _ _ _ _ (Trust "U")).
@@ -759,7 +759,7 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).
 Record proofTreeOfClaim (c : claim) := {
   _e : evid;
   _a : actor;
-  _p : proofTreeOf |- (_e \by _a \in c)
+  _p : proofTreeOf ||- (_e \by _a \in c)
 }.
 Instance showProofTreeOfClaim (c : claim) : Show (proofTreeOfClaim c) := { show p := show (_p c p) }.
 
@@ -874,7 +874,7 @@ end.
 Ltac2 tryAndIntro etc :=
 (maybePrintMessage1 "Trying and_intro");
 match! goal with
-   | [ |- (proofTreeOf _ |- _ \by _ \in (_ /\' _)) ] => (maybePrintMessage2 "Applying and_intro"); eapply and_intro; Control.enter (fun _ => etc)
+   | [ |- (proofTreeOf _ ||- _ \by _ \in (_ /\' _)) ] => (maybePrintMessage2 "Applying and_intro"); eapply and_intro; Control.enter (fun _ => etc)
    | [ |- _ ] => Control.zero (VeracityProofSearchException "Didn't match")
 end.
 
