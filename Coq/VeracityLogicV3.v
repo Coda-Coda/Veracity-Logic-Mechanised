@@ -526,8 +526,8 @@ Instance showLongListInstance {A : Type} `{ShowLong A} : ShowLong (list A)
 Fixpoint showLong2List {A} `{ShowLong2 A} (indent : string) (l : list A) :=
   match l with
     | [] => ""
-    | [h] => indent ++ showLong2 h
-    | h :: tl => indent ++ showLong2 h ++ "
+    | [h] => indent ++ "- " ++ showLong2 h
+    | h :: tl => indent ++ "- " ++ showLong2 h ++ "
 " ++ showLong2List indent tl
   end.
 Instance showLong2ListInstance {A : Type} `{ShowLong2 A} (indent : string) : ShowLong2 (list A) 
@@ -581,17 +581,17 @@ Definition showLongJudgement (Ps : list singleJudgement) (Ts : list trustRelatio
   | Entail s => 
       match Ps,Ts with
         | [],[] => showLong2 s ++ "
-" ++ indent ++ "Assumptions made: None" ++ "
-" ++ indent ++ "Trust relations used: None"
+" ++ indent ++ "- " ++ "Assumptions made: None" ++ "
+" ++ indent ++ "- " ++ "Trust relations used: None"
         | (h :: tl),[] => showLong2 s ++ "
-" ++ indent ++ "Assumptions made:" ++ showLong2List ("  " ++ indent) Ps ++ "
-" ++ indent ++ "Trust relations used: None"
+" ++ indent ++ "- " ++ "Assumptions made:" ++ showLong2List ("  " ++ indent) Ps ++ "
+" ++ indent ++ "- " ++ "Trust relations used: None"
         | [],(h :: tl) => showLong2 s ++ "
-" ++ indent ++ "Assumptions made: None" ++ "
-" ++ indent ++ "Trust relations used:" ++ showLong2List ("  " ++ indent) Ts
+" ++ indent ++ "- " ++ "Assumptions made: None" ++ "
+" ++ indent ++ "- " ++ "Trust relations used:" ++ showLong2List ("  " ++ indent) Ts
         | (h :: tl),(h2::tl2) => showLong2 s ++ "
-" ++ indent ++ "Assumptions made:" ++ showLong2List ("  " ++ indent) Ps ++ "
-" ++ indent ++ "Trust relations used:" ++ showLong2List ("  " ++ indent) Ts
+" ++ indent ++ "- " ++ "Assumptions made:" ++ showLong2List ("  " ++ indent) Ps ++ "
+" ++ indent ++ "- " ++ "Trust relations used:" ++ showLong2List ("  " ++ indent) Ts
       end
   | IsAVeracityClaim c => showLong c ++ " is a veracity claim" (* ShowLong2 won't actually use this branch. *)
   end. *)
@@ -603,15 +603,15 @@ Definition showLong2Judgement (Ps : list singleJudgement) (Ts : list trustRelati
       match Ps,Ts with
         | [],[] => showLong2 s
         | (h :: tl),[] => showLong2 s ++ "
-" ++ indent ++ "Assumptions made:
+" ++ indent ++ "- " ++ "Assumptions made:
 " ++ showLong2List ("  " ++ indent) Ps
         | [],(h :: tl) => showLong2 s ++ "
-" ++ indent ++ "Trust relations used:
+" ++ indent ++ "- " ++ "Trust relations used:
 " ++ showLong2List ("  " ++ indent) Ts
         | (h :: tl),(h2::tl2) => showLong2 s ++ "
-" ++ indent ++ "Assumptions made:
+" ++ indent ++ "- " ++ "Assumptions made:
 " ++ showLong2List ("  " ++ indent) Ps ++ "
-" ++ indent ++ "Trust relations used:
+" ++ indent ++ "- " ++ "Trust relations used:
 " ++ showLong2List ("  " ++ indent) Ts
       end
   | IsAVeracityClaim c => showLong c ++ " is a veracity claim" (* ShowLong2 won't actually use this branch. *)
@@ -854,66 +854,66 @@ Fixpoint showLong2ProofTreeOfHelper (indent : string) (j : judgement) (p : proof
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
 match p with
-| admit p => indent ++ "We stopped the proof at this point and assumed it was provable."
-| leaf c => indent ++ showLong2 c ++ " is a veracity claim." (* We won't actually use this branch in ShowLong2 *)
+| admit p => indent ++ "- " ++ "We stopped the proof at this point and assumed it was provable."
+| leaf c => indent ++ "- " ++ showLong2 c ++ " is a veracity claim." (* We won't actually use this branch in ShowLong2 *)
 | assume e a c M => 
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: we assume this"
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: we assume this"
 | bot_elim e a C M =>
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: the principle of explosion
-    " ++ indent ++ "Sub-proof:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: the principle of explosion
+    " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
 | and_intro a e1 e2 C1 C2 L R => 
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: and introduction
-    " ++ indent ++ "Sub-proofs:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: and introduction
+    " ++ indent ++ "- " ++ "Sub-proofs:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ L ++ "
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ R
 | and_elim1 a e1 e2 C1 C2 M =>
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: and elimination (1)
-    " ++ indent ++ "Sub-proof:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: and elimination (1)
+    " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
 | and_elim2 a e1 e2 C1 C2 M => 
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: and elimination (2)
-    " ++ indent ++ "Sub-proof:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: and elimination (2)
+    " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
 | or_intro1 a e1 C1 C2 M =>
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: or introduction (1)
-    " ++ indent ++ "Sub-proof:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: or introduction (1)
+    " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
 | or_intro2 a e2 C1 C2 M =>
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: or introduction (2)
-    " ++ indent ++ "Sub-proof:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: or introduction (2)
+    " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
 | or_elim1 a e1 C1 C2 M =>
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: or elimination (1)
-    " ++ indent ++ "Sub-proof:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: or elimination (1)
+    " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
 | or_elim2 a e2 C1 C2 M => 
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: or elimination (2)
-    " ++ indent ++ "Sub-proof:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: or elimination (2)
+    " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
 | trust a1 a2 e C name L => 
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: trust, with relation " ++ showLong2 name ++ "
-    " ++ indent ++ "Sub-proof:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: trust, with relation " ++ showLong2 name ++ "
+    " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ L
 | impl_intro e1 C1 a e2 C2 M => 
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: implication introduction
-    " ++ indent ++ "Sub-proof:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: implication introduction
+    " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
 | impl_elim a e1 e2 C1 C2 L R => 
-indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
-  " ++ indent ++ "Logical rule used: implication elimination
-    " ++ indent ++ "Sub-proofs:
+indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: implication elimination
+    " ++ indent ++ "- " ++ "Sub-proofs:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ L ++ "
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ R
 end.
@@ -943,7 +943,7 @@ end.
 Definition showLong2ProofTreeOf j p := "
 
 " ++ printProofTitle j ++ "
-" ++ showLong2ProofTreeOfHelper "  - " j p ++ "
+" ++ showLong2ProofTreeOfHelper "  " j p ++ "
 
 ".
 Instance showLong2ProofTreeOfInstance (j : judgement)
