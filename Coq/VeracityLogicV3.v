@@ -1032,6 +1032,7 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleWith3Conjuncts).
+Eval compute in (showLong2 concreteProofTreeExampleWith3Conjuncts).
 
 (*|
 We can also combine existing trees into new trees, when appropriate. For example:
@@ -1059,6 +1060,7 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleWith3Conjuncts).
+Eval compute in (showLong2 concreteProofTreeExampleWith3Conjuncts).
 
 Definition concreteProofTreeExampleTrust : 
 proofTreeOf ||- e \by a1 \in (C).
@@ -1079,6 +1081,7 @@ Eval compute in (show concreteProofTreeExampleTrust).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleTrust).
+Eval compute in (showLong2 concreteProofTreeExampleTrust).
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
 proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
@@ -1098,6 +1101,7 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleWith3ConjunctsWithTrust).
+Eval compute in (showLong2 concreteProofTreeExampleWith3ConjunctsWithTrust).
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
 proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
@@ -1120,7 +1124,8 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).
 .. coq::
 |*)
 
-Eval compute in (showLong concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras). 
+Eval compute in (showLong concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).
+Eval compute in (showLong2 concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras). 
 
 Record proofTreeOfClaim (c : claim) := {
   _e : evid;
@@ -1478,6 +1483,7 @@ Eval compute in show exampleFromJoshAuto.
 |*)
 
 Eval compute in (showLong exampleFromJoshAuto).
+Eval compute in (showLong2 exampleFromJoshAuto).
 
 Definition whiteboardExample : proofTreeOfClaim (Implies C1 C2).
 Proof.
