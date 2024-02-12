@@ -1007,7 +1007,7 @@ Eval compute in (show concreteProofTreeExampleWith2Conjuncts).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleWith2Conjuncts).
-Eval compute in (showLong2 concreteProofTreeExampleWith2Conjuncts).
+Eval compute in showLong2 concreteProofTreeExampleWith2Conjuncts.
 
 Definition concreteProofTreeExampleWith3Conjuncts : 
 proofTreeOf ( ||- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)).
@@ -1032,7 +1032,7 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleWith3Conjuncts).
-Eval compute in (showLong2 concreteProofTreeExampleWith3Conjuncts).
+Eval compute in showLong2 concreteProofTreeExampleWith3Conjuncts.
 
 (*|
 We can also combine existing trees into new trees, when appropriate. For example:
@@ -1060,7 +1060,7 @@ Eval compute in (show concreteProofTreeExampleWith3Conjuncts).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleWith3Conjuncts).
-Eval compute in (showLong2 concreteProofTreeExampleWith3Conjuncts).
+Eval compute in showLong2 concreteProofTreeExampleWith3Conjuncts.
 
 Definition concreteProofTreeExampleTrust : 
 proofTreeOf ||- e \by a1 \in (C).
@@ -1081,7 +1081,7 @@ Eval compute in (show concreteProofTreeExampleTrust).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleTrust).
-Eval compute in (showLong2 concreteProofTreeExampleTrust).
+Eval compute in showLong2 concreteProofTreeExampleTrust.
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
 proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
@@ -1101,7 +1101,7 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrust).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleWith3ConjunctsWithTrust).
-Eval compute in (showLong2 concreteProofTreeExampleWith3ConjunctsWithTrust).
+Eval compute in showLong2 concreteProofTreeExampleWith3ConjunctsWithTrust.
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
 proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
@@ -1125,7 +1125,7 @@ Eval compute in (show concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).
-Eval compute in (showLong2 concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras). 
+Eval compute in showLong2 concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras. 
 
 Record proofTreeOfClaim (c : claim) := {
   _e : evid;
@@ -1157,6 +1157,7 @@ Eval compute in show exampleWithProofOf.
 |*)
 
 Eval compute in showLong exampleWithProofOf.
+Eval compute in showLong2 exampleWithProofOf.
 
 Definition usingAll : proofTreeOfClaim (Implies _|_ C1).
 Proof.
@@ -1196,6 +1197,7 @@ Eval compute in show usingAll.
 |*)
 
 Eval compute in showLong usingAll.
+Eval compute in showLong2 usingAll.
 
 Ltac proveClaim := 
 (* unshelve eexists _ _ _; *)
@@ -1313,6 +1315,7 @@ Eval compute in show exampleC1.
 |*)
 
 Eval compute in showLong exampleC1.
+Eval compute in showLong2 exampleC1.
 
 Set Default Proof Mode "Ltac2".
 
@@ -1347,6 +1350,7 @@ Eval compute in show automatedProof.
 |*)
 
 Eval compute in showLong automatedProof.
+Eval compute in showLong2 automatedProof.
 
 Ltac2 rec autoProveMain1 max_depth :=
 match Int.equal 0 max_depth with
@@ -1392,6 +1396,7 @@ Eval compute in show fromPaper1.
 |*)
 
 Eval compute in showLong fromPaper1.
+Eval compute in showLong2 fromPaper1.
 
 Definition healthy := AtomicClaim (NamePair "H" "healthy").
 Definition nonToxic := AtomicClaim (NamePair "N" "non-toxic").
@@ -1434,6 +1439,7 @@ Eval compute in show exampleFromJosh.
 |*)
 
 Eval compute in showLong exampleFromJosh.
+Eval compute in showLong2 exampleFromJosh.
 
 Ltac2 rec autoProveMain2 max_depth :=
 match Int.equal 0 max_depth with
@@ -1483,7 +1489,7 @@ Eval compute in show exampleFromJoshAuto.
 |*)
 
 Eval compute in (showLong exampleFromJoshAuto).
-Eval compute in (showLong2 exampleFromJoshAuto).
+Eval compute in showLong2 exampleFromJoshAuto.
 
 Definition whiteboardExample : proofTreeOfClaim (Implies C1 C2).
 Proof.
@@ -1507,5 +1513,26 @@ Eval compute in show whiteboardExample.
 |*)
 
 Eval compute in (showLong whiteboardExample).
-Eval compute in (showLong2 whiteboardExample).
+Eval compute in showLong2 whiteboardExample.
 
+
+
+Definition allProofsAsString := 
+    showLong2 concreteProofTreeExampleWith2Conjuncts
+ ++ showLong2 concreteProofTreeExampleWith3Conjuncts
+ ++ showLong2 concreteProofTreeExampleTrust
+ ++ showLong2 concreteProofTreeExampleWith3ConjunctsWithTrust
+ ++ showLong2 concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras
+ ++ showLong2 exampleWithProofOf
+ ++ showLong2 usingAll
+ ++ showLong2 exampleC1
+ ++ showLong2 automatedProof
+ ++ showLong2 fromPaper1
+ ++ showLong2 exampleFromJosh
+ ++ showLong2 exampleFromJoshAuto
+ ++ showLong2 whiteboardExample.
+
+
+Eval compute in allProofsAsString.
+
+End VeracityLogic.
