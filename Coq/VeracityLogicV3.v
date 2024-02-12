@@ -393,6 +393,11 @@ Class ShowLong A : Type :=
     showLong : A -> string
   }.
 
+Class ShowLong2 A : Type :=
+  {
+    showLong2 : A -> string
+  }.
+
 
 Open Scope char_scope.
 
@@ -449,6 +454,8 @@ match e with
 end.
 Instance : Show evid := { show := showEvid }.
 Instance : ShowLong evid := { showLong := showEvid }.
+Instance : ShowLong2 evid := { showLong2 := showEvid }.
+
 
 Fixpoint showClaim (c : claim) :=
 match c with
@@ -469,6 +476,7 @@ match c with
   | Implies c1 c2 => "(" ++ showLongClaim c1 ++ " implies " ++ showLongClaim c2 ++ ")"
   end.
 Instance : ShowLong claim := { showLong := showLongClaim }.
+Instance : ShowLong2 claim := { showLong2 := showLongClaim }.
 
 Definition showActor (a : actor) := 
   match a with
@@ -481,6 +489,7 @@ Definition showLongActor (a : actor) :=
     | Actor (NamePair _ s) => s 
   end.
 Instance : ShowLong actor := { showLong := showLongActor }.
+Instance : ShowLong2 actor := { showLong2 := showLongActor }.
 
 Definition showTrustRelationInfo (t : trustRelationInfo) := 
   match t with
@@ -493,6 +502,7 @@ Definition showLongTrustRelationInfo (t : trustRelationInfo) :=
     | Trust (NamePair _ name) => name
   end.
 Instance : ShowLong trustRelationInfo := { showLong := showLongTrustRelationInfo }.
+Instance : ShowLong2 trustRelationInfo := { showLong2 := showLongTrustRelationInfo }.
 
 Fixpoint showList {A} `{Show A} (l : list A) :=
   match l with
@@ -503,7 +513,6 @@ Fixpoint showList {A} `{Show A} (l : list A) :=
 Instance showListInstance {A : Type} `{Show A} : Show (list A) 
   := { show l := showList l}.
 
-(* This approach gives us the Oxford comma, which is OK. *)
 Fixpoint showLongList {A} `{ShowLong A} (l : list A) :=
   match l with
     | [] => "no items"
@@ -513,6 +522,16 @@ Fixpoint showLongList {A} `{ShowLong A} (l : list A) :=
   end.
 Instance showLongListInstance {A : Type} `{ShowLong A} : ShowLong (list A) 
   := { showLong l := showLongList l}.
+
+Fixpoint showLong2List {A} `{ShowLong2 A} (indent : string) (l : list A) :=
+  match l with
+    | [] => ""
+    | [h] => indent ++ showLong2 h
+    | h :: tl => indent ++ showLong2 h ++ "
+" ++ showLong2List indent tl
+  end.
+Instance showLong2ListInstance {A : Type} `{ShowLong2 A} (indent : string) : ShowLong2 (list A) 
+  := { showLong2 l := showLong2List indent l}.
 
 Definition showSingleJudgement (s : singleJudgement) := 
   match s with
@@ -526,6 +545,12 @@ Definition showLongSingleJudgement (s : singleJudgement) :=
     | SingleJudgement e a c => showLong c ++ " is supported by $" ++ showLong e ++ "$ which " ++ showLong a ++ " uses"
   end.
 Instance : ShowLong singleJudgement := { showLong := showLongSingleJudgement }.
+
+Definition showLong2SingleJudgement (s : singleJudgement) := 
+  match s with
+    | SingleJudgement e a c => showLong2 c ++ " is held by " ++ showLong2 a ++ " by the evidence $" ++ showLong2 e ++ "$"
+  end.
+Instance : ShowLong2 singleJudgement := { showLong2 := showLong2SingleJudgement }.
 
 Definition showJudgement (Ps : list singleJudgement) (Ts : list trustRelationInfo) (j : judgement) :=
   match j with
@@ -550,6 +575,48 @@ Definition showLongJudgement (Ps : list singleJudgement) (Ts : list trustRelatio
   | IsAVeracityClaim c => showLong c ++ " is a veracity claim"
   end.
 
+(* With explicit "None"s *)
+(* Definition showLong2Judgement (Ps : list singleJudgement) (Ts : list trustRelationInfo) (indent : string) (j : judgement) (p : proofTreeOf j) :=
+  match j with
+  | Entail s => 
+      match Ps,Ts with
+        | [],[] => showLong2 s ++ "
+" ++ indent ++ "Assumptions made: None" ++ "
+" ++ indent ++ "Trust relations used: None"
+        | (h :: tl),[] => showLong2 s ++ "
+" ++ indent ++ "Assumptions made:" ++ showLong2List ("  " ++ indent) Ps ++ "
+" ++ indent ++ "Trust relations used: None"
+        | [],(h :: tl) => showLong2 s ++ "
+" ++ indent ++ "Assumptions made: None" ++ "
+" ++ indent ++ "Trust relations used:" ++ showLong2List ("  " ++ indent) Ts
+        | (h :: tl),(h2::tl2) => showLong2 s ++ "
+" ++ indent ++ "Assumptions made:" ++ showLong2List ("  " ++ indent) Ps ++ "
+" ++ indent ++ "Trust relations used:" ++ showLong2List ("  " ++ indent) Ts
+      end
+  | IsAVeracityClaim c => showLong c ++ " is a veracity claim" (* ShowLong2 won't actually use this branch. *)
+  end. *)
+
+
+Definition showLong2Judgement (Ps : list singleJudgement) (Ts : list trustRelationInfo) (indent : string) (j : judgement) (p : proofTreeOf j) :=
+  match j with
+  | Entail s => 
+      match Ps,Ts with
+        | [],[] => showLong2 s
+        | (h :: tl),[] => showLong2 s ++ "
+" ++ indent ++ "Assumptions made:
+" ++ showLong2List ("  " ++ indent) Ps
+        | [],(h :: tl) => showLong2 s ++ "
+" ++ indent ++ "Trust relations used:
+" ++ showLong2List ("  " ++ indent) Ts
+        | (h :: tl),(h2::tl2) => showLong2 s ++ "
+" ++ indent ++ "Assumptions made:
+" ++ showLong2List ("  " ++ indent) Ps ++ "
+" ++ indent ++ "Trust relations used:
+" ++ showLong2List ("  " ++ indent) Ts
+      end
+  | IsAVeracityClaim c => showLong c ++ " is a veracity claim" (* ShowLong2 won't actually use this branch. *)
+  end.
+
 Fixpoint getAllTrustRelationsUsed (j : judgement) (p : proofTreeOf j)
   : list trustRelationInfo :=
 match p with
@@ -570,6 +637,33 @@ match p with
 | impl_intro e1 C1 a e2 C2 M => getAllTrustRelationsUsed _ M
 | impl_elim a e1 e2 C1 C2 L R => 
    getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
+end.
+
+Fixpoint getAllEvidence (j : judgement) (p : proofTreeOf j)
+  : list evid :=
+match p with
+| admit _ => []
+| leaf c => []
+| assume e a name M => e :: (getAllEvidence _ M)
+| bot_elim e a C M => e :: (getAllEvidence _ M)
+| and_intro a e1 e2 C1 C2 L R => 
+    e1 :: e2 :: getAllEvidence _ L ++ getAllEvidence _ R 
+| and_elim1 a e1 e2 C1 C2 M => e1 :: e2 :: getAllEvidence _ M
+| and_elim2 a e1 e2 C1 C2 M => e1 :: e2 :: getAllEvidence _ M
+| or_intro1 a e1 C1 C2 M => e1 :: getAllEvidence _ M
+| or_intro2 a e2 C1 C2 M => e2 :: getAllEvidence _ M
+| or_elim1 a e1 C1 C2 M => e1 :: getAllEvidence _ M
+| or_elim2 a e2 C1 C2 M => e2 :: getAllEvidence _ M
+| trust a1 a2 e C name L => e ::  getAllEvidence _ L
+| impl_intro e1 C1 a e2 C2 M => e1 :: e2 :: getAllEvidence _ M
+| impl_elim a e1 e2 C1 C2 L R => 
+   e1 :: e2 :: getAllEvidence _ L ++ getAllEvidence _ R 
+end.
+
+Definition isAtomicEvidence (e : evid) : bool :=
+match e with
+  | AtomicEvid _ => true
+  | _ => false
 end.
 
 Fixpoint getAssumptions (j : judgement) (p : proofTreeOf j) : list singleJudgement := 
@@ -753,6 +847,77 @@ indent ++ showLongJudgement Ps Ts _ p ++ ", because
 ++ indent ++ "by a logical rule for implication."
 end.
 
+
+
+Fixpoint showLong2ProofTreeOfHelper (indent : string) (j : judgement) (p : proofTreeOf j)
+  : string :=
+let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
+let Ps := (removeDups (getAssumptions j p)) in
+match p with
+| admit p => indent ++ "We stopped the proof at this point and assumed it was provable."
+| leaf c => indent ++ showLong2 c ++ " is a veracity claim." (* We won't actually use this branch in ShowLong2 *)
+| assume e a c M => 
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: we assume this"
+| bot_elim e a C M =>
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: the principle of explosion
+    " ++ indent ++ "Sub-proof:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
+| and_intro a e1 e2 C1 C2 L R => 
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: and introduction
+    " ++ indent ++ "Sub-proofs:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ L ++ "
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ R
+| and_elim1 a e1 e2 C1 C2 M =>
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: and elimination (1)
+    " ++ indent ++ "Sub-proof:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
+| and_elim2 a e1 e2 C1 C2 M => 
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: and elimination (2)
+    " ++ indent ++ "Sub-proof:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
+| or_intro1 a e1 C1 C2 M =>
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: or introduction (1)
+    " ++ indent ++ "Sub-proof:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
+| or_intro2 a e2 C1 C2 M =>
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: or introduction (2)
+    " ++ indent ++ "Sub-proof:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
+| or_elim1 a e1 C1 C2 M =>
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: or elimination (1)
+    " ++ indent ++ "Sub-proof:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
+| or_elim2 a e2 C1 C2 M => 
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: or elimination (2)
+    " ++ indent ++ "Sub-proof:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
+| trust a1 a2 e C name L => 
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: trust, with relation " ++ showLong2 name ++ "
+    " ++ indent ++ "Sub-proof:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ L
+| impl_intro e1 C1 a e2 C2 M => 
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: implication introduction
+    " ++ indent ++ "Sub-proof:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
+| impl_elim a e1 e2 C1 C2 L R => 
+indent ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "Logical rule used: implication elimination
+    " ++ indent ++ "Sub-proofs:
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ L ++ "
+" ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ R
+end.
+
 Open Scope string.
 
 Definition showProofTreeOf j p
@@ -768,6 +933,23 @@ Definition showLongProofTreeOf j p := "
 ".
 Instance showLongProofTreeOfInstance (j : judgement)
   : ShowLong (proofTreeOf j) := { showLong := showLongProofTreeOf j}.
+
+Definition printProofTitle j :=
+match j with
+| Entail (SingleJudgement e a c) => "### Veracity proof that " ++ showLong2 c ++ " is held by " ++ showLong2 a
+| IsAVeracityClaim c => "### Veracity proof that " ++ showLong2 c ++ " is a veracity claim"
+end.
+
+Definition showLong2ProofTreeOf j p := "
+
+" ++ printProofTitle j ++ "
+" ++ showLong2ProofTreeOfHelper "  - " j p ++ "
+
+".
+Instance showLong2ProofTreeOfInstance (j : judgement)
+  : ShowLong2 (proofTreeOf j) := { showLong2 := showLong2ProofTreeOf j}.
+
+
 
 (*|
 
@@ -818,6 +1000,7 @@ Eval compute in (show concreteProofTreeExampleWith2Conjuncts).
 |*)
 
 Eval compute in (showLong concreteProofTreeExampleWith2Conjuncts).
+Eval compute in (showLong2 concreteProofTreeExampleWith2Conjuncts).
 
 Definition concreteProofTreeExampleWith3Conjuncts : 
 proofTreeOf ( ||- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)).
@@ -939,6 +1122,7 @@ Record proofTreeOfClaim (c : claim) := {
 }.
 Instance showProofTreeOfClaim (c : claim) : Show (proofTreeOfClaim c) := { show p := show (_p c p) }.
 Instance showLongProofTreeOfClaim (c : claim) : ShowLong (proofTreeOfClaim c) := { showLong p := showLong (_p c p) }.
+Instance showLong2ProofTreeOfClaim (c : claim) : ShowLong2 (proofTreeOfClaim c) := { showLong2 p := showLong2 (_p c p) }.
 
 Definition exampleWithProofOf : proofTreeOfClaim C1.
 Proof.
@@ -1310,4 +1494,5 @@ Eval compute in show whiteboardExample.
 |*)
 
 Eval compute in (showLong whiteboardExample).
+Eval compute in (showLong2 whiteboardExample).
 
