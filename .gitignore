@@ -5,3 +5,8 @@
 *.vos
 *.vok
 *.aux
+Coq/.coqdeps.d
+Coq/.core.make.d
+Coq/CoqMakefile.conf
+Coq/core.make
+Coq/core.make.conf
