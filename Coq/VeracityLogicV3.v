@@ -603,15 +603,22 @@ Definition showLong2Judgement (Ps : list singleJudgement) (Ts : list trustRelati
       match Ps,Ts with
         | [],[] => showLong2 s
         | (h :: tl),[] => showLong2 s ++ "
+" ++ indent ++ "collapsed:: true
 " ++ indent ++ "- " ++ "Assumptions made:
+" ++ indent ++ "  collapsed:: true
 " ++ showLong2List ("  " ++ indent) Ps
         | [],(h :: tl) => showLong2 s ++ "
+" ++ indent ++ "collapsed:: true
 " ++ indent ++ "- " ++ "Trust relations used:
+" ++ indent ++ "  collapsed:: true
 " ++ showLong2List ("  " ++ indent) Ts
         | (h :: tl),(h2::tl2) => showLong2 s ++ "
+" ++ indent ++ "collapsed:: true
 " ++ indent ++ "- " ++ "Assumptions made:
+" ++ indent ++ "  collapsed:: true
 " ++ showLong2List ("  " ++ indent) Ps ++ "
 " ++ indent ++ "- " ++ "Trust relations used:
+" ++ indent ++ "  collapsed:: true
 " ++ showLong2List ("  " ++ indent) Ts
       end
   | IsAVeracityClaim c => showLong c ++ " is a veracity claim" (* ShowLong2 won't actually use this branch. *)
