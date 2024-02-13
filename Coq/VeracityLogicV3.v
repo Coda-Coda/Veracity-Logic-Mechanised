@@ -398,6 +398,7 @@ Class ShowLong2 A : Type :=
     showLong2 : A -> string
   }.
 
+Instance : ShowLong2 string := { showLong2 s := s }.
 
 Open Scope char_scope.
 
@@ -456,6 +457,11 @@ Instance : Show evid := { show := showEvid }.
 Instance : ShowLong evid := { showLong := showEvid }.
 Instance : ShowLong2 evid := { showLong2 := showEvid }.
 
+Definition showEvidNamePair (e : evid) :=
+match e with
+  | AtomicEvid (NamePair short long) => "$" ++ short ++ "$ = " ++ long
+  | _ => ""
+end.
 
 Fixpoint showClaim (c : claim) :=
 match c with
@@ -951,6 +957,9 @@ Definition showLong2ProofTreeOf j p := "
 
 " ++ printProofTitle j ++ "
 " ++ showLong2ProofTreeOfHelper "  " j p ++ "
+  - Atomic evidence is abbreviated as follows:
+    collapsed:: true
+" ++ showLong2List "    " (map showEvidNamePair (removeDups (filter isAtomicEvidence (getAllEvidence j p)))) ++ "
 
 ".
 Instance showLong2ProofTreeOfInstance (j : judgement)
