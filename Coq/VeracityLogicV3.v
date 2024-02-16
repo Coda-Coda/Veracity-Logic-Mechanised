@@ -70,11 +70,11 @@ Inductive namePair :=
 
 Inductive evid :=
   | AtomicEvid (name : namePair)
-  | Pair (e1 e2 : evid)
+  | Pair (e1 e2: evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
-  | Lambda (e1 e2 : evid)
-  | Apply (e1 e2 : evid).
+  | Lambda (e1 e2: evid)
+  | Apply (e1 e2: evid).
 
 Inductive claim :=
   | AtomicClaim (name : namePair)
@@ -87,7 +87,7 @@ Inductive actor :=
   | Actor (s : namePair).
 
 Inductive singleJudgement :=
-  | SingleJudgement (e : evid) (a : actor) (c: claim).
+  | SingleJudgement (a : actor) (c: claim).
 
 (*|
 
@@ -104,7 +104,7 @@ Next, we introduce some notation for Coq.
 |*)
 
 Notation "||- S" := (Entail S) (at level 3).
-Notation "E \by A \in C" := (SingleJudgement E A C) (at level 2).
+Notation "\by A \in C" := (SingleJudgement A C) (at level 2).
 Infix "/\'" := And (at level 81, left associativity).
 Infix "\/'" := Or (at level 86, left associativity). 
 Notation "_|_" := (Bottom) (at level 1).
@@ -152,12 +152,12 @@ Instance : Beq actor := { beq := beqActor }.
 
 (* Inductive evid :=
   | AtomicEvid (name : string)
-  | Pair (e1 e2 : evid)
+  | Pair (: evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
-  | Lambda (e1 e2 : evid). *)
+  | Lambda (: evid). *)
 
-Fixpoint beqEvid (e1 e2 : evid) : bool :=
+Fixpoint beqEvid (e1 e2: evid) : bool :=
 match e1,e2 with
 | AtomicEvid name1,AtomicEvid name2 => beq name1 name2
 | AtomicEvid name1,_ => false
@@ -202,7 +202,7 @@ Instance : Beq claim := { beq := beqClaim }.
 
 Definition beqSingleJudgement (j1 j2 : singleJudgement) : bool :=
 match j1,j2 with
-SingleJudgement e1 a1 c1,SingleJudgement e2 a2 c2 => beq e1 e2 && beq a1 a2 && beq c1 c2
+SingleJudgement a1 c1,SingleJudgement a2 c2 => beq a1 a2 && beq c1 c2
 end.
 Instance : Beq singleJudgement := { beq := beqSingleJudgement }.
 
@@ -221,80 +221,80 @@ The remaining rules will be easy to add, this will be done in 2024.
 Inductive proofTreeOf : judgement -> Type :=
 | admit p : proofTreeOf p
 | leaf c : proofTreeOf (IsAVeracityClaim c)
-| assume e a C
+| assume (e : evid) a C
 
        (M : proofTreeOf (IsAVeracityClaim C)) 
                          :
-  proofTreeOf ( ||- e \by a \in C)
-| bot_elim e a C
+  proofTreeOf ( ||- \by a \in C)
+| bot_elim a C
 
-        (M : proofTreeOf ( ||- (e \by a \in _|_)))
+        (M : proofTreeOf ( ||- (\by a \in _|_)))
                            :
-           proofTreeOf ( ||- (e \by a \in C))
+           proofTreeOf ( ||- (\by a \in C))
 
-| and_intro a e1 e2 C1 C2
+| and_intro a C1 C2
 
-(L: proofTreeOf ( ||- e1 \by a \in C1))
-                           (R: proofTreeOf ( ||- e2 \by a \in C2))
+(L: proofTreeOf ( ||- \by a \in C1))
+                           (R: proofTreeOf ( ||- \by a \in C2))
                         :
-    proofTreeOf ( ||- (e1, e2) \by a \in (C1 /\' C2))
+    proofTreeOf ( ||- \by a \in (C1 /\' C2))
 
-| and_elim1 a e1 e2 C1 C2
+| and_elim1 a C1 C2
 
-    (M : proofTreeOf ( ||- ((e1, e2) \by a \in (C1 /\' C2))))
+    (M : proofTreeOf ( ||- (\by a \in (C1 /\' C2))))
                            :
-             proofTreeOf ( ||- (e1 \by a \in C1))
+             proofTreeOf ( ||- (\by a \in C1))
 
-| and_elim2 a e1 e2 C1 C2
+| and_elim2 a C1 C2
 
-    (M : proofTreeOf ( ||- ((e1, e2) \by a \in (C1 /\' C2))))
+    (M : proofTreeOf ( ||- (\by a \in (C1 /\' C2))))
                           :
-        proofTreeOf ( ||- (e2 \by a \in C2))
+        proofTreeOf ( ||- (\by a \in C2))
 
-| or_intro1 a e1 C1 C2
+| or_intro1 a C1 C2
 
-           (M: proofTreeOf ( ||- (e1 \by a \in C1)))
+           (M: proofTreeOf ( ||- (\by a \in C1)))
                           :
-    proofTreeOf ( ||- ((Left e1) \by a \in (C1 \/' C2)))
+    proofTreeOf ( ||- (\by a \in (C1 \/' C2)))
 
-| or_intro2 a e2 C1 C2
+| or_intro2 a C1 C2
 
-           (M: proofTreeOf ( ||- (e2 \by a \in C2)))
+           (M: proofTreeOf ( ||- (\by a \in C2)))
                           :
-    proofTreeOf ( ||- ((Right e2) \by a \in (C1 \/' C2)))
+    proofTreeOf ( ||- (\by a \in (C1 \/' C2)))
 
-| or_elim1 a e1 C1 C2
+| or_elim1 a C1 C2
 
-      (M: proofTreeOf ( ||- ((Left e1) \by a \in (C1 \/' C2))))
+      (M: proofTreeOf ( ||- (\by a \in (C1 \/' C2))))
                           :
-        proofTreeOf ( ||- (e1 \by a \in C1))
+        proofTreeOf ( ||- (\by a \in C1))
 
-| or_elim2 a e2 C1 C2
+| or_elim2 a C1 C2
 
-      (M : proofTreeOf ( ||- ((Right e2) \by a \in (C1 \/' C2))))
+      (M : proofTreeOf ( ||- (\by a \in (C1 \/' C2))))
                             :
-          proofTreeOf ( ||- (e2 \by a \in C2))
+          proofTreeOf ( ||- (\by a \in C2))
 
-| trust a1 a2 e C (name : trustRelationInfo)
+| trust a1 a2 C (name : trustRelationInfo)
 
-(L: proofTreeOf ( ||- (e \by a2 \in C)))
+(L: proofTreeOf ( ||- (\by a2 \in C)))
                           :
-            proofTreeOf ( ||- (e \by a1 \in C))
+            proofTreeOf ( ||- (\by a1 \in C))
 
-| impl_intro (e1 : evid) (C1 : claim) a e2 C2
+| impl_intro (e1 : evid) (C1 : claim) a C2
 
 (M: proofTreeOf
-                      ( ||- (e2 \by a \in C2)))
+                      ( ||- (\by a \in C2)))
                               :
 proofTreeOf
-              ( ||- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
+              ( ||- (\by a \in (Implies C1 C2)))
 
-| impl_elim a e1 e2 C1 C2
+| impl_elim a C1 C2
 
-(L: proofTreeOf ( ||- e1 \by a \in (Implies C1 C2)))
-                           (R: proofTreeOf ( ||- e2 \by a \in C1))
+(L: proofTreeOf ( ||- \by a \in (Implies C1 C2)))
+                           (R: proofTreeOf ( ||- \by a \in C1))
                         :
-    proofTreeOf ( ||- (Apply e1 e2) \by a \in C2)
+    proofTreeOf ( ||- \by a \in C2)
 .
 (*|
 This is the :coq:`and_intro` rule as Coq sees it:
@@ -358,23 +358,23 @@ Context (c4 : claim).
 Example Single judgements:
 |*)
 
-Definition sj1 := e1 \by a1 \in c1.
-Definition sj3 := e3 \by a3 \in c3.
+Definition sj1 := \by a1 \in c1.
+Definition sj3 := \by a3 \in c3.
 
 (*|
 Example Judgments:
 |*)
 
-Definition j1 := ||- e2 \by a2 \in c2.
-Definition j2 := ||- e4 \by a4 \in c4.
+Definition j1 := ||- \by a2 \in c2.
+Definition j2 := ||- \by a4 \in c4.
 
 (*|
 Example use of notation:
 |*)
 
-Check ||- e1 \by a1 \in c1.
-Check e1 \by a1 \in c1.
-Check ||- e1 \by a1 \in c1.
+Check ||- \by a1 \in c1.
+Check \by a1 \in c1.
+Check ||- \by a1 \in c1.
 
 (*|
 Machinery for printing to LaTeX
@@ -541,20 +541,20 @@ Instance showLong2ListInstance {A : Type} `{ShowLong2 A} (indent : string) : Sho
 
 Definition showSingleJudgement (s : singleJudgement) := 
   match s with
-    | SingleJudgement e a c => show e ++ "^{" ++ show a ++ "} \in "
+    | SingleJudgement a c => show (AtomicEvid (NamePair "TODO" "TODO")) ++ "^{" ++ show a ++ "} \in "
                                  ++ show c
   end.
 Instance : Show singleJudgement := { show := showSingleJudgement }.
 
 Definition showLongSingleJudgement (s : singleJudgement) := 
   match s with
-    | SingleJudgement e a c => showLong c ++ " is supported by $" ++ showLong e ++ "$ which " ++ showLong a ++ " uses"
+    | SingleJudgement a c => showLong c ++ " is supported by $" ++ showLong (AtomicEvid (NamePair "TODO" "TODO")) ++ "$ which " ++ showLong a ++ " uses"
   end.
 Instance : ShowLong singleJudgement := { showLong := showLongSingleJudgement }.
 
 Definition showLong2SingleJudgement (s : singleJudgement) := 
   match s with
-    | SingleJudgement e a c => showLong2 c ++ " is held by " ++ showLong2 a ++ " by the evidence $" ++ showLong2 e ++ "$"
+    | SingleJudgement a c => showLong2 c ++ " is held by " ++ showLong2 a ++ " by the evidence $" ++ showLong2 (AtomicEvid (NamePair "TODO" "TODO")) ++ "$"
   end.
 Instance : ShowLong2 singleJudgement := { showLong2 := showLong2SingleJudgement }.
 
@@ -569,7 +569,7 @@ Definition showJudgement (Ps : list singleJudgement) (Ts : list trustRelationInf
   end.
 
 Eval compute in showJudgement [] [] j1.
-Eval compute in showJudgement [e1 \by a1 \in c1] [] j1.
+Eval compute in showJudgement [\by a1 \in c1] [] j1.
 
 Definition showLongJudgement (Ps : list singleJudgement) (Ts : list trustRelationInfo) (j : judgement) (p : proofTreeOf j) :=
   match j with
@@ -636,19 +636,19 @@ match p with
 | admit _ => []
 | leaf c => []
 | assume e a name M => getAllTrustRelationsUsed _ M
-| bot_elim e a C M => getAllTrustRelationsUsed _ M
-| and_intro a e1 e2 C1 C2 L R => 
+| bot_elim a C M => getAllTrustRelationsUsed _ M
+| and_intro a C1 C2 L R => 
     getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
-| and_elim1 a e1 e2 C1 C2 M => getAllTrustRelationsUsed _ M
-| and_elim2 a e1 e2 C1 C2 M => getAllTrustRelationsUsed _ M
-| or_intro1 a e1 C1 C2 M => getAllTrustRelationsUsed _ M
-| or_intro2 a e2 C1 C2 M => getAllTrustRelationsUsed _ M
-| or_elim1 a e1 C1 C2 M => getAllTrustRelationsUsed _ M
-| or_elim2 a e2 C1 C2 M => getAllTrustRelationsUsed _ M
-| trust a1 a2 e C name L => 
+| and_elim1 a C1 C2 M => getAllTrustRelationsUsed _ M
+| and_elim2 a C1 C2 M => getAllTrustRelationsUsed _ M
+| or_intro1 a C1 C2 M => getAllTrustRelationsUsed _ M
+| or_intro2 a C1 C2 M => getAllTrustRelationsUsed _ M
+| or_elim1 a C1 C2 M => getAllTrustRelationsUsed _ M
+| or_elim2 a C1 C2 M => getAllTrustRelationsUsed _ M
+| trust a1 a2 C name L => 
     name :: getAllTrustRelationsUsed _ L
-| impl_intro e1 C1 a e2 C2 M => getAllTrustRelationsUsed _ M
-| impl_elim a e1 e2 C1 C2 L R => 
+| impl_intro e1 C1 a C2 M => getAllTrustRelationsUsed _ M
+| impl_elim a C1 C2 L R => 
    getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
 end.
 
@@ -658,18 +658,18 @@ match p with
 | admit _ => []
 | leaf c => []
 | assume e a name M => e :: (getAllEvidence _ M)
-| bot_elim e a C M => e :: (getAllEvidence _ M)
-| and_intro a e1 e2 C1 C2 L R => 
+| bot_elim a C M => e :: (getAllEvidence _ M)
+| and_intro a C1 C2 L R => 
     e1 :: e2 :: getAllEvidence _ L ++ getAllEvidence _ R 
-| and_elim1 a e1 e2 C1 C2 M => e1 :: e2 :: getAllEvidence _ M
-| and_elim2 a e1 e2 C1 C2 M => e1 :: e2 :: getAllEvidence _ M
-| or_intro1 a e1 C1 C2 M => e1 :: getAllEvidence _ M
-| or_intro2 a e2 C1 C2 M => e2 :: getAllEvidence _ M
-| or_elim1 a e1 C1 C2 M => e1 :: getAllEvidence _ M
-| or_elim2 a e2 C1 C2 M => e2 :: getAllEvidence _ M
-| trust a1 a2 e C name L => e ::  getAllEvidence _ L
-| impl_intro e1 C1 a e2 C2 M => e1 :: e2 :: getAllEvidence _ M
-| impl_elim a e1 e2 C1 C2 L R => 
+| and_elim1 a C1 C2 M => e1 :: e2 :: getAllEvidence _ M
+| and_elim2 a C1 C2 M => e1 :: e2 :: getAllEvidence _ M
+| or_intro1 a C1 C2 M => e1 :: getAllEvidence _ M
+| or_intro2 a C1 C2 M => e2 :: getAllEvidence _ M
+| or_elim1 a C1 C2 M => e1 :: getAllEvidence _ M
+| or_elim2 a C1 C2 M => e2 :: getAllEvidence _ M
+| trust a1 a2 C name L => e ::  getAllEvidence _ L
+| impl_intro e1 C1 a C2 M => e1 :: e2 :: getAllEvidence _ M
+| impl_elim a C1 C2 L R => 
    e1 :: e2 :: getAllEvidence _ L ++ getAllEvidence _ R 
 end.
 
@@ -683,20 +683,20 @@ Fixpoint getAssumptions (j : judgement) (p : proofTreeOf j) : list singleJudgeme
 match p with
 | admit _ => []
 | leaf c => []
-| assume e a c M => e \by a \in c :: getAssumptions _ M
-| bot_elim e a C M => getAssumptions _ M
-| and_intro a e1 e2 C1 C2 L R => 
+| assume e a c M => \by a \in c :: getAssumptions _ M
+| bot_elim a C M => getAssumptions _ M
+| and_intro a C1 C2 L R => 
     getAssumptions _ L ++ getAssumptions _ R 
-| and_elim1 a e1 e2 C1 C2 M => getAssumptions _ M
-| and_elim2 a e1 e2 C1 C2 M => getAssumptions _ M
-| or_intro1 a e1 C1 C2 M => getAssumptions _ M
-| or_intro2 a e2 C1 C2 M => getAssumptions _ M
-| or_elim1 a e1 C1 C2 M => getAssumptions _ M
-| or_elim2 a e2 C1 C2 M => getAssumptions _ M
-| trust a1 a2 e C name L => 
+| and_elim1 a C1 C2 M => getAssumptions _ M
+| and_elim2 a C1 C2 M => getAssumptions _ M
+| or_intro1 a C1 C2 M => getAssumptions _ M
+| or_intro2 a C1 C2 M => getAssumptions _ M
+| or_elim1 a C1 C2 M => getAssumptions _ M
+| or_elim2 a C1 C2 M => getAssumptions _ M
+| trust a1 a2 C name L => 
     getAssumptions _ L
-| impl_intro e1 C1 a e2 C2 M => filter (beq (e1 \by a \in C1)) (getAssumptions _ M)
-| impl_elim a e1 e2 C1 C2 L R => 
+| impl_intro e1 C1 a C2 M => filter (beq (\by a \in C1)) (getAssumptions _ M)
+| impl_elim a C1 C2 L R => 
    getAssumptions _ L ++ getAssumptions _ R 
 end.
 
@@ -724,55 +724,55 @@ match p with
              ++ " \textit{ is a veracity claim} $}"
 | assume e a c M => showProofTreeOfHelper _ M
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
-    ++ showJudgement Ps Ts ( ||- e \by a \in c) ++ " $}"
-| bot_elim e a C M => showProofTreeOfHelper _ M
+    ++ showJudgement Ps Ts ( ||- \by a \in c) ++ " $}"
+| bot_elim a C M => showProofTreeOfHelper _ M
     ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
-    ++ showJudgement Ps Ts ( ||- (e \by a \in C))
+    ++ showJudgement Ps Ts ( ||- (\by a \in C))
     ++ " $}"
-| and_intro a e1 e2 C1 C2 L R => 
+| and_intro a C1 C2 L R => 
     showProofTreeOfHelper _ L
  ++ showProofTreeOfHelper _ R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- (e1, e2) \by a \in (C1 /\' C2)) ++ " $}"
-| and_elim1 a e1 e2 C1 C2 M => showProofTreeOfHelper _ M
+ ++ showJudgement Ps Ts ( ||- \by a \in (C1 /\' C2)) ++ " $}"
+| and_elim1 a C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \land^{-1} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- (e1 \by a \in C1))
+ ++ showJudgement Ps Ts ( ||- (\by a \in C1))
  ++ " $}"
-| and_elim2 a e1 e2 C1 C2 M => showProofTreeOfHelper _ M
+| and_elim2 a C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \land^{-2} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- (e2 \by a \in C2))
+ ++ showJudgement Ps Ts ( ||- (\by a \in C2))
  ++ " $}"
-| or_intro1 a e1 C1 C2 M => showProofTreeOfHelper _ M
+| or_intro1 a C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{+1} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- ((Left e1) \by a \in (C1 \/' C2)))
+ ++ showJudgement Ps Ts ( ||- (\by a \in (C1 \/' C2)))
  ++ " $}"
-| or_intro2 a e2 C1 C2 M => showProofTreeOfHelper _ M
+| or_intro2 a C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{+2} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- ((Right e2) \by a \in (C1 \/' C2)))
+ ++ showJudgement Ps Ts ( ||- (\by a \in (C1 \/' C2)))
  ++ " $}"
-| or_elim1 a e1 C1 C2 M => showProofTreeOfHelper _ M
+| or_elim1 a C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{-1} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- (e1 \by a \in C1))
+ ++ showJudgement Ps Ts ( ||- (\by a \in C1))
  ++ " $}"
-| or_elim2 a e2 C1 C2 M => showProofTreeOfHelper _ M
+| or_elim2 a C1 C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \lor^{-2} $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- (e2 \by a \in C2))
+ ++ showJudgement Ps Ts ( ||- (\by a \in C2))
  ++ " $}"
-| trust a1 a2 e C name L => 
+| trust a1 a2 C name L => 
     showProofTreeOfHelper _ L
  ++ " \AxiomC{$" ++ show a1 ++ show name ++ show a2 ++ "$} "
  ++ " \RightLabel{ $ trust\ " ++ show name
  ++ "$} \BinaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- (e \by a1 \in C)) ++ " $}"
-| impl_intro e1 C1 a e2 C2 M => showProofTreeOfHelper _ M
+ ++ showJudgement Ps Ts ( ||- (\by a1 \in C)) ++ " $}"
+| impl_intro e1 C1 a C2 M => showProofTreeOfHelper _ M
  ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- ((Lambda e1 e2) \by a \in (Implies C1 C2)))
+ ++ showJudgement Ps Ts ( ||- (\by a \in (Implies C1 C2)))
  ++ " $}"
-| impl_elim a e1 e2 C1 C2 L R => 
+| impl_elim a C1 C2 L R => 
      showProofTreeOfHelper _ L
  ++ showProofTreeOfHelper _ R 
  ++ " \RightLabel{ $ \rightarrow^{-} $} \BinaryInfC{$ "
- ++ showJudgement Ps Ts ( ||- (Apply e1 e2) \by a \in C2) ++ " $}"
+ ++ showJudgement Ps Ts ( ||- \by a \in C2) ++ " $}"
 end.
 
 Fixpoint showLongProofTreeOfHelper (indent : string) (j : judgement) (p : proofTreeOf j)
@@ -788,13 +788,13 @@ indent ++ showLongJudgement Ps Ts _ p ++ ", because
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by assumption."
-| bot_elim e a C M =>
+| bot_elim a C M =>
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by the logical principle of explosion."
-| and_intro a e1 e2 C1 C2 L R => 
+| and_intro a C1 C2 L R => 
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ L ++ "
@@ -802,55 +802,55 @@ indent ++ showLongJudgement Ps Ts _ p ++ ", because
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ R ++ "
 "
 ++ indent ++ "by a logical rule for 'and'."
-| and_elim1 a e1 e2 C1 C2 M =>
+| and_elim1 a C1 C2 M =>
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'and'."
-| and_elim2 a e1 e2 C1 C2 M => 
+| and_elim2 a C1 C2 M => 
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'and'."
-| or_intro1 a e1 C1 C2 M =>
+| or_intro1 a C1 C2 M =>
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
-| or_intro2 a e2 C1 C2 M =>
+| or_intro2 a C1 C2 M =>
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
-| or_elim1 a e1 C1 C2 M =>
+| or_elim1 a C1 C2 M =>
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
-| or_elim2 a e2 C1 C2 M => 
+| or_elim2 a C1 C2 M => 
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
-| trust a1 a2 e C name L => 
+| trust a1 a2 C name L => 
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ L ++ "
 "
 ++ indent ++ "by the trust relation " ++ showLong name ++ "."
-| impl_intro e1 C1 a e2 C2 M => 
+| impl_intro e1 C1 a C2 M => 
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for implication."
-| impl_elim a e1 e2 C1 C2 L R => 
+| impl_elim a C1 C2 L R => 
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
 " 
 ++ showLongProofTreeOfHelper ("  " ++ indent) _ L ++ "
@@ -872,58 +872,58 @@ match p with
 | assume e a c M => 
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: we assume this"
-| bot_elim e a C M =>
+| bot_elim a C M =>
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: the principle of explosion
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
-| and_intro a e1 e2 C1 C2 L R => 
+| and_intro a C1 C2 L R => 
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and introduction
     " ++ indent ++ "- " ++ "Sub-proofs:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ L ++ "
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ R
-| and_elim1 a e1 e2 C1 C2 M =>
+| and_elim1 a C1 C2 M =>
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and elimination (1)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
-| and_elim2 a e1 e2 C1 C2 M => 
+| and_elim2 a C1 C2 M => 
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and elimination (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
-| or_intro1 a e1 C1 C2 M =>
+| or_intro1 a C1 C2 M =>
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or introduction (1)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
-| or_intro2 a e2 C1 C2 M =>
+| or_intro2 a C1 C2 M =>
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or introduction (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
-| or_elim1 a e1 C1 C2 M =>
+| or_elim1 a C1 C2 M =>
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or elimination (1)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
-| or_elim2 a e2 C1 C2 M => 
+| or_elim2 a C1 C2 M => 
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or elimination (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
-| trust a1 a2 e C name L => 
+| trust a1 a2 C name L => 
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: trust, with relation " ++ showLong2 name ++ "
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ L
-| impl_intro e1 C1 a e2 C2 M => 
+| impl_intro e1 C1 a C2 M => 
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication introduction
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showLong2ProofTreeOfHelper ("      " ++ indent) _ M
-| impl_elim a e1 e2 C1 C2 L R => 
+| impl_elim a C1 C2 L R => 
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication elimination
     " ++ indent ++ "- " ++ "Sub-proofs:
@@ -949,7 +949,7 @@ Instance showLongProofTreeOfInstance (j : judgement)
 
 Definition printProofTitle j :=
 match j with
-| Entail (SingleJudgement e a c) => "### Veracity proof that " ++ showLong2 c ++ " is held by " ++ showLong2 a
+| Entail (SingleJudgement a c) => "### Veracity proof that " ++ showLong2 c ++ " is held by " ++ showLong2 a
 | IsAVeracityClaim c => "### Veracity proof that " ++ showLong2 c ++ " is a veracity claim"
 end.
 
@@ -994,13 +994,13 @@ Definition trustU := Trust (NamePair "U" "U").
 Definition trustV := Trust (NamePair "V" "V").
 
 Definition concreteProofTreeExampleWith2Conjuncts : 
-proofTreeOf ( ||- (l, s) \by P \in (C1 /\' C2)).
-epose proof (and_intro _ _ _ C1 C2).
+proofTreeOf ( ||- \by P \in (C1 /\' C2)).
+epose proof (and_intro _ C1 C2).
 simpl in H.
 apply H.
-apply assume.
+apply (assume l).
 apply leaf.
-apply assume.
+apply (assume s).
 apply leaf.
 Defined.
 
@@ -1019,14 +1019,16 @@ Eval compute in (showLong concreteProofTreeExampleWith2Conjuncts).
 Eval compute in showLong2 concreteProofTreeExampleWith2Conjuncts.
 
 Definition concreteProofTreeExampleWith3Conjuncts : 
-proofTreeOf ( ||- ((l, s),c) \by P \in (C1 /\' C2 /\' C3)).
-epose proof (and_intro) P (l, s) c (C1 /\' C2) C3.
+proofTreeOf ( ||- \by P \in (C1 /\' C2 /\' C3)).
+epose proof (and_intro) P (C1 /\' C2) C3.
 simpl in H.
 apply H.
-epose proof (and_intro) _ _ _ C1 C2.
+epose proof (and_intro) _ C1 C2.
 simpl in H0.
 apply H0.
-all: apply assume; apply leaf.
+apply (assume l). apply leaf.
+apply (assume s). apply leaf.
+apply (assume c). apply leaf.
 Defined.
 
 (*|
@@ -1048,12 +1050,13 @@ We can also combine existing trees into new trees, when appropriate. For example
 |*)
 
 Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
-proofTreeOf  ||- ((l, s),c) \by P \in (C1 /\' C2 /\' C3).
-epose proof (and_intro) P (l, s) c (C1 /\' C2) C3.
+proofTreeOf  ||- \by P \in (C1 /\' C2 /\' C3).
+epose proof (and_intro) P (C1 /\' C2) C3.
 simpl in H.
 apply H.
 exact concreteProofTreeExampleWith2Conjuncts.
-apply assume; apply leaf.
+Show Proof.
+apply (assume c). apply leaf.
 Defined.
 
 
@@ -1072,9 +1075,9 @@ Eval compute in (showLong concreteProofTreeExampleWith3Conjuncts).
 Eval compute in showLong2 concreteProofTreeExampleWith3Conjuncts.
 
 Definition concreteProofTreeExampleTrust : 
-proofTreeOf ||- e \by a1 \in (C).
-apply (trust a1 a2 e C trustT).
-apply assume.
+proofTreeOf ||- \by a1 \in (C).
+apply (trust a1 a2 C trustT).
+apply (assume e).
 apply leaf.
 Defined.
 
@@ -1093,8 +1096,8 @@ Eval compute in (showLong concreteProofTreeExampleTrust).
 Eval compute in showLong2 concreteProofTreeExampleTrust.
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
-proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
-eapply (trust _ _ _ _ trustU).
+proofTreeOf ||- \by Q \in (C1 /\' C2 /\' C3).
+eapply (trust _ _ _ trustU).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
 
@@ -1113,10 +1116,10 @@ Eval compute in (showLong concreteProofTreeExampleWith3ConjunctsWithTrust).
 Eval compute in showLong2 concreteProofTreeExampleWith3ConjunctsWithTrust.
 
 Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
-proofTreeOf ||- ((l, s),c) \by Q \in (C1 /\' C2 /\' C3).
-eapply (trust Q Q _ _ trustU).
-eapply (trust Q Q _ _ trustV).
-eapply (trust _ _ _ _ trustU).
+proofTreeOf ||- \by Q \in (C1 /\' C2 /\' C3).
+eapply (trust Q Q _ trustU).
+eapply (trust Q Q _ trustV).
+eapply (trust _ _ _ trustU).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Show Proof.
 Defined.
@@ -1137,9 +1140,8 @@ Eval compute in (showLong concreteProofTreeExampleWith3ConjunctsWithTrustAndExtr
 Eval compute in showLong2 concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras. 
 
 Record proofTreeOfClaim (c : claim) := {
-  _e : evid;
   _a : actor;
-  _p : proofTreeOf ||- (_e \by _a \in c)
+  _p : proofTreeOf ||- (\by _a \in c)
 }.
 Instance showProofTreeOfClaim (c : claim) : Show (proofTreeOfClaim c) := { show p := show (_p c p) }.
 Instance showLongProofTreeOfClaim (c : claim) : ShowLong (proofTreeOfClaim c) := { showLong p := showLong (_p c p) }.
@@ -1147,8 +1149,8 @@ Instance showLong2ProofTreeOfClaim (c : claim) : ShowLong2 (proofTreeOfClaim c) 
 
 Definition exampleWithProofOf : proofTreeOfClaim C1.
 Proof.
-eexists _ _.
-apply (assume e1 a1).
+eexists _.
+apply (assume e a1).
 apply leaf.
 Defined.
 
@@ -1170,27 +1172,26 @@ Eval compute in showLong2 exampleWithProofOf.
 
 Definition usingAll : proofTreeOfClaim (Implies _|_ C1).
 Proof.
-eexists _ _.
-eapply or_elim1.
+eexists _.
+eapply (or_elim1 _ _ C2).
 eapply or_intro1.
-eapply or_elim2.
+eapply (or_elim2).
 eapply or_intro2.
 eapply and_elim1.
 eapply and_intro.
 eapply and_elim2.
 eapply and_intro.
-apply assume; apply leaf.
-2: apply assume; apply leaf.
-eapply (trust _ _ _ _ trustT).
-eapply (impl_intro ).
+apply (assume e a1); apply leaf.
+2: apply (assume e a1); apply leaf.
+eapply (trust _ _ _ trustT).
+eapply (impl_intro e _|_ a1 C1).
 simpl.
 eapply bot_elim.
-apply (assume _ _ _|_).
+apply (assume e a1 _|_).
 apply leaf.
 Unshelve.
-1,8: apply a1.
-1,2,4,6: apply C2.
-all: apply e2.
+Show Proof.
+all: apply C2.
 Defined.
 
 (*|
@@ -1285,9 +1286,9 @@ match Int.equal 0 max_depth with
   (* | true => () *)
   | false => solve [
       eapply and_intro; autoProveMain (Int.sub max_depth 1)
-    | eapply (assume _ a1); autoProveMain (Int.sub max_depth 1)
+    | eapply (assume e1 a1); autoProveMain (Int.sub max_depth 1)
     | eapply leaf; autoProveMain (Int.sub max_depth 1)
-    | eapply (trust _ _ _ _ _); autoProveMain (Int.sub max_depth 1)
+    | eapply (trust _ _ _); autoProveMain (Int.sub max_depth 1)
     | fillConstant (); autoProveMain (Int.sub max_depth 1)
   ]
 end.
@@ -1305,10 +1306,8 @@ The following demonstrates a constraing that the claim must be believed by actor
 
 Definition exampleC1 : proofTreeOfClaim (C2).
 Proof.
-eexists _ _.
+eexists _.
 autoProve ().
-Unshelve.
-all: fillConstant ().
 Show Proof.
 Defined.
 
@@ -1337,13 +1336,11 @@ The following demonstrates automatically proving a larger claim.
 
 Definition automatedProof : proofTreeOfClaim (C1 /\' C2 /\' C3 /\' C4 /\' C5).
 Proof.
-eexists _ _.
+eexists _.
 Time autoProve ().  (* Finished transaction in 0.1 secs (0.099u,0.s) (successful) *)
 (* Time autoProve (). Using match statements Finished transaction in 0.188 secs (0.181u,0.004s) (successful) *)
 (* Time autoProveMain 7. Finished transaction in 0.002 secs (0.002u,0.s) (successful) *)
 (* Time autoProveMain ().  Finished transaction in 1.503 secs (1.475u,0.s) (successful) *)
-Unshelve.
-all: fillConstant ().
 Show Proof.
 Defined.
 
@@ -1387,7 +1384,7 @@ Ltac2 autoProve1 () := autoProveHelper1 1.
 
 Definition fromPaper1 : proofTreeOfClaim (C1 /\' C2 /\' C3).
 Proof.
-eexists _ _.
+eexists _.
 autoProve1 ().
 Show Proof.
 Defined.
@@ -1419,19 +1416,23 @@ Definition winery := Actor (NamePair "w" "winery").
 
 
 Definition exampleFromJosh : proofTreeOfClaim healthy.
-eexists _ retailer.
-eapply (impl_elim _ belief (testing, audit) (nonToxic /\' organic)).
-eapply assume.
-eapply leaf.
+eexists retailer.
+eapply (impl_elim _ (nonToxic /\' organic)).
+try (apply (assume belief retailer (Implies (nonToxic /\' organic) healthy))).
+try (apply (assume testing vineyard nonToxic)).
+try (apply (assume audit winery organic)).
+apply leaf.
 eapply and_intro.
-eapply (trust retailer vineyard _ _ trustT).
-eapply assume.
-eapply leaf.
-eapply (trust retailer winery _ _ trustT).
-eapply assume.
-eapply leaf.
-Unshelve.
-all: fillConstant ().
+eapply (trust retailer vineyard _ trustT).
+try (apply (assume belief retailer (Implies (nonToxic /\' organic) healthy))).
+try (apply (assume testing vineyard nonToxic)).
+try (apply (assume audit winery organic)).
+apply leaf.
+eapply (trust retailer winery _ trustT).
+try (apply (assume belief retailer (Implies (nonToxic /\' organic) healthy))).
+try (apply (assume testing vineyard nonToxic)).
+try (apply (assume audit winery organic)).
+apply leaf.
 Show Proof.
 Defined.
 
@@ -1457,8 +1458,8 @@ match Int.equal 0 max_depth with
   | false => solve [
       eapply and_intro; autoProveMain2 (Int.sub max_depth 1)
     | eapply (impl_elim); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (trust retailer vineyard _ _ trustT); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (trust retailer winery _ _ trustT); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (trust retailer vineyard _ trustT); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (trust retailer winery _ trustT); autoProveMain2 (Int.sub max_depth 1)
     | eapply (assume testing vineyard nonToxic); autoProveMain2 (Int.sub max_depth 1)
     | eapply (assume belief retailer (Implies (nonToxic /\' organic) healthy)); autoProveMain2 (Int.sub max_depth 1)
     | eapply (assume audit winery organic); autoProveMain2 (Int.sub max_depth 1)
@@ -1480,7 +1481,7 @@ Ltac2 autoProve2 () := autoProveHelper2 1 20.
 
 
 Definition exampleFromJoshAuto : proofTreeOfClaim healthy.
-eexists _ retailer.
+eexists retailer.
 autoProve2 ().
 Show Proof.
 Defined.
@@ -1502,9 +1503,9 @@ Eval compute in showLong2 exampleFromJoshAuto.
 
 Definition whiteboardExample : proofTreeOfClaim (Implies C1 C2).
 Proof.
-eexists _ _.
+eexists a2.
 eapply (impl_intro e1).
-eapply (trust a2 _ e2 _ trustT).
+eapply (trust a2 _ _ trustT).
 eapply (assume e2 a1).
 eapply leaf.
 Defined.
