@@ -58,6 +58,7 @@ Require Import List.
 Import ListNotations.
 Require Import String.
 Require Import Coq.Strings.Ascii.
+Require Import Bool.
 
 (*|
 .. coq:: all
@@ -1045,6 +1046,69 @@ Instance showLong2ProofTreeOfInstance (j : judgement)
   : ShowLong2 (proofTreeOf j) := { showLong2 := showLong2ProofTreeOf j}. *)
 
 
+(* |
+
+Proof Automation without Ltac
+-----------------------------
+
+The approach taken here is to search for proofs using Coq's functional language, rather than relying on Ltac.
+This will:
+ - Perform backwards search
+ - Use "admit" (which may in future be renamed "hole") to fill in holes in the current proofs search.
+ - Involve a function which takes a single proof tree (potentially containing holes), and generates a list of proof trees "one level deeper", potentially including holes.
+ - Include a depth limit, after which the proof search is halted.
+ - Include a function to filter out proof trees based on whether they still contain holes, (and in the future other attributes such as whether the resulting weight is above a certain value)
+ - Involve a function that takes a list of prooftrees and returns a list of prooftrees "one level deeper", making use of the function which takes a single proof tree as input.
+
+|*)
+
+Definition toProofTreeWithHole (a : actor) (c : claim) := admit (||- \by a \in c).
+
+(* Definition atomicClaimInfo (name : namePair) : option evid :=
+  match name with
+    | NamePair "e_{no}" "no evidence" => None
+    | _ => Some (AtomicEvid (NamePair "e_{?}" "unknown evidence"))
+  end. *)
+
+Definition oneLevelDeeperJudgement (j : judgement) : list (proofTreeOf j) :=
+  match j with
+  | Entail (SingleJudgement a c) => 
+    if (beq a a1) && (beq c C) then [assume e a c (admit (IsAVeracityClaim c))] else []
+    ++
+    if (beq a a2) && (beq c C) then [assume e a c (admit (IsAVeracityClaim c))] else []
+    ++
+    match c with
+      | AtomicClaim name => []
+      | Bottom => []
+      | And c1 c2 => [and_intro a c1 c2 (admit _) (admit _)] 
+      | Or  c1 c2 => []
+      | Implies c1 c2 => []
+      end
+  | IsAVeracityClaim c => [leaf c]
+  end.
+
+Fixpoint oneLevelDeeper (j : judgement) (p : proofTreeOf j) : list (proofTreeOf j) :=
+  match p with
+| admit j => oneLevelDeeperJudgement j
+| leaf c => []
+| assume e a name M => map (assume e a name) (oneLevelDeeper _ M)
+| bot_elim a C M => map (bot_elim a C) (oneLevelDeeper _ M)
+| and_intro a C1 C2 L R => map (fun L2 => and_intro a C1 C2 L2 R) (oneLevelDeeper _ L)
+                        ++ map (and_intro a C1 C2 L) (oneLevelDeeper _ R)
+| and_elim1 a C1 C2 M => map (and_elim1 a C1 C2) (oneLevelDeeper _ M)
+| and_elim2 a C1 C2 M => map (and_elim2 a C1 C2) (oneLevelDeeper _ M)
+| or_intro1 a C1 C2 M => map (or_intro1 a C1 C2) (oneLevelDeeper _ M)
+| or_intro2 a C1 C2 M => map (or_intro2 a C1 C2) (oneLevelDeeper _ M)
+| or_elim1 a C1 C2 M => map (or_elim1 a C1 C2) (oneLevelDeeper _ M)
+| or_elim2 a C1 C2 M => map (or_elim2 a C1 C2) (oneLevelDeeper _ M)
+| trust a1 a2 C name L => map (trust a1 a2 C name) (oneLevelDeeper _ L)
+| impl_intro e1 C1 a C2 M => map (impl_intro e1 C1 a C2) (oneLevelDeeper _ M)
+| impl_elim a C1 C2 L R => map (fun L2 => impl_elim a C1 C2 L2 R) (oneLevelDeeper _ L)
+                        ++ map (impl_elim a C1 C2 L) (oneLevelDeeper _ R)
+end
+.
+
+Eval compute in oneLevelDeeper _ (toProofTreeWithHole a1 (C /\' C)).
 
 (*|
 
