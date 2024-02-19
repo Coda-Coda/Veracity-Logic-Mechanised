@@ -1229,7 +1229,7 @@ Instance showProofTreeOfClaim (c : claim) : Show (proofTreeOfClaim c) := { show 
 Definition exampleWithProofOf : proofTreeOfClaim C1.
 Proof.
 eexists _.
-apply (assume e a1).
+apply (assume e1 a1).
 apply leaf.
 Defined.
 
@@ -1260,13 +1260,13 @@ eapply and_elim1.
 eapply and_intro.
 eapply and_elim2.
 eapply and_intro.
-apply (assume e a1); apply leaf.
-2: apply (assume e a1); apply leaf.
+apply (assume e2 a1); apply leaf.
+2: apply (assume e2 a1); apply leaf.
 eapply (trust _ _ _ trustT).
-eapply (impl_intro e _|_ a1 C1).
+eapply (impl_intro e2 _|_ a1 C1).
 simpl.
 eapply bot_elim.
-apply (assume e a1 _|_).
+apply (assume e2 a1 _|_).
 apply leaf.
 Unshelve.
 Show Proof.
@@ -1365,7 +1365,7 @@ match Int.equal 0 max_depth with
   (* | true => () *)
   | false => solve [
       eapply and_intro; autoProveMain (Int.sub max_depth 1)
-    | eapply (assume e1 a1); autoProveMain (Int.sub max_depth 1)
+    | eapply (assume eQ a1); autoProveMain (Int.sub max_depth 1)
     | eapply leaf; autoProveMain (Int.sub max_depth 1)
     | eapply (trust _ _ _); autoProveMain (Int.sub max_depth 1)
     | fillConstant (); autoProveMain (Int.sub max_depth 1)
