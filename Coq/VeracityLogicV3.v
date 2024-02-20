@@ -357,7 +357,7 @@ end.
 Definition computeEvidenceSimple j p :=
   match computeEvidence j p with
   | Some e => e
-  | None => AtomicEvid (NamePair "ERROR!" "ERROR!")
+  | None => AtomicEvid (NamePair "?" "Unknown evidence (possibly from an incomplete proof)")
 end.
 
 (*|
@@ -597,6 +597,17 @@ Fixpoint showLong2List {A} `{ShowLong2 A} (indent : string) (l : list A) :=
 Instance showLong2ListInstance {A : Type} `{ShowLong2 A} (indent : string) : ShowLong2 (list A) 
   := { showLong2 l := showLong2List indent l}.
 
+
+Fixpoint showListForProofs {A} `{Show A} (l : list A) :=
+    match l with
+      | [] => ""
+      | h :: tl => "
+
+----------------
+
+" ++ show h ++ showListForProofs tl
+    end.
+
 Definition showSingleJudgement (e : evid) (s : singleJudgement) := 
   match s with
     | SingleJudgement a c => show e ++ "^{" ++ show a ++ "} \in "
@@ -628,6 +639,14 @@ let computedEvidence := computeEvidenceSimple j p in
   end.
 
 Eval compute in showJudgement [] [] j1.
+
+Definition showJudgementForAdmits (j : judgement) :=
+  match j with
+  | Entail (SingleJudgement a c) => 
+      show a ++ " \in " ++ show c
+  | IsAVeracityClaim c => show c
+  end.
+
 (* Eval compute in showJudgement [\by a1 \in c1] [] j1. *)
 
 (* Definition showLongJudgement (Ps : list singleJudgement) (Ts : list trustRelationInfo) (j : judgement) (p : proofTreeOf j) :=
@@ -788,17 +807,43 @@ match l with
 | h :: tl => if existsb (beq h) tl then removeDups tl else h :: removeDups tl
 end.
 
+Definition beqJudgement (j1 j2 : judgement) : bool :=
+match j1,j2 with
+| Entail s,Entail s' => beq s s'
+| IsAVeracityClaim c,IsAVeracityClaim c' => beq c c'
+| _,_ => false
+end.
+Instance : Beq judgement := { beq := beqJudgement }.
 
-Lemma removeDupsCorrect : (forall l, NoDup (removeDups l)) /\ forall l a, In a (removeDups l) <-> In a l.
-Proof.
-Abort.
+Fixpoint beqProofTreeOf {j1 j2 : judgement} (P1 : proofTreeOf j1) (P2 : proofTreeOf j2) : bool :=
+match P1,P2 with
+| admit j1,admit j2 => beq j1 j2
+| leaf c1, leaf c2 => beq c1 c2
+| assume e a1 C1 M1, assume e2 a2 C2 M2 => beq e e2 && beq a1 a2 && beq C1 C2 && beqProofTreeOf M1 M2
+| bot_elim a1 C1 M1, bot_elim a2 C2 M2 => beq a1 a2 && beq C1 C2 && beqProofTreeOf M1 M2
+| and_intro a C1 C2 L R, and_intro a' C1' C2' L' R' => beq a a' && beq C1 C1' && beq C2 C2' && beqProofTreeOf L L' && beqProofTreeOf R R'
+| and_elim1 a C1 C2 M, and_elim1 a' C1' C2' M' => beq a a' && beq C1 C1' && beq C2 C2' && beqProofTreeOf M M'
+| and_elim2 a C1 C2 M, and_elim2 a' C1' C2' M' => beq a a' && beq C1 C1' && beq C2 C2' && beqProofTreeOf M M'
+| or_intro1 a C1 C2 M, or_intro1 a' C1' C2' M' => beq a a' && beq C1 C1' && beq C2 C2' && beqProofTreeOf M M'
+| or_intro2 a C1 C2 M, or_intro2 a' C1' C2' M' => beq a a' && beq C1 C1' && beq C2 C2' && beqProofTreeOf M M'
+| or_elim1 a C1 C2 M, or_elim1 a' C1' C2' M' => beq a a' && beq C1 C1' && beq C2 C2' && beqProofTreeOf M M'
+| or_elim2 a C1 C2 M, or_elim2 a' C1' C2' M' => beq a a' && beq C1 C1' && beq C2 C2' && beqProofTreeOf M M'
+| trust a1 a2 C name L, trust a1' a2' C' name' L' => beq a1 a1' && beq a2 a2' && beq C C' && beq name name' && beqProofTreeOf L L'
+| impl_intro e C1 a C2 M, impl_intro e' C1' a' C2' M' => beq e e' && beq C1 C1' && beq a a' && beq C2 C2' && beqProofTreeOf M M'
+| impl_elim a C1 C2 L R, impl_elim a' C1' C2' L' R' => beq a a' && beq C1 C1' && beq C2 C2' && beqProofTreeOf L L' && beqProofTreeOf R R'
+| _,_ => false
+end.
+
+Definition beqProofTreeOfSameJudgement (j : judgement) (P1 P2 : proofTreeOf j) :=
+  @beqProofTreeOf j j P1 P2.
+Instance beqProofTreeOfSameJudgementInstance (j : judgement) : Beq (proofTreeOf j) := { beq := beqProofTreeOf }.
 
 Fixpoint showProofTreeOfHelper (j : judgement) (p : proofTreeOf j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptionsWithEvidence j p)) in
 match p with
-| admit p => "\AxiomC{?}"
+| admit j => "\AxiomC{? $" ++ (showJudgementForAdmits j) ++ "$ ?}"
 | leaf c => "\AxiomC{$ " 
              ++ show c 
              ++ " \textit{ is a veracity claim} $}"
@@ -1073,9 +1118,11 @@ Definition toProofTreeWithHole (a : actor) (c : claim) := admit (||- \by a \in c
 Definition oneLevelDeeperJudgement (j : judgement) : list (proofTreeOf j) :=
   match j with
   | Entail (SingleJudgement a c) => 
-    if (beq a a1) && (beq c C) then [assume e a c (admit (IsAVeracityClaim c))] else []
+    (if (beq a a1) && (beq c C) then [assume e a c (leaf c)] else [])
     ++
-    if (beq a a2) && (beq c C) then [assume e a c (admit (IsAVeracityClaim c))] else []
+    (if (beq a a2) && (beq c C) then [assume e a c (leaf c)] else [])
+    ++
+    (if (beq a a1) && (beq c (C /\' C)) then [assume e a c (leaf c)] else [])
     ++
     match c with
       | AtomicClaim name => []
@@ -1086,6 +1133,8 @@ Definition oneLevelDeeperJudgement (j : judgement) : list (proofTreeOf j) :=
       end
   | IsAVeracityClaim c => [leaf c]
   end.
+
+Eval compute in oneLevelDeeperJudgement (||- \by a1 \in (C /\' C)).
 
 Fixpoint oneLevelDeeper (j : judgement) (p : proofTreeOf j) : list (proofTreeOf j) :=
   match p with
@@ -1109,6 +1158,69 @@ end
 .
 
 Eval compute in oneLevelDeeper _ (toProofTreeWithHole a1 (C /\' C)).
+
+Definition oneLevelDeeperOfList j (l : list (proofTreeOf j)) : list (proofTreeOf j) :=
+ removeDups (flat_map (oneLevelDeeper j) l).
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in  show (oneLevelDeeperOfList _ (oneLevelDeeperOfList _ (oneLevelDeeper _ (toProofTreeWithHole a1 (C /\' C /\' C))))).
+
+(*|
+.. coq::
+|*)
+
+Fixpoint repeatFn {A : Type} (n : nat) (f : A -> A) :=
+match n with
+  | 0 => id
+  | 1 => f
+  | S n' => fun a => f (repeatFn n' f a)
+end.
+
+Open Scope list_scope.
+
+Fixpoint repeatListFnAndKeepPartials {A : Type} `{Beq A} (n : nat) (f : list A -> list A) (l : list A) :=
+match n with
+  | 0 => []
+  | 1 => removeDups (f l)
+  | S n' => removeDups ((f l) ++ f (repeatListFnAndKeepPartials n' f l))
+end.
+
+Definition generateProofsWithDepthLimit j d := repeatListFnAndKeepPartials d (oneLevelDeeperOfList j).
+
+Fixpoint noHoles {j : judgement} (p : proofTreeOf j) : bool :=
+  match p with
+| admit j => false
+| leaf c => true
+| assume e a name M => noHoles M
+| bot_elim a C M => noHoles M
+| and_intro a C1 C2 L R => noHoles L && noHoles R
+| and_elim1 a C1 C2 M => noHoles M
+| and_elim2 a C1 C2 M => noHoles M
+| or_intro1 a C1 C2 M => noHoles M
+| or_intro2 a C1 C2 M => noHoles M
+| or_elim1 a C1 C2 M => noHoles M
+| or_elim2 a C1 C2 M => noHoles M
+| trust a1 a2 C name L => noHoles L
+| impl_intro e1 C1 a C2 M => noHoles M
+| impl_elim a C1 C2 L R => noHoles L && noHoles R
+end
+.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Time Eval compute in (showListForProofs ((filter noHoles (generateProofsWithDepthLimit _ 8  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))])))).
+
+(*|
+.. coq::
+|*)
 
 (*|
 
@@ -1668,6 +1780,7 @@ Eval compute in show whiteboardExample.
 Eval compute in (showLong whiteboardExample).
 Eval compute in showLong2 whiteboardExample.
 
+Open Scope string_scope.
 
 Definition allProofsAsString := 
     show concreteProofTreeExampleWith2Conjuncts
