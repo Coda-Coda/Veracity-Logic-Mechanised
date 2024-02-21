@@ -1128,7 +1128,7 @@ Definition oneLevelDeeperJudgement (j : judgement) : list (proofTreeOf j) :=
       | AtomicClaim name => []
       | Bottom => []
       | And c1 c2 => [and_intro a c1 c2 (admit _) (admit _)] 
-      | Or  c1 c2 => []
+      | Or c1 c2 => []
       | Implies c1 c2 => []
       end
   | IsAVeracityClaim c => [leaf c]
@@ -1211,12 +1211,21 @@ Fixpoint noHoles {j : judgement} (p : proofTreeOf j) : bool :=
 end
 .
 
+Fixpoint proofSearch (j : judgement) (l : list (proofTreeOf j)) (d : nat) : list (proofTreeOf j) := 
+  match d with
+  | 0 => []
+  | S d' => let newL := removeDups (oneLevelDeeperOfList j l) in (filter noHoles newL) ++ proofSearch j newL d'
+  end.
+
+(** TODO: Try removing string comparison and replacing it with more native comparison, might cause speedup. *)
+
 (*|
 .. coq:: unfold
    :class: coq-math
 |*)
 
-Time Eval compute in (showListForProofs ((filter noHoles (generateProofsWithDepthLimit _ 8  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))])))).
+Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))] 7)))).
+Time Eval compute in (showListForProofs ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))).
 
 (*|
 .. coq::
