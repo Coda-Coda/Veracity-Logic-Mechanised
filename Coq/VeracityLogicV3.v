@@ -66,8 +66,28 @@ Require Import Bool.
 
 Section VeracityLogic.
 
+Inductive name :=
+  | _eQ_
+  | _e_
+  | _C_
+  | _a1_
+  | _e1_
+  | _c1_
+  | _a2_
+  | _e2_
+  | _c2_
+  | _a3_
+  | _e3_
+  | _c3_
+  | _a4_
+  | _e4_
+  | _c4_
+  .
+
+Scheme Equality for name.
+
 Inductive namePair :=
-  | NamePair (short long : string).
+  | NamePair (id : name) (short long : string).
 
 Inductive evid :=
   | AtomicEvid (name : namePair)
@@ -131,11 +151,10 @@ Class Beq A : Type :=
     beq : A -> A -> bool
   }.
 
-Instance : Beq string := { beq := String.eqb }.
 
 Definition beqNamePair (n1 n2 : namePair) : bool :=
 match n1,n2 with
-| NamePair short1 long1,NamePair short2 long2 => beq short1 short2 && beq long1 long2
+| NamePair id1 _ _,NamePair id2 _ _ => name_beq id1 id2
 end.
 Instance : Beq namePair := { beq := beqNamePair }.
 
@@ -357,7 +376,7 @@ end.
 Definition computeEvidenceSimple j p :=
   match computeEvidence j p with
   | Some e => e
-  | None => AtomicEvid (NamePair "?" "Unknown evidence (possibly from an incomplete proof)")
+  | None => AtomicEvid (NamePair _eQ_ "?" "Unknown evidence (possibly from an incomplete proof)")
 end.
 
 (*|
@@ -387,24 +406,24 @@ Example actors, evidence, claims and judgements
 
 Open Scope string.
 
-Definition e := AtomicEvid (NamePair "e" "example evidence e").
-Definition C := AtomicClaim (NamePair "C" "example evidence C").
+Definition e := AtomicEvid (NamePair _e_ "e" "example evidence e").
+Definition C := AtomicClaim (NamePair _C_ "C" "example evidence C").
 
-Definition a1 := Actor (NamePair "a_{1}" "actor 1").
-Definition e1 := AtomicEvid (NamePair "e_{1}" "example evidence 1").
-Definition c1 := AtomicClaim (NamePair "c_{1}" "example claim 1").
+Definition a1 := Actor (NamePair _a1_ "a_{1}" "actor 1").
+Definition e1 := AtomicEvid (NamePair _e1_ "e_{1}" "example evidence 1").
+Definition c1 := AtomicClaim (NamePair _c1_ "c_{1}" "example claim 1").
 
-Definition a2 := Actor (NamePair "a_{2}" "actor 2").
-Definition e2 := AtomicEvid (NamePair "e_{2}" "example evidence 2").
-Definition c2 := AtomicClaim (NamePair "c_{2}" "example claim 2").
+Definition a2 := Actor (NamePair _a2_ "a_{2}" "actor 2").
+Definition e2 := AtomicEvid (NamePair _e2_ "e_{2}" "example evidence 2").
+Definition c2 := AtomicClaim (NamePair _c2_ "c_{2}" "example claim 2").
 
-Definition a3 := Actor (NamePair "a_{3}" "actor 3").
-Definition e3 := AtomicEvid (NamePair "e_{3}" "example evidence 3").
-Definition c3 := AtomicClaim (NamePair "c_{3}" "example claim 3").
+Definition a3 := Actor (NamePair _a3_ "a_{3}" "actor 3").
+Definition e3 := AtomicEvid (NamePair _e3_ "e_{3}" "example evidence 3").
+Definition c3 := AtomicClaim (NamePair _c3_ "c_{3}" "example claim 3").
 
-Definition a4 := Actor (NamePair "a_{4}" "actor 4").
-Definition e4 := AtomicEvid (NamePair "e_{4}" "example evidence 4").
-Definition c4 := AtomicClaim (NamePair "c_{4}" "example claim 4").
+Definition a4 := Actor (NamePair _a4_ "a_{4}" "actor 4").
+Definition e4 := AtomicEvid (NamePair _e4_ "e_{4}" "example evidence 4").
+Definition c4 := AtomicClaim (NamePair _c4_ "c_{4}" "example claim 4").
 
 (*|
 We can also assume arbitrary evidence/claims exist. This currently doesn't work well with printing to Latex. An experimental alternative is demonstrated in the experimental-NamedC-and-NamedE branch.
@@ -502,7 +521,7 @@ For each datatype defined earlier, we define a string representation of it.
 
 Fixpoint showEvid (e : evid) :=
 match e with
-  | AtomicEvid (NamePair name _) => name
+  | AtomicEvid (NamePair _ name _) => name
   | Pair e1 e2 => "(" ++ (showEvid e1) ++ ", "
                       ++ (showEvid e2) ++ ")"
   | Left e => "i(" ++ showEvid e ++ ")"
@@ -517,13 +536,13 @@ Instance : ShowLong2 evid := { showLong2 := showEvid }.
 
 Definition showEvidNamePair (e : evid) :=
 match e with
-  | AtomicEvid (NamePair short long) => "$" ++ short ++ "$ = " ++ long
+  | AtomicEvid (NamePair _ short long) => "$" ++ short ++ "$ = " ++ long
   | _ => ""
 end.
 
 Fixpoint showClaim (c : claim) :=
 match c with
-  | AtomicClaim (NamePair name _) => name
+  | AtomicClaim (NamePair _ name _) => name
   | Bottom => "\bot"
   | And c1 c2 => showClaim c1 ++ " \wedge " ++ showClaim c2
   | Or c1 c2 => showClaim c1 ++ " \vee " ++ showClaim c2
@@ -533,7 +552,7 @@ Instance : Show claim := { show := showClaim }.
 
 Fixpoint showLongClaim (c : claim) :=
 match c with
-  | AtomicClaim (NamePair _ name) => name
+  | AtomicClaim (NamePair _ _ name) => name
   | Bottom => "impossible"
   | And c1 c2 => "(" ++ showLongClaim c1 ++ " and " ++ showLongClaim c2  ++ ")"
   | Or c1 c2 => "(" ++ showLongClaim c1 ++ " or " ++ showLongClaim c2 ++ ")"
@@ -544,26 +563,26 @@ Instance : ShowLong2 claim := { showLong2 := showLongClaim }.
 
 Definition showActor (a : actor) := 
   match a with
-    | Actor (NamePair s _) => s 
+    | Actor (NamePair _ s _) => s 
   end.
 Instance : Show actor := { show := showActor }.
 
 Definition showLongActor (a : actor) := 
   match a with
-    | Actor (NamePair _ s) => s 
+    | Actor (NamePair _ _ s) => s 
   end.
 Instance : ShowLong actor := { showLong := showLongActor }.
 Instance : ShowLong2 actor := { showLong2 := showLongActor }.
 
 Definition showTrustRelationInfo (t : trustRelationInfo) := 
   match t with
-    | Trust (NamePair name _) => name
+    | Trust (NamePair _ name _) => name
   end.
 Instance : Show trustRelationInfo := { show := showTrustRelationInfo }.
 
 Definition showLongTrustRelationInfo (t : trustRelationInfo) := 
   match t with
-    | Trust (NamePair _ name) => name
+    | Trust (NamePair _ _ name) => name
   end.
 Instance : ShowLong trustRelationInfo := { showLong := showLongTrustRelationInfo }.
 Instance : ShowLong2 trustRelationInfo := { showLong2 := showLongTrustRelationInfo }.
@@ -1224,7 +1243,7 @@ Fixpoint proofSearch (j : judgement) (l : list (proofTreeOf j)) (d : nat) : list
    :class: coq-math
 |*)
 
-Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))] 20)))).
+Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C) /\' (C /\' C) /\' (C /\' C))] 20)))).
 Time Eval compute in (showListForProofs ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))).
 
 (*|
