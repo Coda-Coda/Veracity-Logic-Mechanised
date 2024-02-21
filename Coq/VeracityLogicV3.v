@@ -175,7 +175,7 @@ Class Beq A : Type :=
   {
     beq : A -> A -> bool
   }.
-Infix "=?" := beq.
+Infix "=?" := beq : beq_scope.
 
 Definition beqNamePair (n1 n2 : namePair) : bool :=
 match n1,n2 with
@@ -1159,8 +1159,7 @@ Definition toProofTreeWithHole (a : actor) (c : claim) := admit (||- \by a \in c
     | _ => Some (AtomicEvid (NamePair "e_{?}" "unknown evidence"))
   end. *)
 
-Close Scope string_scope.
-Close Scope char_scope.
+Open Scope beq_scope.
 
 Definition eQ := AtomicEvid (NamePair _eQ_ "e_{?}" "unknown evidence").
 Definition T := (Trust (NamePair _T_ "T" "Trust relation T")).
@@ -1219,6 +1218,8 @@ Definition proofStepExample1 (j : judgement) : list (proofTreeOf j) :=
     ]
   | IsAVeracityClaim c => [leaf c]
   end.
+
+Close Scope beq_scope.
 
 Eval compute in proofStepExample1 (||- \by a1 \in (C /\' C)).
 
@@ -1834,7 +1835,7 @@ Ltac2 autoProve2 () := autoProveHelper2 1 20.
 
 Definition exampleFromJoshAuto : proofTreeOfClaim healthy.
 eexists retailer.
-autoProve2 ().
+Time autoProve2 ().
 Show Proof.
 Defined.
 
@@ -1849,6 +1850,53 @@ Eval compute in show exampleFromJoshAuto.
 (*|
 .. coq::
 |*)
+
+(** Ltac-less proof automation of Josh's example *)
+
+Open Scope beq_scope.
+
+Definition exampleFromJoshProofStep (j : judgement) : list (proofTreeOf j) :=
+  match j with
+  | Entail (SingleJudgement a c) => 
+    (** Assumptions: *)
+    (if (a =? vineyard) && (c =? nonToxic) then [assume testing a c (leaf c)] else [])
+    ++
+    (if (a =? retailer) && (c =? (Implies (nonToxic /\' organic) healthy)) then [assume belief a c (leaf c)] else [])
+    ++
+    (if (a =? winery) && (c =? organic) then [assume audit a c (leaf c)] else [])
+    ++
+    (** Trust relations: *)
+    (if (a =? retailer) then [trust a vineyard c trustT (admit _); trust a winery c T (admit _)] else [])
+    ++
+    (** Implication elimination: *)
+    (if (a =? retailer) && (c =? healthy) then [impl_elim a (nonToxic /\' organic) c (admit _) (admit _)] else [])
+    ++
+    (** Rules for specific claim patterns: *)
+    match c with
+      (** The rules for And and Or can usually be left in. *)
+      | And C1 C2 => [and_intro a C1 C2 (admit _) (admit _)] 
+      | Or C1 C2 => [or_intro1 a C1 C2 (admit _); or_intro2 a C1 C2 (admit _)]
+      (** The rules for Implies should echo the rules for assumptions, ideally. Or else involve eQ. *)
+      | Implies C1 C2 =>
+          []
+      | _ => []
+      end
+  | IsAVeracityClaim c => [leaf c]
+  end.
+
+Close Scope beq_scope.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Time Timeout 5 Eval vm_compute in (showListForProofs (( (proofSearch exampleFromJoshProofStep _  [toProofTreeWithHole retailer healthy] 10)))).
+
+(*|
+.. coq::
+|*)
+
 
 Eval compute in (showLong exampleFromJoshAuto).
 Eval compute in showLong2 exampleFromJoshAuto.
