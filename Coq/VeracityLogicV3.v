@@ -82,6 +82,8 @@ Inductive name :=
   | _a4_
   | _e4_
   | _c4_
+  | _t_
+  | _eB_
   .
 
 Scheme Equality for name.
@@ -150,7 +152,7 @@ Class Beq A : Type :=
   {
     beq : A -> A -> bool
   }.
-
+Infix "=?" := beq.
 
 Definition beqNamePair (n1 n2 : namePair) : bool :=
 match n1,n2 with
@@ -1134,22 +1136,64 @@ Definition toProofTreeWithHole (a : actor) (c : claim) := admit (||- \by a \in c
     | _ => Some (AtomicEvid (NamePair "e_{?}" "unknown evidence"))
   end. *)
 
+Close Scope string_scope.
+Close Scope char_scope.
+
+Definition eQ := AtomicEvid (NamePair _eQ_ "e_{?}" "unknown evidence").
+Definition T := (Trust (NamePair _t_ "T" "Trust relation T")).
+Definition eB := AtomicEvid (NamePair _eB_ "e_{\bot}" "evidence for bottom").
+
 Definition oneLevelDeeperJudgement (j : judgement) : list (proofTreeOf j) :=
   match j with
   | Entail (SingleJudgement a c) => 
-    (if (beq a a1) && (beq c C) then [assume e a c (leaf c)] else [])
+    (** Assumptions: *)
+    (if (a =? a1) && (c =? C) then [assume e a c (leaf c)] else [])
     ++
-    (if (beq a a2) && (beq c C) then [assume e a c (leaf c)] else [])
+    (if (a =? a2) && (c =? C) then [assume e a c (leaf c)] else [])
     ++
-    (if (beq a a1) && (beq c (C /\' C)) then [assume e a c (leaf c)] else [])
+    (if (a =? a1) && (c =? (C /\' C)) then [assume e a c (leaf c)] else [])
     ++
+    (** Trust relations: *)
+    (if (a =? a1) then [trust a a2 c T (admit _); trust a a3 c T (admit _)] else [])
+    ++
+    (if (a =? a2) then [trust a a3 c T (admit _)] else [])
+    ++
+    (** Rules for specific claim patterns: *)
     match c with
-      | AtomicClaim name => []
-      | Bottom => []
-      | And c1 c2 => [and_intro a c1 c2 (admit _) (admit _)] 
-      | Or c1 c2 => []
-      | Implies c1 c2 => []
+      | And C1 C2 => [and_intro a C1 C2 (admit _) (admit _)] 
+      | Or C1 C2 => [or_intro1 a C1 C2 (admit _); or_intro2 a C1 C2 (admit _)]
+      (** The rules for Implies should echo the rules for assumptions, ideally. Or else involve eQ. *)
+      | Implies C1 C2 =>
+          (if (a =? a1) && (C1 =? _|_) then [impl_intro e C1 a C2 (admit _)] else [])
+          ++
+          (if (a =? a1) && (C1 =? C) then [impl_intro e C1 a C2 (admit _)] else [])
+          ++
+          (if (a =? a2) && (C1 =? C) then [impl_intro e C1 a C2 (admit _)] else [])
+          ++
+          (if (a =? a1) && (C1 =? (C /\' C)) then [impl_intro e C1 a C2 (admit _)] else [])
+      | _ => []
       end
+    ++
+    (** Rules that can be applied to any claim, use with caution, can cause performance issues. *)
+    [
+      (bot_elim a c (assume eB a _|_ (leaf _|_)))
+      (* ; (or_elim1 a c c1 (admit _))
+      ; (or_elim1 a c c2 (admit _))
+      ; (or_elim1 a c c3 (admit _))
+      ; (or_elim2 a c1 c (admit _))
+      ; (or_elim2 a c2 c (admit _))
+      ; (or_elim2 a c3 c (admit _))
+      ; (and_elim1 a c c1 (admit _))
+      ; (and_elim1 a c c2 (admit _))
+      ; (and_elim1 a c c3 (admit _))
+      ; (and_elim2 a c1 c (admit _))
+      ; (and_elim2 a c2 c (admit _))
+      ; (and_elim2 a c3 c (admit _)) *)
+      ; (impl_elim a _|_ c (admit _) (admit _))
+      (* ; (impl_elim a c1 c (admit _) (admit _))
+      ; (impl_elim a c2 c (admit _) (admit _))
+      ; (impl_elim a c3 c (admit _) (admit _)) *)
+    ]
   | IsAVeracityClaim c => [leaf c]
   end.
 
@@ -1176,7 +1220,7 @@ Fixpoint oneLevelDeeper (j : judgement) (p : proofTreeOf j) : list (proofTreeOf 
 end
 .
 
-Eval compute in oneLevelDeeper _ (toProofTreeWithHole a1 (C /\' C)).
+(* Eval compute in oneLevelDeeper _ (toProofTreeWithHole a1 (C /\' C)). *)
 
 Definition oneLevelDeeperOfList j (l : list (proofTreeOf j)) : list (proofTreeOf j) :=
  removeDups (flat_map (oneLevelDeeper j) l).
@@ -1187,7 +1231,7 @@ Definition oneLevelDeeperOfList j (l : list (proofTreeOf j)) : list (proofTreeOf
 |*)
 
 
-Eval compute in  show (oneLevelDeeperOfList _ (oneLevelDeeperOfList _ (oneLevelDeeper _ (toProofTreeWithHole a1 (C /\' C /\' C))))).
+(* Eval compute in  show (oneLevelDeeperOfList _ (oneLevelDeeperOfList _ (oneLevelDeeper _ (toProofTreeWithHole a1 (C /\' C /\' C))))). *)
 
 (*|
 .. coq::
@@ -1243,8 +1287,9 @@ Fixpoint proofSearch (j : judgement) (l : list (proofTreeOf j)) (d : nat) : list
    :class: coq-math
 |*)
 
-Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C) /\' (C /\' C) /\' (C /\' C))] 20)))).
-Time Eval compute in (showListForProofs ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))).
+Timeout 20 Eval vm_compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((Implies _|_ C))] 4)))).
+(* Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C) /\' (C /\' C) /\' (C /\' C))] 20)))). *)
+(* Time Eval compute in (showListForProofs ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))). *)
 
 (*|
 .. coq::
