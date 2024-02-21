@@ -68,6 +68,8 @@ Section VeracityLogic.
 
 Inductive name :=
   | _eQ_
+  | _CQ_
+  | _aQ_
   | _e_
   | _C_
   | _a1_
@@ -82,8 +84,29 @@ Inductive name :=
   | _a4_
   | _e4_
   | _c4_
-  | _t_
+  | _T_
+  | _U_
+  | _V_
   | _eB_
+  | _l_
+  | _s_
+  | _c_
+  | _P_
+  | _Q_
+  | _C1_
+  | _C2_
+  | _C3_
+  | _C4_
+  | _C5_
+  | _healthy_
+  | _nonToxic_
+  | _organic_
+  | _belief_
+  | _testing_
+  | _audit_
+  | _retailer_
+  | _vineyard_
+  | _winery_
   .
 
 Scheme Equality for name.
@@ -1140,7 +1163,7 @@ Close Scope string_scope.
 Close Scope char_scope.
 
 Definition eQ := AtomicEvid (NamePair _eQ_ "e_{?}" "unknown evidence").
-Definition T := (Trust (NamePair _t_ "T" "Trust relation T")).
+Definition T := (Trust (NamePair _T_ "T" "Trust relation T")).
 Definition eB := AtomicEvid (NamePair _eB_ "e_{\bot}" "evidence for bottom").
 
 Definition proofStepExample1 (j : judgement) : list (proofTreeOf j) :=
@@ -1306,20 +1329,20 @@ The proof trees visualised in this section are **automatically generated** by Co
 
 |*)
 
-Definition l := AtomicEvid (NamePair "l" "example evidence l").
-Definition s := AtomicEvid (NamePair "s" "example evidence s").
-Definition c := AtomicEvid (NamePair "c" "example evidence c").
-Definition P := Actor (NamePair "P" "Penelope").
-Definition Q := Actor (NamePair "Q" "Quintin").
-Definition C1 := AtomicClaim (NamePair "C_1" "claim 1").
-Definition C2 := AtomicClaim (NamePair "C_2" "claim 2").
-Definition C3 := AtomicClaim (NamePair "C_3" "claim 3").
-Definition C4 := AtomicClaim (NamePair "C_4" "claim 4").
-Definition C5 := AtomicClaim (NamePair "C_5" "claim 5").
+Definition l := AtomicEvid (NamePair _l_ "l" "example evidence l").
+Definition s := AtomicEvid (NamePair _s_ "s" "example evidence s").
+Definition c := AtomicEvid (NamePair _c_ "c" "example evidence c").
+Definition P := Actor (NamePair _P_ "P" "Penelope").
+Definition Q := Actor (NamePair _Q_ "Q" "Quintin").
+Definition C1 := AtomicClaim (NamePair _C1_ "C_1" "claim 1").
+Definition C2 := AtomicClaim (NamePair _C2_ "C_2" "claim 2").
+Definition C3 := AtomicClaim (NamePair _C3_ "C_3" "claim 3").
+Definition C4 := AtomicClaim (NamePair _C4_ "C_4" "claim 4").
+Definition C5 := AtomicClaim (NamePair _C5_ "C_5" "claim 5").
 
-Definition trustT := Trust (NamePair "T" "T").
-Definition trustU := Trust (NamePair "U" "U").
-Definition trustV := Trust (NamePair "V" "V").
+Definition trustT := Trust (NamePair _T_ "T" "T").
+Definition trustU := Trust (NamePair _U_ "U" "U").
+Definition trustV := Trust (NamePair _V_ "V" "V").
 
 Definition concreteProofTreeExampleWith2Conjuncts : 
 proofTreeOf ( ||- \by P \in (C1 /\' C2)).
@@ -1564,9 +1587,8 @@ repeat (apply a1
 
 From Ltac2 Require Import Ltac2.
 
-Definition eQ := AtomicEvid (NamePair "e_{?}" "unknown evidence").
-Definition CQ := AtomicClaim (NamePair "C_{?}" "unknown claim").
-Definition aQ := Actor (NamePair "a_{?}" "unknown actor").
+Definition CQ := AtomicClaim (NamePair _CQ_ "C_{?}" "unknown claim").
+Definition aQ := Actor (NamePair _aQ_ "a_{?}" "unknown actor").
 
 (* Ltac2 maybePrintMessage1 s := Message.print (Message.of_string s). *)
 (* Ltac2 maybePrintMessage2 s := Message.print (Message.of_string s). *)
@@ -1602,8 +1624,10 @@ match! goal with
    | [ |- _ ] => Control.zero (VeracityProofSearchException "Didn't match")
 end.
 
+Open Scope string_scope.
+
 Ltac2 fillConstant () :=
-solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust "?") ].
+solve [ apply CQ | apply aQ | apply eQ | apply ([] : list singleJudgement) | apply (Trust T) ].
 
 Set Default Proof Mode "Ltac2".
 (* Set Ltac2 Backtrace. *)
@@ -1732,15 +1756,15 @@ Eval compute in show fromPaper1.
 Eval compute in showLong fromPaper1.
 Eval compute in showLong2 fromPaper1.
 
-Definition healthy := AtomicClaim (NamePair "H" "healthy").
-Definition nonToxic := AtomicClaim (NamePair "N" "non-toxic").
-Definition organic := AtomicClaim (NamePair "O" "organic").
-Definition belief := AtomicEvid (NamePair "b" "belief").
-Definition testing := AtomicEvid (NamePair "t" "testing").
-Definition audit := AtomicEvid (NamePair "a" "audit").
-Definition retailer := Actor (NamePair "r" "retailer").
-Definition vineyard := Actor (NamePair "v" "vineyard").
-Definition winery := Actor (NamePair "w" "winery").
+Definition healthy := AtomicClaim (NamePair _healthy_ "H" "healthy").
+Definition nonToxic := AtomicClaim (NamePair _nonToxic_ "N" "non-toxic").
+Definition organic := AtomicClaim (NamePair _organic_ "O" "organic").
+Definition belief := AtomicEvid (NamePair _belief_ "b" "belief").
+Definition testing := AtomicEvid (NamePair _testing_ "t" "testing").
+Definition audit := AtomicEvid (NamePair _audit_ "a" "audit").
+Definition retailer := Actor (NamePair _retailer_ "r" "retailer").
+Definition vineyard := Actor (NamePair _vineyard_ "v" "vineyard").
+Definition winery := Actor (NamePair _winery_ "w" "winery").
 
 
 Definition exampleFromJosh : proofTreeOfClaim healthy.
