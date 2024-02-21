@@ -1311,7 +1311,30 @@ Fixpoint proofSearch step (j : judgement) (l : list (proofTreeOf j)) (d : nat) :
    :class: coq-math
 |*)
 
+Open Scope beq_scope.
+
 Timeout 20 Eval vm_compute in (showListForProofs (( (proofSearch proofStepExample1 _  [toProofTreeWithHole a1 ((Implies _|_ C))] 4)))).
+
+Definition proofStepExample2 (j : judgement) : list (proofTreeOf j) :=
+  match j with
+  | Entail (SingleJudgement a c) => 
+    (** Assumptions: *)
+    (if (a =? a1) && (c =? C) then [assume e a c (leaf c)] else [])
+    ++
+    (if (a =? a1) && (c =? (C /\' C)) then [assume e a c (leaf c)] else [])
+    ++
+    (** Rules for specific claim patterns: *)
+    match c with
+      | And C1 C2 => [and_intro a C1 C2 (admit _) (admit _)] 
+      | _ => []
+      end
+  | IsAVeracityClaim c => [leaf c]
+  end.
+
+Close Scope beq_scope.
+
+Timeout 20 Eval vm_compute in (showListForProofs (( (proofSearch proofStepExample2 _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))] 10)))).
+
 (* Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C) /\' (C /\' C) /\' (C /\' C))] 20)))). *)
 (* Time Eval compute in (showListForProofs ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))). *)
 
