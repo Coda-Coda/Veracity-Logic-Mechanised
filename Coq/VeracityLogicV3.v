@@ -528,7 +528,7 @@ match e with
                       ++ (showEvid e2) ++ ")"
   | Left e => "i(" ++ showEvid e ++ ")"
   | Right e => "j(" ++ showEvid e ++ ")"
-  | Lambda e1 e2 => "(\lambda " ++ showEvid e1 ++ " \rightarrow "
+  | Lambda e1 e2 => "\lambda (" ++ showEvid e1 ++ ")("
                        ++ showEvid e2 ++ ")"
   | Apply e1 e2 => showEvid e1 ++ "(" ++ showEvid e2 ++ ")"
 end.
