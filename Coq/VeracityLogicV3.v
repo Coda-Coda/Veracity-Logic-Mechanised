@@ -1143,7 +1143,7 @@ Definition eQ := AtomicEvid (NamePair _eQ_ "e_{?}" "unknown evidence").
 Definition T := (Trust (NamePair _t_ "T" "Trust relation T")).
 Definition eB := AtomicEvid (NamePair _eB_ "e_{\bot}" "evidence for bottom").
 
-Definition oneLevelDeeperJudgement (j : judgement) : list (proofTreeOf j) :=
+Definition proofStepExample1 (j : judgement) : list (proofTreeOf j) :=
   match j with
   | Entail (SingleJudgement a c) => 
     (** Assumptions: *)
@@ -1197,33 +1197,33 @@ Definition oneLevelDeeperJudgement (j : judgement) : list (proofTreeOf j) :=
   | IsAVeracityClaim c => [leaf c]
   end.
 
-Eval compute in oneLevelDeeperJudgement (||- \by a1 \in (C /\' C)).
+Eval compute in proofStepExample1 (||- \by a1 \in (C /\' C)).
 
-Fixpoint oneLevelDeeper (j : judgement) (p : proofTreeOf j) : list (proofTreeOf j) :=
+Fixpoint oneLevelDeeper (step : forall j : judgement, list (proofTreeOf j)) (j : judgement) (p : proofTreeOf j) : list (proofTreeOf j) :=
   match p with
-| admit j => oneLevelDeeperJudgement j
+| admit j => step j
 | leaf c => []
-| assume e a name M => map (assume e a name) (oneLevelDeeper _ M)
-| bot_elim a C M => map (bot_elim a C) (oneLevelDeeper _ M)
-| and_intro a C1 C2 L R => map (fun L2 => and_intro a C1 C2 L2 R) (oneLevelDeeper _ L)
-                        ++ map (and_intro a C1 C2 L) (oneLevelDeeper _ R)
-| and_elim1 a C1 C2 M => map (and_elim1 a C1 C2) (oneLevelDeeper _ M)
-| and_elim2 a C1 C2 M => map (and_elim2 a C1 C2) (oneLevelDeeper _ M)
-| or_intro1 a C1 C2 M => map (or_intro1 a C1 C2) (oneLevelDeeper _ M)
-| or_intro2 a C1 C2 M => map (or_intro2 a C1 C2) (oneLevelDeeper _ M)
-| or_elim1 a C1 C2 M => map (or_elim1 a C1 C2) (oneLevelDeeper _ M)
-| or_elim2 a C1 C2 M => map (or_elim2 a C1 C2) (oneLevelDeeper _ M)
-| trust a1 a2 C name L => map (trust a1 a2 C name) (oneLevelDeeper _ L)
-| impl_intro e1 C1 a C2 M => map (impl_intro e1 C1 a C2) (oneLevelDeeper _ M)
-| impl_elim a C1 C2 L R => map (fun L2 => impl_elim a C1 C2 L2 R) (oneLevelDeeper _ L)
-                        ++ map (impl_elim a C1 C2 L) (oneLevelDeeper _ R)
+| assume e a name M => map (assume e a name) (oneLevelDeeper step _ M)
+| bot_elim a C M => map (bot_elim a C) (oneLevelDeeper step _ M)
+| and_intro a C1 C2 L R => map (fun L2 => and_intro a C1 C2 L2 R) (oneLevelDeeper step _ L)
+                        ++ map (and_intro a C1 C2 L) (oneLevelDeeper step _ R)
+| and_elim1 a C1 C2 M => map (and_elim1 a C1 C2) (oneLevelDeeper step _ M)
+| and_elim2 a C1 C2 M => map (and_elim2 a C1 C2) (oneLevelDeeper step _ M)
+| or_intro1 a C1 C2 M => map (or_intro1 a C1 C2) (oneLevelDeeper step _ M)
+| or_intro2 a C1 C2 M => map (or_intro2 a C1 C2) (oneLevelDeeper step _ M)
+| or_elim1 a C1 C2 M => map (or_elim1 a C1 C2) (oneLevelDeeper step _ M)
+| or_elim2 a C1 C2 M => map (or_elim2 a C1 C2) (oneLevelDeeper step _ M)
+| trust a1 a2 C name L => map (trust a1 a2 C name) (oneLevelDeeper step _ L)
+| impl_intro e1 C1 a C2 M => map (impl_intro e1 C1 a C2) (oneLevelDeeper step _ M)
+| impl_elim a C1 C2 L R => map (fun L2 => impl_elim a C1 C2 L2 R) (oneLevelDeeper step _ L)
+                        ++ map (impl_elim a C1 C2 L) (oneLevelDeeper step _ R)
 end
 .
 
 (* Eval compute in oneLevelDeeper _ (toProofTreeWithHole a1 (C /\' C)). *)
 
-Definition oneLevelDeeperOfList j (l : list (proofTreeOf j)) : list (proofTreeOf j) :=
- removeDups (flat_map (oneLevelDeeper j) l).
+Definition oneLevelDeeperOfList step j (l : list (proofTreeOf j)) : list (proofTreeOf j) :=
+ removeDups (flat_map (oneLevelDeeper step j) l).
 
 (*|
 .. coq:: unfold
@@ -1253,7 +1253,7 @@ match n with
   | S n' => removeDups ((f l) ++ f (repeatListFnAndKeepPartials n' f l))
 end.
 
-Definition generateProofsWithDepthLimit j d := repeatListFnAndKeepPartials d (oneLevelDeeperOfList j).
+Definition generateProofsWithDepthLimit step j d := repeatListFnAndKeepPartials d (oneLevelDeeperOfList step j).
 
 Fixpoint noHoles {j : judgement} (p : proofTreeOf j) : bool :=
   match p with
@@ -1274,10 +1274,10 @@ Fixpoint noHoles {j : judgement} (p : proofTreeOf j) : bool :=
 end
 .
 
-Fixpoint proofSearch (j : judgement) (l : list (proofTreeOf j)) (d : nat) : list (proofTreeOf j) := 
+Fixpoint proofSearch step (j : judgement) (l : list (proofTreeOf j)) (d : nat) : list (proofTreeOf j) := 
   match d with
   | 0 => []
-  | S d' => let newL := removeDups (oneLevelDeeperOfList j l) in (filter noHoles newL) ++ proofSearch j (filter (fun p => negb (noHoles p)) newL) d'
+  | S d' => let newL := removeDups (oneLevelDeeperOfList step j l) in (filter noHoles newL) ++ proofSearch step j (filter (fun p => negb (noHoles p)) newL) d'
   end.
 
 (** TODO: Try removing string comparison and replacing it with more native comparison, might cause speedup. *)
@@ -1287,7 +1287,7 @@ Fixpoint proofSearch (j : judgement) (l : list (proofTreeOf j)) (d : nat) : list
    :class: coq-math
 |*)
 
-Timeout 20 Eval vm_compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((Implies _|_ C))] 4)))).
+Timeout 20 Eval vm_compute in (showListForProofs (( (proofSearch proofStepExample1 _  [toProofTreeWithHole a1 ((Implies _|_ C))] 4)))).
 (* Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C) /\' (C /\' C) /\' (C /\' C))] 20)))). *)
 (* Time Eval compute in (showListForProofs ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))). *)
 
