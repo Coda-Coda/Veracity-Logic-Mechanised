@@ -1214,7 +1214,7 @@ end
 Fixpoint proofSearch (j : judgement) (l : list (proofTreeOf j)) (d : nat) : list (proofTreeOf j) := 
   match d with
   | 0 => []
-  | S d' => let newL := removeDups (oneLevelDeeperOfList j l) in (filter noHoles newL) ++ proofSearch j newL d'
+  | S d' => let newL := removeDups (oneLevelDeeperOfList j l) in (filter noHoles newL) ++ proofSearch j (filter (fun p => negb (noHoles p)) newL) d'
   end.
 
 (** TODO: Try removing string comparison and replacing it with more native comparison, might cause speedup. *)
@@ -1224,7 +1224,7 @@ Fixpoint proofSearch (j : judgement) (l : list (proofTreeOf j)) (d : nat) : list
    :class: coq-math
 |*)
 
-Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))] 7)))).
+Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))] 20)))).
 Time Eval compute in (showListForProofs ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))).
 
 (*|
