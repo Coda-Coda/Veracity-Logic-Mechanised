@@ -270,7 +270,7 @@ The remaining rules will be easy to add, this will be done in 2024.
 |*)
 
 Inductive proofTreeOf : judgement -> Type :=
-| admit p : proofTreeOf p
+| hole p : proofTreeOf p
 | leaf c : proofTreeOf (IsAVeracityClaim c)
 | assume (e : evid) a C
 
@@ -355,7 +355,7 @@ Check and_intro. (* .unfold *)
 
 Fixpoint computeEvidence (j : judgement) (p : proofTreeOf j) : option evid := 
 match p with
-| admit _ => None
+| hole _ => None
 | leaf c => None
 | assume e a name M => Some e
 | bot_elim a C M => computeEvidence _ M
@@ -684,7 +684,7 @@ let computedEvidence := computeEvidenceSimple j p in
 
 Eval compute in showJudgement [] [] j1.
 
-Definition showJudgementForAdmits (j : judgement) :=
+Definition showJudgementForholes (j : judgement) :=
   match j with
   | Entail (SingleJudgement a c) => 
       show a ++ " \in " ++ show c
@@ -755,7 +755,7 @@ Definition showJudgementForAdmits (j : judgement) :=
 Fixpoint getAllTrustRelationsUsed (j : judgement) (p : proofTreeOf j)
   : list trustRelationInfo :=
 match p with
-| admit _ => []
+| hole _ => []
 | leaf c => []
 | assume e a name M => getAllTrustRelationsUsed _ M
 | bot_elim a C M => getAllTrustRelationsUsed _ M
@@ -777,7 +777,7 @@ end.
 Fixpoint getAllEvidence (j : judgement) (p : proofTreeOf j)
   : list evid :=
 match p with
-| admit _ => []
+| hole _ => []
 | leaf c => []
 | assume e a name M => e :: (getAllEvidence _ M)
 | bot_elim a C M => e :: (getAllEvidence _ M)
@@ -803,7 +803,7 @@ end.
 
 Fixpoint getAssumptions (j : judgement) (p : proofTreeOf j) : list singleJudgement := 
 match p with
-| admit _ => []
+| hole _ => []
 | leaf c => []
 | assume e a c M => \by a \in c :: getAssumptions _ M
 | bot_elim a C M => getAssumptions _ M
@@ -824,7 +824,7 @@ end.
 
 Fixpoint getAssumptionsWithEvidence (j : judgement) (p : proofTreeOf j) : list (evid * singleJudgement) := 
 match p with
-| admit _ => []
+| hole _ => []
 | leaf c => []
 | assume e a c M => (e, \by a \in c) :: getAssumptionsWithEvidence _ M
 | bot_elim a C M => getAssumptionsWithEvidence _ M
@@ -861,7 +861,7 @@ Instance : Beq judgement := { beq := beqJudgement }.
 
 Fixpoint beqProofTreeOf {j1 j2 : judgement} (P1 : proofTreeOf j1) (P2 : proofTreeOf j2) : bool :=
 match P1,P2 with
-| admit j1,admit j2 => beq j1 j2
+| hole j1,hole j2 => beq j1 j2
 | leaf c1, leaf c2 => beq c1 c2
 | assume e a1 C1 M1, assume e2 a2 C2 M2 => beq e e2 && beq a1 a2 && beq C1 C2 && beqProofTreeOf M1 M2
 | bot_elim a1 C1 M1, bot_elim a2 C2 M2 => beq a1 a2 && beq C1 C2 && beqProofTreeOf M1 M2
@@ -887,7 +887,7 @@ Fixpoint showProofTreeOfHelper (j : judgement) (p : proofTreeOf j)
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptionsWithEvidence j p)) in
 match p with
-| admit j => "\AxiomC{? $" ++ (showJudgementForAdmits j) ++ "$ ?}"
+| hole j => "\AxiomC{? $" ++ (showJudgementForholes j) ++ "$ ?}"
 | leaf c => "\AxiomC{$ " 
              ++ show c 
              ++ " \textit{ is a veracity claim} $}"
@@ -949,7 +949,7 @@ end.
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
 match p with
-| admit p => indent ++ "we stopped the proof at this point and assumed it was provable."
+| hole p => indent ++ "we stopped the proof at this point and assumed it was provable."
 | leaf c => indent ++ showLong c ++ " is a veracity claim."
 | assume e a c M => 
 indent ++ showLongJudgement Ps Ts _ p ++ ", because
@@ -1036,7 +1036,7 @@ end. *)
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
 match p with
-| admit p => indent ++ "- " ++ "We stopped the proof at this point and assumed it was provable."
+| hole p => indent ++ "- " ++ "We stopped the proof at this point and assumed it was provable."
 | leaf c => indent ++ "- " ++ showLong2 c ++ " is a veracity claim." (* We won't actually use this branch in ShowLong2 *)
 | assume e a c M => 
 indent ++ "- " ++ showLong2Judgement Ps Ts ("  " ++ indent) _ p ++ "
@@ -1143,7 +1143,7 @@ Proof Automation without Ltac
 The approach taken here is to search for proofs using Coq's functional language, rather than relying on Ltac.
 This will:
  - Perform backwards search
- - Use "admit" (which may in future be renamed "hole") to fill in holes in the current proofs search.
+ - Use "hole" (which may in future be renamed "hole") to fill in holes in the current proofs search.
  - Involve a function which takes a single proof tree (potentially containing holes), and generates a list of proof trees "one level deeper", potentially including holes.
  - Include a depth limit, after which the proof search is halted.
  - Include a function to filter out proof trees based on whether they still contain holes, (and in the future other attributes such as whether the resulting weight is above a certain value)
@@ -1151,7 +1151,7 @@ This will:
 
 |*)
 
-Definition toProofTreeWithHole (a : actor) (c : claim) := admit (||- \by a \in c).
+Definition toProofTreeWithHole (a : actor) (c : claim) := hole (||- \by a \in c).
 
 (* Definition atomicClaimInfo (name : namePair) : option evid :=
   match name with
@@ -1176,45 +1176,45 @@ Definition proofStepExample1 (j : judgement) : list (proofTreeOf j) :=
     (if (a =? a1) && (c =? (C /\' C)) then [assume e a c (leaf c)] else [])
     ++
     (** Trust relations: *)
-    (if (a =? a1) then [trust a a2 c T (admit _); trust a a3 c T (admit _)] else [])
+    (if (a =? a1) then [trust a a2 c T (hole _); trust a a3 c T (hole _)] else [])
     ++
-    (if (a =? a2) then [trust a a3 c T (admit _)] else [])
+    (if (a =? a2) then [trust a a3 c T (hole _)] else [])
     ++
     (** Rules for specific claim patterns: *)
     match c with
-      | And C1 C2 => [and_intro a C1 C2 (admit _) (admit _)] 
-      | Or C1 C2 => [or_intro1 a C1 C2 (admit _); or_intro2 a C1 C2 (admit _)]
+      | And C1 C2 => [and_intro a C1 C2 (hole _) (hole _)] 
+      | Or C1 C2 => [or_intro1 a C1 C2 (hole _); or_intro2 a C1 C2 (hole _)]
       (** The rules for Implies should echo the rules for assumptions, ideally. Or else involve eQ. *)
       | Implies C1 C2 =>
-          (if (a =? a1) && (C1 =? _|_) then [impl_intro e C1 a C2 (admit _)] else [])
+          (if (a =? a1) && (C1 =? _|_) then [impl_intro e C1 a C2 (hole _)] else [])
           ++
-          (if (a =? a1) && (C1 =? C) then [impl_intro e C1 a C2 (admit _)] else [])
+          (if (a =? a1) && (C1 =? C) then [impl_intro e C1 a C2 (hole _)] else [])
           ++
-          (if (a =? a2) && (C1 =? C) then [impl_intro e C1 a C2 (admit _)] else [])
+          (if (a =? a2) && (C1 =? C) then [impl_intro e C1 a C2 (hole _)] else [])
           ++
-          (if (a =? a1) && (C1 =? (C /\' C)) then [impl_intro e C1 a C2 (admit _)] else [])
+          (if (a =? a1) && (C1 =? (C /\' C)) then [impl_intro e C1 a C2 (hole _)] else [])
       | _ => []
       end
     ++
     (** Rules that can be applied to any claim, use with caution, can cause performance issues. *)
     [
       (bot_elim a c (assume eB a _|_ (leaf _|_)))
-      (* ; (or_elim1 a c c1 (admit _))
-      ; (or_elim1 a c c2 (admit _))
-      ; (or_elim1 a c c3 (admit _))
-      ; (or_elim2 a c1 c (admit _))
-      ; (or_elim2 a c2 c (admit _))
-      ; (or_elim2 a c3 c (admit _))
-      ; (and_elim1 a c c1 (admit _))
-      ; (and_elim1 a c c2 (admit _))
-      ; (and_elim1 a c c3 (admit _))
-      ; (and_elim2 a c1 c (admit _))
-      ; (and_elim2 a c2 c (admit _))
-      ; (and_elim2 a c3 c (admit _)) *)
-      ; (impl_elim a _|_ c (admit _) (admit _))
-      (* ; (impl_elim a c1 c (admit _) (admit _))
-      ; (impl_elim a c2 c (admit _) (admit _))
-      ; (impl_elim a c3 c (admit _) (admit _)) *)
+      (* ; (or_elim1 a c c1 (hole _))
+      ; (or_elim1 a c c2 (hole _))
+      ; (or_elim1 a c c3 (hole _))
+      ; (or_elim2 a c1 c (hole _))
+      ; (or_elim2 a c2 c (hole _))
+      ; (or_elim2 a c3 c (hole _))
+      ; (and_elim1 a c c1 (hole _))
+      ; (and_elim1 a c c2 (hole _))
+      ; (and_elim1 a c c3 (hole _))
+      ; (and_elim2 a c1 c (hole _))
+      ; (and_elim2 a c2 c (hole _))
+      ; (and_elim2 a c3 c (hole _)) *)
+      ; (impl_elim a _|_ c (hole _) (hole _))
+      (* ; (impl_elim a c1 c (hole _) (hole _))
+      ; (impl_elim a c2 c (hole _) (hole _))
+      ; (impl_elim a c3 c (hole _) (hole _)) *)
     ]
   | IsAVeracityClaim c => [leaf c]
   end.
@@ -1225,7 +1225,7 @@ Eval compute in proofStepExample1 (||- \by a1 \in (C /\' C)).
 
 Fixpoint oneLevelDeeper (step : forall j : judgement, list (proofTreeOf j)) (j : judgement) (p : proofTreeOf j) : list (proofTreeOf j) :=
   match p with
-| admit j => step j
+| hole j => step j
 | leaf c => []
 | assume e a name M => map (assume e a name) (oneLevelDeeper step _ M)
 | bot_elim a C M => map (bot_elim a C) (oneLevelDeeper step _ M)
@@ -1281,7 +1281,7 @@ Definition generateProofsWithDepthLimit step j d := repeatListFnAndKeepPartials 
 
 Fixpoint noHoles {j : judgement} (p : proofTreeOf j) : bool :=
   match p with
-| admit j => false
+| hole j => false
 | leaf c => true
 | assume e a name M => noHoles M
 | bot_elim a C M => noHoles M
@@ -1325,7 +1325,7 @@ Definition proofStepExample2 (j : judgement) : list (proofTreeOf j) :=
     ++
     (** Rules for specific claim patterns: *)
     match c with
-      | And C1 C2 => [and_intro a C1 C2 (admit _) (admit _)] 
+      | And C1 C2 => [and_intro a C1 C2 (hole _) (hole _)] 
       | _ => []
       end
   | IsAVeracityClaim c => [leaf c]
@@ -1589,7 +1589,7 @@ Ltac proveClaim :=
 (repeat ( 
 idtac
 (* + unshelve eapply or_elim1 *)
-(* + unshelve eapply admit *)
+(* + unshelve eapply hole *)
 + unshelve eapply or_intro1
 (* + unshelve eapply or_elim2 *)
 + unshelve eapply or_intro2
@@ -1889,16 +1889,16 @@ Definition exampleFromJoshProofStep (j : judgement) : list (proofTreeOf j) :=
     (if (a =? winery) && (c =? organic) then [assume audit a c (leaf c)] else [])
     ++
     (** Trust relations: *)
-    (if (a =? retailer) then [trust a vineyard c trustT (admit _); trust a winery c T (admit _)] else [])
+    (if (a =? retailer) then [trust a vineyard c trustT (hole _); trust a winery c T (hole _)] else [])
     ++
     (** Implication elimination: *)
-    (if (a =? retailer) && (c =? healthy) then [impl_elim a (nonToxic /\' organic) c (admit _) (admit _)] else [])
+    (if (a =? retailer) && (c =? healthy) then [impl_elim a (nonToxic /\' organic) c (hole _) (hole _)] else [])
     ++
     (** Rules for specific claim patterns: *)
     match c with
       (** The rules for And and Or can usually be left in. *)
-      | And C1 C2 => [and_intro a C1 C2 (admit _) (admit _)] 
-      | Or C1 C2 => [or_intro1 a C1 C2 (admit _); or_intro2 a C1 C2 (admit _)]
+      | And C1 C2 => [and_intro a C1 C2 (hole _) (hole _)] 
+      | Or C1 C2 => [or_intro1 a C1 C2 (hole _); or_intro2 a C1 C2 (hole _)]
       (** The rules for Implies should echo the rules for assumptions, ideally. Or else involve eQ. *)
       | Implies C1 C2 =>
           []
