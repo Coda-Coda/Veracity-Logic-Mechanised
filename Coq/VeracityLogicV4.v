@@ -1964,13 +1964,13 @@ Definition certifier := Actor _certifier_.
 Definition applicant := Actor _applicant_.
 Definition ingredients_valid := AtomicClaim _ingredients_valid_.
 Definition recipe_valid := AtomicClaim _recipe_valid_.
-Definition percentage_ingredients_valid := AtomicClaim _ingredients_valid_.
+Definition percentage_ingredients_valid := AtomicClaim _percentage_ingredients_valid_.
 Definition breakdown_of_formulations_valid := AtomicClaim _breakdown_of_formulations_valid_.
 Definition successful_market_compliance_assessment := AtomicClaim _successful_market_compliance_assessment_.
 Definition compile := AtomicEvid _compile_.
 Definition review := AtomicEvid _review_.
 Definition assess := AtomicEvid _assess_.
-Definition percentage_ingredients_list := AtomicEvid _ingredients_percentage_list_.
+Definition ingredients_percentage_list := AtomicEvid _ingredients_percentage_list_.
 Definition breakdown_of_formulations_list := AtomicEvid _breakdown_of_formulations_list_.
 
 
@@ -1987,7 +1987,7 @@ eapply (assume review).
 eapply (assume assess certifier).
 eapply (impl_elim applicant _ percentage_ingredients_valid).
 eapply (assume compile).
-eapply (assume percentage_ingredients_list). 
+eapply (assume ingredients_percentage_list). 
 eapply (assume breakdown_of_formulations_list).
 Defined.
 
