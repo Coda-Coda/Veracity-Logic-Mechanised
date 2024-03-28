@@ -2,6 +2,8 @@
 Veracity Logic Mechanised in Coq V4
 ===================================
 
+**Note: the commentary is out of date.**
+
 This version aims to more closely align with the draft paper.
 It also features a LaTeX/MathJax visualisation of completed proofs.
 
