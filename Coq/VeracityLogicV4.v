@@ -629,7 +629,7 @@ Instance : ShowForProofTree claim := {
       | Bottom => "\bot"
       | And c1 c2 => showForProofTreeClaim c1 ++ " \wedge " ++ showForProofTreeClaim c2
       | Or c1 c2 => showForProofTreeClaim c1 ++ " \vee " ++ showForProofTreeClaim c2
-      | Implies a1 c1 c2 => showForProofTreeClaim c1 ++ " \rightarrow_{}" ++ showForProofTree a1 ++ " " ++ showForProofTreeClaim c2
+      | Implies a1 c1 c2 => showForProofTreeClaim c1 ++ " \rightarrow_{" ++ showForProofTree a1 ++ "} " ++ showForProofTreeClaim c2
     end
 }.
 
