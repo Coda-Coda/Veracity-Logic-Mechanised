@@ -1967,7 +1967,7 @@ Definition percentage_ingredients_list := AtomicEvid _ingredients_percentage_lis
 Definition breakdown_of_formulations_list := AtomicEvid _breakdown_of_formulations_list_.
 
 
-Definition useCaseExample1 : proofTreeOf (JudgementPart certifier recipe_valid).
+Definition preAssessmentRequirements : proofTreeOf (JudgementPart certifier recipe_valid).
 Proof.
 eapply (impl_elim applicant _ recipe_valid).
 eapply (assume review).
@@ -1989,16 +1989,16 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in showForProofTree useCaseExample1.
+Eval compute in showForProofTree preAssessmentRequirements.
 
 (*|
 .. coq::
 |*)
 
-Eval compute in (showForNaturalLanguage useCaseExample1).
-Eval compute in showForLogSeq useCaseExample1.
+Eval compute in (showForNaturalLanguage preAssessmentRequirements).
+Eval compute in showForLogSeq preAssessmentRequirements.
 
-Definition useCaseExample1WithEvidHoles : proofTreeOf (JudgementPart certifier recipe_valid).
+Definition preAssessmentRequirementsWithEvidHoles : proofTreeOf (JudgementPart certifier recipe_valid).
 Proof.
 eapply (impl_elim applicant _ recipe_valid).
 eapply (assume review).
@@ -2020,14 +2020,14 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in showForProofTree useCaseExample1WithEvidHoles.
+Eval compute in showForProofTree preAssessmentRequirementsWithEvidHoles.
 
 (*|
 .. coq::
 |*)
 
-Eval compute in (showForNaturalLanguage useCaseExample1WithEvidHoles).
-Eval compute in showForLogSeq useCaseExample1WithEvidHoles.
+Eval compute in (showForNaturalLanguage preAssessmentRequirementsWithEvidHoles).
+Eval compute in showForLogSeq preAssessmentRequirementsWithEvidHoles.
 
 Open Scope string_scope.
 
@@ -2045,7 +2045,7 @@ Definition allProofsAsString :=
  ++ showForProofTree exampleFromJosh
  ++ showForProofTree exampleFromJoshAuto
  ++ showForProofTree whiteboardExample
- ++ showForProofTree useCaseExample1.
+ ++ showForProofTree preAssessmentRequirements.
 
 (* Definition allProofsAsString := 
     showForLogSeq concreteProofTreeExampleWith2Conjuncts
