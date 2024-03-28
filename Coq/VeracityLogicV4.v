@@ -890,7 +890,7 @@ Fixpoint showForProofTree_proofTreeOf_helper (j : judgementPart) (p : proofTreeO
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptionsWithEvidence j p)) in
 match p with
-| hole j => "\AxiomC{? $" ++ (showForProofTree (Judgement HoleEvid j)) ++ "$ ?}"
+| hole j => "\AxiomC{$\textcolor{red}{" ++ (showForProofTree (Judgement HoleEvid j)) ++ "}$}"
 | assume e a C => "\AxiomC{$ " 
              ++ showForProofTree C 
              ++ " \textit{ is a veracity claim} $}"
@@ -1895,7 +1895,9 @@ Proof.
 eexists a2.
 eapply (impl_intro e1).
 eapply (trust a2 _ _ trustT).
-eapply (assume e2 a1).
+eapply hole.
+Unshelve.
+apply a2.
 Defined.
 
 
