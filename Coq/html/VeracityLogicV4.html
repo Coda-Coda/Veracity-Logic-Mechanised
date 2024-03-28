@@ -689,51 +689,48 @@ Use _ or _tl to silence this warning.
       | (h :: tl) <span class="kr">as</span> Ps =&gt; <span class="s2">&quot;Assuming &quot;</span> ++ showForNaturalLanguage Ps ++ <span class="s2">&quot; then &quot;</span> ++ showForNaturalLanguage (Judgement computedEvidence j)
     <span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
+<span class="c">(* Definition showForLogSeq_judgement (Ps : list judgement) (Ts : list trustRelation) (indent : string) (j : judgementPart) (p : proofTreeOf j) :=</span>
+<span class="c">  let computedEvidence := computeEvidence j p in  </span>
+<span class="c">  match Ps,Ts with</span>
+<span class="c">        | [],[] =&gt; showForLogSeq (Judgement computedEvidence j) ++ &quot;</span>
+<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Assumptions made: None&quot; ++ &quot;</span>
+<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Trust relations used: None&quot;</span>
+<span class="c">        | (h :: tl),[] =&gt; showForLogSeq (Judgement computedEvidence j) ++ &quot;</span>
+<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Assumptions made:&quot; ++ showForLogSeq_list (&quot;  &quot; ++ indent) Ps ++ &quot;</span>
+<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Trust relations used: None&quot;</span>
+<span class="c">        | [],(h :: tl) =&gt; showForLogSeq (Judgement computedEvidence j) ++ &quot;</span>
+<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Assumptions made: None&quot; ++ &quot;</span>
+<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Trust relations used:&quot; ++ showForLogSeq_list (&quot;  &quot; ++ indent) Ts</span>
+<span class="c">        | (h :: tl),(h2::tl2) =&gt; showForLogSeq (Judgement computedEvidence j) ++ &quot;</span>
+<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Assumptions made:&quot; ++ showForLogSeq_list (&quot;  &quot; ++ indent) Ps ++ &quot;</span>
+<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Trust relations used:&quot; ++ showForLogSeq_list (&quot;  &quot; ++ indent) Ts</span>
+<span class="c">      end. *)</span>
+
+
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showForLogSeq_judgement</span> (<span class="nv">Ps</span> : list judgement) (<span class="nv">Ts</span> : list trustRelation) (<span class="nv">indent</span> : string) (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) :=
-  <span class="kr">let</span> <span class="nv">computedEvidence</span> := computeEvidence j p <span class="kr">in</span>  
-  <span class="kr">match</span> Ps,Ts <span class="kr">with</span>
-        | [],[] =&gt; showForLogSeq (Judgement computedEvidence j) ++ <span class="s2">&quot;</span>
-<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Assumptions made: None&quot;</span> ++ <span class="s2">&quot;</span>
-<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Trust relations used: None&quot;</span>
+  <span class="kr">let</span> <span class="nv">computedEvidence</span> := computeEvidence j p <span class="kr">in</span>        
+    <span class="kr">match</span> Ps,Ts <span class="kr">with</span>
+        | [],[] =&gt; showForLogSeq (Judgement computedEvidence j)
         | (h :: tl),[] =&gt; showForLogSeq (Judgement computedEvidence j) ++ <span class="s2">&quot;</span>
-<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Assumptions made:&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ps ++ <span class="s2">&quot;</span>
-<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Trust relations used: None&quot;</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;collapsed:: true</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Assumptions made:</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;  collapsed:: true</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ps
         | [],(h :: tl) =&gt; showForLogSeq (Judgement computedEvidence j) ++ <span class="s2">&quot;</span>
-<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Assumptions made: None&quot;</span> ++ <span class="s2">&quot;</span>
-<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Trust relations used:&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ts
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;collapsed:: true</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Trust relations used:</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;  collapsed:: true</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ts
         | (h :: tl),(h2::tl2) =&gt; showForLogSeq (Judgement computedEvidence j) ++ <span class="s2">&quot;</span>
-<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Assumptions made:&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ps ++ <span class="s2">&quot;</span>
-<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Trust relations used:&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ts
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;collapsed:: true</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Assumptions made:</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;  collapsed:: true</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ps ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Trust relations used:</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;  collapsed:: true</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ts
       <span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-
-<span class="c">(* Definition showForLogSeq_judgement (Ps : list singleJudgement) (Ts : list trustRelationInfo) (indent : string) (j : judgement) (p : proofTreeOf j) :=</span>
-<span class="c">  match j with</span>
-<span class="c">  | Entail s =&gt; </span>
-<span class="c">      match Ps,Ts with</span>
-<span class="c">        | [],[] =&gt; showForLogSeq s</span>
-<span class="c">        | (h :: tl),[] =&gt; showForLogSeq s ++ &quot;</span>
-<span class="c">&quot; ++ indent ++ &quot;collapsed:: true</span>
-<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Assumptions made:</span>
-<span class="c">&quot; ++ indent ++ &quot;  collapsed:: true</span>
-<span class="c">&quot; ++ showLong2List (&quot;  &quot; ++ indent) Ps</span>
-<span class="c">        | [],(h :: tl) =&gt; showForLogSeq s ++ &quot;</span>
-<span class="c">&quot; ++ indent ++ &quot;collapsed:: true</span>
-<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Trust relations used:</span>
-<span class="c">&quot; ++ indent ++ &quot;  collapsed:: true</span>
-<span class="c">&quot; ++ showLong2List (&quot;  &quot; ++ indent) Ts</span>
-<span class="c">        | (h :: tl),(h2::tl2) =&gt; showForLogSeq s ++ &quot;</span>
-<span class="c">&quot; ++ indent ++ &quot;collapsed:: true</span>
-<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Assumptions made:</span>
-<span class="c">&quot; ++ indent ++ &quot;  collapsed:: true</span>
-<span class="c">&quot; ++ showLong2List (&quot;  &quot; ++ indent) Ps ++ &quot;</span>
-<span class="c">&quot; ++ indent ++ &quot;- &quot; ++ &quot;Trust relations used:</span>
-<span class="c">&quot; ++ indent ++ &quot;  collapsed:: true</span>
-<span class="c">&quot; ++ showLong2List (&quot;  &quot; ++ indent) Ts</span>
-<span class="c">      end</span>
-<span class="c">  | IsAVeracityClaim c =&gt; showForNaturalLanguage c ++ &quot; is a veracity claim&quot; (* ShowLong2 won&#39;t actually use this branch. *)</span>
-<span class="c">  end. *)</span>
-
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">getAllTrustRelationsUsed</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j)
   : list trustRelation :=
 <span class="kr">match</span> p <span class="kr">with</span>
@@ -1089,16 +1086,24 @@ indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps T
 | JudgementPart a c =&gt; <span class="s2">&quot;### Veracity proof that &quot;</span> ++ showForLogSeq c ++ <span class="s2">&quot; is held by &quot;</span> ++ showForLogSeq a
 <span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showForLogSeq_proofTreeOf</span> <span class="nv">j</span> <span class="nv">p</span> := <span class="s2">&quot;</span>
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq string := { showForLogSeq := id}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showForLogSeq_proofTreeOf</span> <span class="nv">j</span> <span class="nv">p</span> := 
+<span class="kr">let</span> <span class="nv">evidenceList</span> := (removeDups (filter isAtomicEvidence (getAllEvidence j p))) <span class="kr">in</span>
+<span class="kr">let</span> <span class="nv">evidenceWithNames</span> := map (<span class="kr">fun</span> <span class="nv">e</span> =&gt; <span class="kr">match</span> e <span class="kr">with</span>
+                                   | AtomicEvid n =&gt; showForLogSeq e ++ <span class="s2">&quot; = &quot;</span> ++ showForLogSeq n
+                                   | _ =&gt; <span class="s2">&quot;&quot;</span>
+                                   <span class="kr">end</span>) evidenceList <span class="kr">in</span>
+<span class="s2">&quot;</span>
 
 <span class="s2">&quot;</span> ++ printProofTitle j ++ <span class="s2">&quot;</span>
 <span class="s2">&quot;</span> ++ showForLogSeq_proofTreeOf_helper <span class="s2">&quot;  &quot;</span> j p ++ <span class="s2">&quot;</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">&quot;</span> ++ showForLogSeq_list <span class="s2">&quot;    &quot;</span> (removeDups (filter isAtomicEvidence (getAllEvidence j p))) ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list <span class="s2">&quot;    &quot;</span> evidenceWithNames ++ <span class="s2">&quot;</span>
 
 <span class="s2">&quot;</span>.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showLong2ProofTreeOfInstance</span> (<span class="nv">j</span> : judgementPart)
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showForLogSeq_proofTreeOf_instance</span> (<span class="nv">j</span> : judgementPart)
   : ShowForLogSeq (proofTreeOf j) := { showForLogSeq := showForLogSeq_proofTreeOf j}.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 
@@ -1531,25 +1536,31 @@ proofTreeOf \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39
 
 <span class="s2">### Veracity proof that (claim 1 and claim 2) is held by Penelope</span>
 <span class="s2">  - (claim 1 and claim 2) is held by Penelope by the evidence $(l, s)$</span>
-<span class="s2">    - Assumptions made:      - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">      - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">    - Trust relations used: None</span>
 <span class="s2">    - Logical rule used: and introduction</span>
 <span class="s2">      - Sub-proofs:</span>
 <span class="s2">        - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">          - Assumptions made:            - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">        - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">          - Assumptions made:            - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - l</span>
-<span class="s2">    - s</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - l = atomic evidence l</span>
+<span class="s2">    - s = atomic evidence s</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -1626,37 +1637,47 @@ proofTreeOf \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39
 
 <span class="s2">### Veracity proof that ((claim 1 and claim 2) and claim 3) is held by Penelope</span>
 <span class="s2">  - ((claim 1 and claim 2) and claim 3) is held by Penelope by the evidence $((l, s), c)$</span>
-<span class="s2">    - Assumptions made:      - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">      - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">      - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">    - Trust relations used: None</span>
 <span class="s2">    - Logical rule used: and introduction</span>
 <span class="s2">      - Sub-proofs:</span>
 <span class="s2">        - (claim 1 and claim 2) is held by Penelope by the evidence $(l, s)$</span>
-<span class="s2">          - Assumptions made:            - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">            - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">          - Trust relations used: None</span>
 <span class="s2">          - Logical rule used: and introduction</span>
 <span class="s2">            - Sub-proofs:</span>
 <span class="s2">              - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                - Assumptions made:                  - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">                - Logical rule used: we assume this</span>
 <span class="s2">              - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                - Assumptions made:                  - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">                - Logical rule used: we assume this</span>
 <span class="s2">        - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">          - Assumptions made:            - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 3 is held by Penelope by the evidence $c$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - l</span>
-<span class="s2">    - s</span>
-<span class="s2">    - c</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - l = atomic evidence l</span>
+<span class="s2">    - s = atomic evidence s</span>
+<span class="s2">    - c = atomic evidence c</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small></span></pre><p>We can also combine existing trees into new trees, when appropriate. For example:</p>
@@ -1704,37 +1725,47 @@ proofTreeOf \<span class="bp">by</span> P \<span class="kr">in</span> (C1 /\&#39
 
 <span class="s2">### Veracity proof that ((claim 1 and claim 2) and claim 3) is held by Penelope</span>
 <span class="s2">  - ((claim 1 and claim 2) and claim 3) is held by Penelope by the evidence $((l, s), c)$</span>
-<span class="s2">    - Assumptions made:      - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">      - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">      - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">    - Trust relations used: None</span>
 <span class="s2">    - Logical rule used: and introduction</span>
 <span class="s2">      - Sub-proofs:</span>
 <span class="s2">        - (claim 1 and claim 2) is held by Penelope by the evidence $(l, s)$</span>
-<span class="s2">          - Assumptions made:            - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">            - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">          - Trust relations used: None</span>
 <span class="s2">          - Logical rule used: and introduction</span>
 <span class="s2">            - Sub-proofs:</span>
 <span class="s2">              - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                - Assumptions made:                  - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">                - Logical rule used: we assume this</span>
 <span class="s2">              - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                - Assumptions made:                  - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">                - Logical rule used: we assume this</span>
 <span class="s2">        - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">          - Assumptions made:            - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 3 is held by Penelope by the evidence $c$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - l</span>
-<span class="s2">    - s</span>
-<span class="s2">    - c</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - l = atomic evidence l</span>
+<span class="s2">    - s = atomic evidence s</span>
+<span class="s2">    - c = atomic evidence c</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -1758,17 +1789,24 @@ proofTreeOf\<span class="bp">by</span> a1 \<span class="kr">in</span> (C).</labe
 
 <span class="s2">### Veracity proof that claim c is held by actor 1</span>
 <span class="s2">  - claim c is held by actor 1 by the evidence $e$</span>
-<span class="s2">    - Assumptions made:      - claim c is held by actor 2 by the evidence $e$</span>
-<span class="s2">    - Trust relations used:      - trust relation T</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - claim c is held by actor 2 by the evidence $e$</span>
+<span class="s2">    - Trust relations used:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - trust relation T</span>
 <span class="s2">    - Logical rule used: trust, with relation trust relation T</span>
 <span class="s2">      - Sub-proof:</span>
 <span class="s2">        - claim c is held by actor 2 by the evidence $e$</span>
-<span class="s2">          - Assumptions made:            - claim c is held by actor 2 by the evidence $e$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim c is held by actor 2 by the evidence $e$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e</span>
+<span class="s2">    - e = atomic evidence e</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -1802,45 +1840,60 @@ proofTreeOf\<span class="bp">by</span> Q \<span class="kr">in</span> (C1 /\&#39;
 
 <span class="s2">### Veracity proof that ((claim 1 and claim 2) and claim 3) is held by Quintin</span>
 <span class="s2">  - ((claim 1 and claim 2) and claim 3) is held by Quintin by the evidence $((l, s), c)$</span>
-<span class="s2">    - Assumptions made:      - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">      - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">      - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">    - Trust relations used:      - trust relation U</span>
+<span class="s2">    - Trust relations used:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - trust relation U</span>
 <span class="s2">    - Logical rule used: trust, with relation trust relation U</span>
 <span class="s2">      - Sub-proof:</span>
 <span class="s2">        - ((claim 1 and claim 2) and claim 3) is held by Penelope by the evidence $((l, s), c)$</span>
-<span class="s2">          - Assumptions made:            - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">            - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">            - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">          - Trust relations used: None</span>
 <span class="s2">          - Logical rule used: and introduction</span>
 <span class="s2">            - Sub-proofs:</span>
 <span class="s2">              - (claim 1 and claim 2) is held by Penelope by the evidence $(l, s)$</span>
-<span class="s2">                - Assumptions made:                  - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">                  - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                - Trust relations used: None</span>
 <span class="s2">                - Logical rule used: and introduction</span>
 <span class="s2">                  - Sub-proofs:</span>
 <span class="s2">                    - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                      - Assumptions made:                        - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">                      - Logical rule used: we assume this</span>
 <span class="s2">                    - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                      - Assumptions made:                        - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">                      - Logical rule used: we assume this</span>
 <span class="s2">              - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">                - Assumptions made:                  - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - claim 3 is held by Penelope by the evidence $c$</span>
 <span class="s2">                - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - l</span>
-<span class="s2">    - s</span>
-<span class="s2">    - c</span>
+<span class="s2">    - e = atomic evidence e</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - l = atomic evidence l</span>
+<span class="s2">    - s = atomic evidence s</span>
+<span class="s2">    - c = atomic evidence c</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -1884,61 +1937,86 @@ proofTreeOf\<span class="bp">by</span> Q \<span class="kr">in</span> (C1 /\&#39;
 
 <span class="s2">### Veracity proof that ((claim 1 and claim 2) and claim 3) is held by Quintin</span>
 <span class="s2">  - ((claim 1 and claim 2) and claim 3) is held by Quintin by the evidence $((l, s), c)$</span>
-<span class="s2">    - Assumptions made:      - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">      - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">      - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">    - Trust relations used:      - trust relation V</span>
+<span class="s2">    - Trust relations used:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - trust relation V</span>
 <span class="s2">      - trust relation U</span>
 <span class="s2">    - Logical rule used: trust, with relation trust relation U</span>
 <span class="s2">      - Sub-proof:</span>
 <span class="s2">        - ((claim 1 and claim 2) and claim 3) is held by Quintin by the evidence $((l, s), c)$</span>
-<span class="s2">          - Assumptions made:            - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">            - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">            - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">          - Trust relations used:            - trust relation V</span>
+<span class="s2">          - Trust relations used:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - trust relation V</span>
 <span class="s2">            - trust relation U</span>
 <span class="s2">          - Logical rule used: trust, with relation trust relation V</span>
 <span class="s2">            - Sub-proof:</span>
 <span class="s2">              - ((claim 1 and claim 2) and claim 3) is held by Quintin by the evidence $((l, s), c)$</span>
-<span class="s2">                - Assumptions made:                  - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">                  - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">                  - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">                - Trust relations used:                  - trust relation U</span>
+<span class="s2">                - Trust relations used:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - trust relation U</span>
 <span class="s2">                - Logical rule used: trust, with relation trust relation U</span>
 <span class="s2">                  - Sub-proof:</span>
 <span class="s2">                    - ((claim 1 and claim 2) and claim 3) is held by Penelope by the evidence $((l, s), c)$</span>
-<span class="s2">                      - Assumptions made:                        - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">                        - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">                        - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">                      - Trust relations used: None</span>
 <span class="s2">                      - Logical rule used: and introduction</span>
 <span class="s2">                        - Sub-proofs:</span>
 <span class="s2">                          - (claim 1 and claim 2) is held by Penelope by the evidence $(l, s)$</span>
-<span class="s2">                            - Assumptions made:                              - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">                            collapsed:: true</span>
+<span class="s2">                            - Assumptions made:</span>
+<span class="s2">                              collapsed:: true</span>
+<span class="s2">                              - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">                              - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                            - Trust relations used: None</span>
 <span class="s2">                            - Logical rule used: and introduction</span>
 <span class="s2">                              - Sub-proofs:</span>
 <span class="s2">                                - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                                  - Assumptions made:                                    - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
 <span class="s2">                                - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                                  - Assumptions made:                                    - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
 <span class="s2">                          - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">                            - Assumptions made:                              - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">                            - Trust relations used: None</span>
+<span class="s2">                            collapsed:: true</span>
+<span class="s2">                            - Assumptions made:</span>
+<span class="s2">                              collapsed:: true</span>
+<span class="s2">                              - claim 3 is held by Penelope by the evidence $c$</span>
 <span class="s2">                            - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - l</span>
-<span class="s2">    - s</span>
-<span class="s2">    - c</span>
+<span class="s2">    - e = atomic evidence e</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - l = atomic evidence l</span>
+<span class="s2">    - s = atomic evidence s</span>
+<span class="s2">    - c = atomic evidence c</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp"> 
@@ -1968,12 +2046,14 @@ proofTreeOf\<span class="bp">by</span> Q \<span class="kr">in</span> (C1 /\&#39;
 
 <span class="s2">### Veracity proof that claim 1 is held by actor 1</span>
 <span class="s2">  - claim 1 is held by actor 1 by the evidence $e_{1}$</span>
-<span class="s2">    - Assumptions made:      - claim 1 is held by actor 1 by the evidence $e_{1}$</span>
-<span class="s2">    - Trust relations used: None</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - claim 1 is held by actor 1 by the evidence $e_{1}$</span>
 <span class="s2">    - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e_{1}</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -2264,12 +2344,14 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 <span class="s2">### Veracity proof that claim 2 is held by actor 1</span>
 <span class="s2">  - claim 2 is held by actor 1 by the evidence $e_{?}$</span>
-<span class="s2">    - Assumptions made:      - claim 2 is held by actor 1 by the evidence $e_{?}$</span>
-<span class="s2">    - Trust relations used: None</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - claim 2 is held by actor 1 by the evidence $e_{?}$</span>
 <span class="s2">    - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e_{?}</span>
+<span class="s2">    - e_{?} = unknown evidence</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -2303,12 +2385,14 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 <span class="s2">### Veracity proof that ((((claim 1 and claim 2) and claim 3) and claim 4) and claim 5) is held by actor 1</span>
 <span class="s2">  - ((((claim 1 and claim 2) and claim 3) and claim 4) and claim 5) is held by actor 1 by the evidence $e_{?}$</span>
-<span class="s2">    - Assumptions made:      - ((((claim 1 and claim 2) and claim 3) and claim 4) and claim 5) is held by actor 1 by the evidence $e_{?}$</span>
-<span class="s2">    - Trust relations used: None</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - ((((claim 1 and claim 2) and claim 3) and claim 4) and claim 5) is held by actor 1 by the evidence $e_{?}$</span>
 <span class="s2">    - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e_{?}</span>
+<span class="s2">    - e_{?} = unknown evidence</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -2370,37 +2454,47 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 <span class="s2">### Veracity proof that ((claim 1 and claim 2) and claim 3) is held by Penelope</span>
 <span class="s2">  - ((claim 1 and claim 2) and claim 3) is held by Penelope by the evidence $((l, s), c)$</span>
-<span class="s2">    - Assumptions made:      - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">      - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">      - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">    - Trust relations used: None</span>
 <span class="s2">    - Logical rule used: and introduction</span>
 <span class="s2">      - Sub-proofs:</span>
 <span class="s2">        - (claim 1 and claim 2) is held by Penelope by the evidence $(l, s)$</span>
-<span class="s2">          - Assumptions made:            - claim 1 is held by Penelope by the evidence $l$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">            - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">          - Trust relations used: None</span>
 <span class="s2">          - Logical rule used: and introduction</span>
 <span class="s2">            - Sub-proofs:</span>
 <span class="s2">              - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                - Assumptions made:                  - claim 1 is held by Penelope by the evidence $l$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - claim 1 is held by Penelope by the evidence $l$</span>
 <span class="s2">                - Logical rule used: we assume this</span>
 <span class="s2">              - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                - Assumptions made:                  - claim 2 is held by Penelope by the evidence $s$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - claim 2 is held by Penelope by the evidence $s$</span>
 <span class="s2">                - Logical rule used: we assume this</span>
 <span class="s2">        - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">          - Assumptions made:            - claim 3 is held by Penelope by the evidence $c$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 3 is held by Penelope by the evidence $c$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - l</span>
-<span class="s2">    - s</span>
-<span class="s2">    - c</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - l = atomic evidence l</span>
+<span class="s2">    - s = atomic evidence s</span>
+<span class="s2">    - c = atomic evidence c</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -2474,48 +2568,74 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 <span class="s2">### Veracity proof that healthy is held by retailer</span>
 <span class="s2">  - healthy is held by retailer by the evidence $b((t, a))$</span>
-<span class="s2">    - Assumptions made:      - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
 <span class="s2">      - non-toxic is held by vineyard by the evidence $t$</span>
 <span class="s2">      - organic is held by winery by the evidence $a$</span>
-<span class="s2">    - Trust relations used:      - trust relation T</span>
+<span class="s2">    - Trust relations used:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - trust relation T</span>
 <span class="s2">    - Logical rule used: implication elimination</span>
 <span class="s2">      - Sub-proofs:</span>
 <span class="s2">        - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
-<span class="s2">          - Assumptions made:            - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">        - (non-toxic and organic) is held by retailer by the evidence $(t, a)$</span>
-<span class="s2">          - Assumptions made:            - non-toxic is held by vineyard by the evidence $t$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - non-toxic is held by vineyard by the evidence $t$</span>
 <span class="s2">            - organic is held by winery by the evidence $a$</span>
-<span class="s2">          - Trust relations used:            - trust relation T</span>
+<span class="s2">          - Trust relations used:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - trust relation T</span>
 <span class="s2">          - Logical rule used: and introduction</span>
 <span class="s2">            - Sub-proofs:</span>
 <span class="s2">              - non-toxic is held by retailer by the evidence $t$</span>
-<span class="s2">                - Assumptions made:                  - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">                - Trust relations used:                  - trust relation T</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - non-toxic is held by vineyard by the evidence $t$</span>
+<span class="s2">                - Trust relations used:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - trust relation T</span>
 <span class="s2">                - Logical rule used: trust, with relation trust relation T</span>
 <span class="s2">                  - Sub-proof:</span>
 <span class="s2">                    - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">                      - Assumptions made:                        - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - non-toxic is held by vineyard by the evidence $t$</span>
 <span class="s2">                      - Logical rule used: we assume this</span>
 <span class="s2">              - organic is held by retailer by the evidence $a$</span>
-<span class="s2">                - Assumptions made:                  - organic is held by winery by the evidence $a$</span>
-<span class="s2">                - Trust relations used:                  - trust relation T</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - organic is held by winery by the evidence $a$</span>
+<span class="s2">                - Trust relations used:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - trust relation T</span>
 <span class="s2">                - Logical rule used: trust, with relation trust relation T</span>
 <span class="s2">                  - Sub-proof:</span>
 <span class="s2">                    - organic is held by winery by the evidence $a$</span>
-<span class="s2">                      - Assumptions made:                        - organic is held by winery by the evidence $a$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - organic is held by winery by the evidence $a$</span>
 <span class="s2">                      - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - b</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - t</span>
-<span class="s2">    - e</span>
-<span class="s2">    - a</span>
+<span class="s2">    - b = belief</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - t = testing</span>
+<span class="s2">    - e = atomic evidence e</span>
+<span class="s2">    - a = audit</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -2615,7 +2735,7 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 <span class="s2">----------------</span>
 
 <span class="s2">\begin{prooftree}\AxiomC{$ N \wedge O \rightarrow_{r} H \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H \vdash_{} b^{r} \in N \wedge O \rightarrow_{r} H $}\AxiomC{$ N \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ t^{v} \in N \vdash_{} t^{v} \in N $} \AxiomC{$rTv$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ t^{v} \in N \vdash_{T} t^{r} \in N $}\AxiomC{$ O \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{w} \in O \vdash_{} a^{w} \in O $} \AxiomC{$rTw$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ a^{w} \in O \vdash_{T} a^{r} \in O $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ t^{v} \in N, a^{w} \in O \vdash_{T} (t, a)^{r} \in N \wedge O $} \RightLabel{ $ \rightarrow^{-}_{r} $} \BinaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H, t^{v} \in N, a^{w} \in O \vdash_{T} b((t, a))^{r} \in H $}\end{prooftree}&quot;</span>
-     : string</blockquote><blockquote class="alectryon-message">Finished transaction <span class="kr">in</span> <span class="mi">0</span>.<span class="mi">21</span> secs (<span class="mi">0</span>.<span class="mi">21</span>u,<span class="mi">0</span>.s) (successful)</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk9c" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9c"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage exampleFromJoshAuto).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
+     : string</blockquote><blockquote class="alectryon-message">Finished transaction <span class="kr">in</span> <span class="mi">0</span>.<span class="mi">193</span> secs (<span class="mi">0</span>.<span class="mi">193</span>u,<span class="mi">0</span>.s) (successful)</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk9c" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9c"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage exampleFromJoshAuto).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
 
 <span class="s2">- Assuming ((non-toxic and organic), believed by retailer, implies healthy) is supported by $b$ which retailer uses, non-toxic is supported by $t$ which vineyard uses, and organic is supported by $a$ which winery uses then healthy is supported by $b((t, a))$ which retailer uses, because</span>
 <span class="s2">  - Assuming ((non-toxic and organic), believed by retailer, implies healthy) is supported by $b$ which retailer uses then ((non-toxic and organic), believed by retailer, implies healthy) is supported by $b$ which retailer uses, because</span>
@@ -2641,48 +2761,74 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 <span class="s2">### Veracity proof that healthy is held by retailer</span>
 <span class="s2">  - healthy is held by retailer by the evidence $b((t, a))$</span>
-<span class="s2">    - Assumptions made:      - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
 <span class="s2">      - non-toxic is held by vineyard by the evidence $t$</span>
 <span class="s2">      - organic is held by winery by the evidence $a$</span>
-<span class="s2">    - Trust relations used:      - trust relation T</span>
+<span class="s2">    - Trust relations used:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - trust relation T</span>
 <span class="s2">    - Logical rule used: implication elimination</span>
 <span class="s2">      - Sub-proofs:</span>
 <span class="s2">        - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
-<span class="s2">          - Assumptions made:            - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">        - (non-toxic and organic) is held by retailer by the evidence $(t, a)$</span>
-<span class="s2">          - Assumptions made:            - non-toxic is held by vineyard by the evidence $t$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - non-toxic is held by vineyard by the evidence $t$</span>
 <span class="s2">            - organic is held by winery by the evidence $a$</span>
-<span class="s2">          - Trust relations used:            - trust relation T</span>
+<span class="s2">          - Trust relations used:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - trust relation T</span>
 <span class="s2">          - Logical rule used: and introduction</span>
 <span class="s2">            - Sub-proofs:</span>
 <span class="s2">              - non-toxic is held by retailer by the evidence $t$</span>
-<span class="s2">                - Assumptions made:                  - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">                - Trust relations used:                  - trust relation T</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - non-toxic is held by vineyard by the evidence $t$</span>
+<span class="s2">                - Trust relations used:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - trust relation T</span>
 <span class="s2">                - Logical rule used: trust, with relation trust relation T</span>
 <span class="s2">                  - Sub-proof:</span>
 <span class="s2">                    - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">                      - Assumptions made:                        - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - non-toxic is held by vineyard by the evidence $t$</span>
 <span class="s2">                      - Logical rule used: we assume this</span>
 <span class="s2">              - organic is held by retailer by the evidence $a$</span>
-<span class="s2">                - Assumptions made:                  - organic is held by winery by the evidence $a$</span>
-<span class="s2">                - Trust relations used:                  - trust relation T</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - organic is held by winery by the evidence $a$</span>
+<span class="s2">                - Trust relations used:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - trust relation T</span>
 <span class="s2">                - Logical rule used: trust, with relation trust relation T</span>
 <span class="s2">                  - Sub-proof:</span>
 <span class="s2">                    - organic is held by winery by the evidence $a$</span>
-<span class="s2">                      - Assumptions made:                        - organic is held by winery by the evidence $a$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - organic is held by winery by the evidence $a$</span>
 <span class="s2">                      - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - b</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - t</span>
-<span class="s2">    - e</span>
-<span class="s2">    - a</span>
+<span class="s2">    - b = belief</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - t = testing</span>
+<span class="s2">    - e = atomic evidence e</span>
+<span class="s2">    - a = audit</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -2710,21 +2856,28 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 <span class="s2">### Veracity proof that (claim 1, believed by actor 2, implies claim 2) is held by actor 2</span>
 <span class="s2">  - (claim 1, believed by actor 2, implies claim 2) is held by actor 2 by the evidence $\lambda (e_{1})(\textcolor{red}{e_{?}})$</span>
-<span class="s2">    - Assumptions made: None</span>
-<span class="s2">    - Trust relations used:      - trust relation T</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Trust relations used:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - trust relation T</span>
 <span class="s2">    - Logical rule used: implication introduction</span>
 <span class="s2">      - Sub-proof:</span>
 <span class="s2">        - claim 2 is held by actor 2 by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">          - Assumptions made:            - claim 2 is held by actor 2 by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">          - Trust relations used:            - trust relation T</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - claim 2 is held by actor 2 by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">          - Trust relations used:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - trust relation T</span>
 <span class="s2">          - Logical rule used: trust, with relation trust relation T</span>
 <span class="s2">            - Sub-proof:</span>
 <span class="s2">              - We stopped the proof at this point and assumed it was provable.</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - e</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - e = atomic evidence e</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -2733,13 +2886,13 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">applicant</span> := Actor _applicant_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">ingredients_valid</span> := AtomicClaim _ingredients_valid_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">recipe_valid</span> := AtomicClaim _recipe_valid_.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">percentage_ingredients_valid</span> := AtomicClaim _ingredients_valid_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">percentage_ingredients_valid</span> := AtomicClaim _percentage_ingredients_valid_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">breakdown_of_formulations_valid</span> := AtomicClaim _breakdown_of_formulations_valid_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">successful_market_compliance_assessment</span> := AtomicClaim _successful_market_compliance_assessment_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">compile</span> := AtomicEvid _compile_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">review</span> := AtomicEvid _review_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">assess</span> := AtomicEvid _assess_.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">percentage_ingredients_list</span> := AtomicEvid _ingredients_percentage_list_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">ingredients_percentage_list</span> := AtomicEvid _ingredients_percentage_list_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">breakdown_of_formulations_list</span> := AtomicEvid _breakdown_of_formulations_list_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 
@@ -2788,22 +2941,22 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc2" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc2"><span class="nb">eapply</span> (assume compile).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
   \<span class="bp">by</span> applicant \<span class="kr">in</span> percentage_ingredients_valid</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkc3" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkc3"><hr></label><div class="goal-conclusion">proofTreeOf
   \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc4" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc4"><span class="nb">eapply</span> (assume percentage_ingredients_list).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc4" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc4"><span class="nb">eapply</span> (assume ingredients_percentage_list).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
   \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></small><span class="alectryon-wsp"> 
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume breakdown_of_formulations_list).</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chkc5" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc5"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree preAssessmentRequirements.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ RV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in RV \rightarrow_{A} RV \vdash_{} r^{C} \in RV \rightarrow_{A} RV $}\AxiomC{$ IV \rightarrow_{C} BFV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV \vdash_{} c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV $}\AxiomC{$ SMCA \rightarrow_{C} IV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV \vdash_{} r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV $}\AxiomC{$ SMCA \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{C} \in SMCA \vdash_{} a^{C} \in SMCA $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA \vdash_{} r(a)^{C} \in IV \rightarrow_{A} IV $}\AxiomC{$ IV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ c^{A} \in IV \rightarrow_{A} IV \vdash_{} c^{A} \in IV \rightarrow_{A} IV $}\AxiomC{$ IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{PI}^{A} \in IV \vdash_{} e_{PI}^{A} \in IV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ c^{A} \in IV \rightarrow_{A} IV, e_{PI}^{A} \in IV \vdash_{} c(e_{PI})^{A} \in IV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in IV \rightarrow_{A} IV, e_{PI}^{A} \in IV \vdash_{} r(a)(c(e_{PI}))^{C} \in IV $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in IV \rightarrow_{A} IV, e_{PI}^{A} \in IV \vdash_{} c(r(a)(c(e_{PI})))^{A} \in BFV \rightarrow_{A} RV $}\AxiomC{$ BFV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{BF}^{A} \in BFV \vdash_{} e_{BF}^{A} \in BFV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in IV \rightarrow_{A} IV, e_{PI}^{A} \in IV, e_{BF}^{A} \in BFV \vdash_{} c(r(a)(c(e_{PI})))(e_{BF})^{A} \in RV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in RV \rightarrow_{A} RV, c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in IV \rightarrow_{A} IV, e_{PI}^{A} \in IV, e_{BF}^{A} \in BFV \vdash_{} r(c(r(a)(c(e_{PI})))(e_{BF}))^{C} \in RV $}\end{prooftree}&quot;</span>
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chkc5" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc5"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree preAssessmentRequirements.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ RV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in RV \rightarrow_{A} RV \vdash_{} r^{C} \in RV \rightarrow_{A} RV $}\AxiomC{$ IV \rightarrow_{C} BFV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV \vdash_{} c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV $}\AxiomC{$ SMCA \rightarrow_{C} IV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV \vdash_{} r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV $}\AxiomC{$ SMCA \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{C} \in SMCA \vdash_{} a^{C} \in SMCA $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA \vdash_{} r(a)^{C} \in IV \rightarrow_{A} IV $}\AxiomC{$ PIV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ c^{A} \in PIV \rightarrow_{A} IV \vdash_{} c^{A} \in PIV \rightarrow_{A} IV $}\AxiomC{$ PIV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{PI}^{A} \in PIV \vdash_{} e_{PI}^{A} \in PIV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV \vdash_{} c(e_{PI})^{A} \in IV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV \vdash_{} r(a)(c(e_{PI}))^{C} \in IV $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV \vdash_{} c(r(a)(c(e_{PI})))^{A} \in BFV \rightarrow_{A} RV $}\AxiomC{$ BFV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{BF}^{A} \in BFV \vdash_{} e_{BF}^{A} \in BFV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV, e_{BF}^{A} \in BFV \vdash_{} c(r(a)(c(e_{PI})))(e_{BF})^{A} \in RV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in RV \rightarrow_{A} RV, c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV, e_{BF}^{A} \in BFV \vdash_{} r(c(r(a)(c(e_{PI})))(e_{BF}))^{C} \in RV $}\end{prooftree}&quot;</span>
 : string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc6" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc6"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage preAssessmentRequirements).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
 
-<span class="s2">- Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, ingredients-valid is supported by $e_{PI}$ which applicant uses, and breakdown-of-formulations-valid is supported by $e_{BF}$ which applicant uses then recipe-valid is supported by $r(c(r(a)(c(e_{PI})))(e_{BF}))$ which certifier uses, because</span>
+<span class="s2">- Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses, and breakdown-of-formulations-valid is supported by $e_{BF}$ which applicant uses then recipe-valid is supported by $r(c(r(a)(c(e_{PI})))(e_{BF}))$ which certifier uses, because</span>
 <span class="s2">  - Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses then (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, because</span>
 <span class="s2">  - (recipe-valid, believed by applicant, implies recipe-valid) is a veracity claim.</span>
 <span class="s2">  - by assumption.</span>
-<span class="s2">  - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, ingredients-valid is supported by $e_{PI}$ which applicant uses, and breakdown-of-formulations-valid is supported by $e_{BF}$ which applicant uses then recipe-valid is supported by $c(r(a)(c(e_{PI})))(e_{BF})$ which applicant uses, because</span>
-<span class="s2">    - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, and ingredients-valid is supported by $e_{PI}$ which applicant uses then (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is supported by $c(r(a)(c(e_{PI})))$ which applicant uses, because</span>
+<span class="s2">  - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses, and breakdown-of-formulations-valid is supported by $e_{BF}$ which applicant uses then recipe-valid is supported by $c(r(a)(c(e_{PI})))(e_{BF})$ which applicant uses, because</span>
+<span class="s2">    - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, and percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses then (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is supported by $c(r(a)(c(e_{PI})))$ which applicant uses, because</span>
 <span class="s2">      - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses then (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, because</span>
 <span class="s2">      - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is a veracity claim.</span>
 <span class="s2">      - by assumption.</span>
-<span class="s2">      - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, and ingredients-valid is supported by $e_{PI}$ which applicant uses then ingredients-valid is supported by $r(a)(c(e_{PI}))$ which certifier uses, because</span>
+<span class="s2">      - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, and percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses then ingredients-valid is supported by $r(a)(c(e_{PI}))$ which certifier uses, because</span>
 <span class="s2">        - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, and successful-market-compliance-assessment is supported by $a$ which certifier uses then (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $r(a)$ which certifier uses, because</span>
 <span class="s2">          - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses then (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, because</span>
 <span class="s2">          - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is a veracity claim.</span>
@@ -2812,12 +2965,12 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 <span class="s2">          - successful-market-compliance-assessment is a veracity claim.</span>
 <span class="s2">          - by assumption.</span>
 <span class="s2">        - by a logical rule for implication.</span>
-<span class="s2">        - Assuming (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, and ingredients-valid is supported by $e_{PI}$ which applicant uses then ingredients-valid is supported by $c(e_{PI})$ which applicant uses, because</span>
-<span class="s2">          - Assuming (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses then (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, because</span>
-<span class="s2">          - (ingredients-valid, believed by applicant, implies ingredients-valid) is a veracity claim.</span>
+<span class="s2">        - Assuming (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, and percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses then ingredients-valid is supported by $c(e_{PI})$ which applicant uses, because</span>
+<span class="s2">          - Assuming (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses then (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, because</span>
+<span class="s2">          - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is a veracity claim.</span>
 <span class="s2">          - by assumption.</span>
-<span class="s2">          - Assuming ingredients-valid is supported by $e_{PI}$ which applicant uses then ingredients-valid is supported by $e_{PI}$ which applicant uses, because</span>
-<span class="s2">          - ingredients-valid is a veracity claim.</span>
+<span class="s2">          - Assuming percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses then percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses, because</span>
+<span class="s2">          - percentage-ingredients-valid is a veracity claim.</span>
 <span class="s2">          - by assumption.</span>
 <span class="s2">        - by a logical rule for implication.</span>
 <span class="s2">      - by a logical rule for implication.</span>
@@ -2834,92 +2987,118 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 <span class="s2">### Veracity proof that recipe-valid is held by certifier</span>
 <span class="s2">  - recipe-valid is held by certifier by the evidence $r(c(r(a)(c(e_{PI})))(e_{BF}))$</span>
-<span class="s2">    - Assumptions made:      - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
 <span class="s2">      - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
 <span class="s2">      - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">      - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">      - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">      - ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
+<span class="s2">      - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
+<span class="s2">      - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
 <span class="s2">      - breakdown-of-formulations-valid is held by applicant by the evidence $e_{BF}$</span>
-<span class="s2">    - Trust relations used: None</span>
 <span class="s2">    - Logical rule used: implication elimination</span>
 <span class="s2">      - Sub-proofs:</span>
 <span class="s2">        - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">          - Assumptions made:            - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">        - recipe-valid is held by applicant by the evidence $c(r(a)(c(e_{PI})))(e_{BF})$</span>
-<span class="s2">          - Assumptions made:            - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
 <span class="s2">            - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">            - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">            - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">            - ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
+<span class="s2">            - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
+<span class="s2">            - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
 <span class="s2">            - breakdown-of-formulations-valid is held by applicant by the evidence $e_{BF}$</span>
-<span class="s2">          - Trust relations used: None</span>
 <span class="s2">          - Logical rule used: implication elimination</span>
 <span class="s2">            - Sub-proofs:</span>
 <span class="s2">              - (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is held by applicant by the evidence $c(r(a)(c(e_{PI})))$</span>
-<span class="s2">                - Assumptions made:                  - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
 <span class="s2">                  - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">                  - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                  - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                  - ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                  - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
+<span class="s2">                  - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
 <span class="s2">                - Logical rule used: implication elimination</span>
 <span class="s2">                  - Sub-proofs:</span>
 <span class="s2">                    - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
-<span class="s2">                      - Assumptions made:                        - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
 <span class="s2">                      - Logical rule used: we assume this</span>
 <span class="s2">                    - ingredients-valid is held by certifier by the evidence $r(a)(c(e_{PI}))$</span>
-<span class="s2">                      - Assumptions made:                        - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">                        - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                        - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                        - ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                        - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
+<span class="s2">                        - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
 <span class="s2">                      - Logical rule used: implication elimination</span>
 <span class="s2">                        - Sub-proofs:</span>
 <span class="s2">                          - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by certifier by the evidence $r(a)$</span>
-<span class="s2">                            - Assumptions made:                              - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
+<span class="s2">                            collapsed:: true</span>
+<span class="s2">                            - Assumptions made:</span>
+<span class="s2">                              collapsed:: true</span>
+<span class="s2">                              - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">                              - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                            - Trust relations used: None</span>
 <span class="s2">                            - Logical rule used: implication elimination</span>
 <span class="s2">                              - Sub-proofs:</span>
 <span class="s2">                                - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                                  - Assumptions made:                                    - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
 <span class="s2">                                - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                                  - Assumptions made:                                    - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
 <span class="s2">                          - ingredients-valid is held by applicant by the evidence $c(e_{PI})$</span>
-<span class="s2">                            - Assumptions made:                              - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                              - ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                            - Trust relations used: None</span>
+<span class="s2">                            collapsed:: true</span>
+<span class="s2">                            - Assumptions made:</span>
+<span class="s2">                              collapsed:: true</span>
+<span class="s2">                              - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
+<span class="s2">                              - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
 <span class="s2">                            - Logical rule used: implication elimination</span>
 <span class="s2">                              - Sub-proofs:</span>
-<span class="s2">                                - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                                  - Assumptions made:                                    - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">                                - ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                                  - Assumptions made:                                    - ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
 <span class="s2">              - breakdown-of-formulations-valid is held by applicant by the evidence $e_{BF}$</span>
-<span class="s2">                - Assumptions made:                  - breakdown-of-formulations-valid is held by applicant by the evidence $e_{BF}$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - breakdown-of-formulations-valid is held by applicant by the evidence $e_{BF}$</span>
 <span class="s2">                - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - r</span>
-<span class="s2">    - a</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
-<span class="s2">    - c</span>
-<span class="s2">    - e_{PI}</span>
-<span class="s2">    - e_{BF}</span>
+<span class="s2">    - r = review</span>
+<span class="s2">    - a = assess</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
+<span class="s2">    - c = compile</span>
+<span class="s2">    - e_{PI} = ingredients percentage list</span>
+<span class="s2">    - e_{BF} = breakdown of formulations list</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
@@ -2972,19 +3151,19 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chke5" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chke5"><span class="nb">eapply</span> (assume HoleEvid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
   \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></small><span class="alectryon-wsp"> 
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume HoleEvid).</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chke6" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chke6"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree preAssessmentRequirementsWithEvidHoles.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ RV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in RV \rightarrow_{A} RV \vdash_{} r^{C} \in RV \rightarrow_{A} RV $}\AxiomC{$ IV \rightarrow_{C} BFV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV \vdash_{} \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV $}\AxiomC{$ SMCA \rightarrow_{C} IV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV \vdash_{} r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV $}\AxiomC{$ SMCA \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{C} \in SMCA \vdash_{} a^{C} \in SMCA $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA \vdash_{} r(a)^{C} \in IV \rightarrow_{A} IV $}\AxiomC{$ IV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{A} IV \vdash_{} \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{A} IV $}\AxiomC{$ IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \vdash_{} \textcolor{red}{e_{?}}^{A} \in IV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in IV \vdash_{} \textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})^{A} \in IV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in IV \vdash_{} r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}}))^{C} \in IV $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in IV \vdash_{} \textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))^{A} \in BFV \rightarrow_{A} RV $}\AxiomC{$ BFV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in BFV \vdash_{} \textcolor{red}{e_{?}}^{A} \in BFV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in IV, \textcolor{red}{e_{?}}^{A} \in BFV \vdash_{} \textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}})^{A} \in RV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in RV \rightarrow_{A} RV, \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in IV, \textcolor{red}{e_{?}}^{A} \in BFV \vdash_{} r(\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}}))^{C} \in RV $}\end{prooftree}&quot;</span>
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chke6" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chke6"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree preAssessmentRequirementsWithEvidHoles.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ RV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in RV \rightarrow_{A} RV \vdash_{} r^{C} \in RV \rightarrow_{A} RV $}\AxiomC{$ IV \rightarrow_{C} BFV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV \vdash_{} \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV $}\AxiomC{$ SMCA \rightarrow_{C} IV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV \vdash_{} r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV $}\AxiomC{$ SMCA \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{C} \in SMCA \vdash_{} a^{C} \in SMCA $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA \vdash_{} r(a)^{C} \in IV \rightarrow_{A} IV $}\AxiomC{$ PIV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV \vdash_{} \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV $}\AxiomC{$ PIV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in PIV \vdash_{} \textcolor{red}{e_{?}}^{A} \in PIV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV \vdash_{} \textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})^{A} \in IV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV \vdash_{} r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}}))^{C} \in IV $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV \vdash_{} \textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))^{A} \in BFV \rightarrow_{A} RV $}\AxiomC{$ BFV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in BFV \vdash_{} \textcolor{red}{e_{?}}^{A} \in BFV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV, \textcolor{red}{e_{?}}^{A} \in BFV \vdash_{} \textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}})^{A} \in RV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in RV \rightarrow_{A} RV, \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV, \textcolor{red}{e_{?}}^{A} \in BFV \vdash_{} r(\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}}))^{C} \in RV $}\end{prooftree}&quot;</span>
 : string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chke7" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chke7"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage preAssessmentRequirementsWithEvidHoles).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
 
-<span class="s2">- Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and breakdown-of-formulations-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then recipe-valid is supported by $r(\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}}))$ which certifier uses, because</span>
+<span class="s2">- Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and breakdown-of-formulations-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then recipe-valid is supported by $r(\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}}))$ which certifier uses, because</span>
 <span class="s2">  - Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses then (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, because</span>
 <span class="s2">  - (recipe-valid, believed by applicant, implies recipe-valid) is a veracity claim.</span>
 <span class="s2">  - by assumption.</span>
-<span class="s2">  - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and breakdown-of-formulations-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then recipe-valid is supported by $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}})$ which applicant uses, because</span>
-<span class="s2">    - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is supported by $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))$ which applicant uses, because</span>
+<span class="s2">  - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and breakdown-of-formulations-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then recipe-valid is supported by $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}})$ which applicant uses, because</span>
+<span class="s2">    - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is supported by $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))$ which applicant uses, because</span>
 <span class="s2">      - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses then (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, because</span>
 <span class="s2">      - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is a veracity claim.</span>
 <span class="s2">      - by assumption.</span>
-<span class="s2">      - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then ingredients-valid is supported by $r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}}))$ which certifier uses, because</span>
+<span class="s2">      - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then ingredients-valid is supported by $r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}}))$ which certifier uses, because</span>
 <span class="s2">        - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, and successful-market-compliance-assessment is supported by $a$ which certifier uses then (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $r(a)$ which certifier uses, because</span>
 <span class="s2">          - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses then (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, because</span>
 <span class="s2">          - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is a veracity claim.</span>
@@ -2993,12 +3172,12 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 <span class="s2">          - successful-market-compliance-assessment is a veracity claim.</span>
 <span class="s2">          - by assumption.</span>
 <span class="s2">        - by a logical rule for implication.</span>
-<span class="s2">        - Assuming (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then ingredients-valid is supported by $\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})$ which applicant uses, because</span>
-<span class="s2">          - Assuming (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses then (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, because</span>
-<span class="s2">          - (ingredients-valid, believed by applicant, implies ingredients-valid) is a veracity claim.</span>
+<span class="s2">        - Assuming (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then ingredients-valid is supported by $\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})$ which applicant uses, because</span>
+<span class="s2">          - Assuming (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses then (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, because</span>
+<span class="s2">          - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is a veracity claim.</span>
 <span class="s2">          - by assumption.</span>
-<span class="s2">          - Assuming ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, because</span>
-<span class="s2">          - ingredients-valid is a veracity claim.</span>
+<span class="s2">          - Assuming percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, because</span>
+<span class="s2">          - percentage-ingredients-valid is a veracity claim.</span>
 <span class="s2">          - by assumption.</span>
 <span class="s2">        - by a logical rule for implication.</span>
 <span class="s2">      - by a logical rule for implication.</span>
@@ -3015,89 +3194,115 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 <span class="s2">### Veracity proof that recipe-valid is held by certifier</span>
 <span class="s2">  - recipe-valid is held by certifier by the evidence $r(\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}}))$</span>
-<span class="s2">    - Assumptions made:      - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - Assumptions made:</span>
+<span class="s2">      collapsed:: true</span>
+<span class="s2">      - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
 <span class="s2">      - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">      - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">      - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">      - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">      - ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">      - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">      - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">      - breakdown-of-formulations-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">    - Trust relations used: None</span>
 <span class="s2">    - Logical rule used: implication elimination</span>
 <span class="s2">      - Sub-proofs:</span>
 <span class="s2">        - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">          - Assumptions made:            - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">          - Trust relations used: None</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
 <span class="s2">          - Logical rule used: we assume this</span>
 <span class="s2">        - recipe-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}})$</span>
-<span class="s2">          - Assumptions made:            - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">            - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">            - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">            - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">            - ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">            - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">            - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">            - breakdown-of-formulations-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">          - Trust relations used: None</span>
 <span class="s2">          - Logical rule used: implication elimination</span>
 <span class="s2">            - Sub-proofs:</span>
 <span class="s2">              - (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))$</span>
-<span class="s2">                - Assumptions made:                  - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">                  - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">                  - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                  - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                  - ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                  - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">                  - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">                - Logical rule used: implication elimination</span>
 <span class="s2">                  - Sub-proofs:</span>
 <span class="s2">                    - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                      - Assumptions made:                        - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">                      - Logical rule used: we assume this</span>
 <span class="s2">                    - ingredients-valid is held by certifier by the evidence $r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}}))$</span>
-<span class="s2">                      - Assumptions made:                        - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
+<span class="s2">                      collapsed:: true</span>
+<span class="s2">                      - Assumptions made:</span>
+<span class="s2">                        collapsed:: true</span>
+<span class="s2">                        - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">                        - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                        - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                        - ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                      - Trust relations used: None</span>
+<span class="s2">                        - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">                        - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">                      - Logical rule used: implication elimination</span>
 <span class="s2">                        - Sub-proofs:</span>
 <span class="s2">                          - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by certifier by the evidence $r(a)$</span>
-<span class="s2">                            - Assumptions made:                              - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
+<span class="s2">                            collapsed:: true</span>
+<span class="s2">                            - Assumptions made:</span>
+<span class="s2">                              collapsed:: true</span>
+<span class="s2">                              - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">                              - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                            - Trust relations used: None</span>
 <span class="s2">                            - Logical rule used: implication elimination</span>
 <span class="s2">                              - Sub-proofs:</span>
 <span class="s2">                                - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                                  - Assumptions made:                                    - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
 <span class="s2">                                - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                                  - Assumptions made:                                    - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
 <span class="s2">                          - ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})$</span>
-<span class="s2">                            - Assumptions made:                              - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                              - ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                            - Trust relations used: None</span>
+<span class="s2">                            collapsed:: true</span>
+<span class="s2">                            - Assumptions made:</span>
+<span class="s2">                              collapsed:: true</span>
+<span class="s2">                              - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">                              - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">                            - Logical rule used: implication elimination</span>
 <span class="s2">                              - Sub-proofs:</span>
-<span class="s2">                                - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                                  - Assumptions made:                                    - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">                                - ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                                  - Assumptions made:                                    - ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                                  - Trust relations used: None</span>
+<span class="s2">                                - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
+<span class="s2">                                  collapsed:: true</span>
+<span class="s2">                                  - Assumptions made:</span>
+<span class="s2">                                    collapsed:: true</span>
+<span class="s2">                                    - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">                                  - Logical rule used: we assume this</span>
 <span class="s2">              - breakdown-of-formulations-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                - Assumptions made:                  - breakdown-of-formulations-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                - Trust relations used: None</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - breakdown-of-formulations-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
 <span class="s2">                - Logical rule used: we assume this</span>
 <span class="s2">  - Atomic evidence is abbreviated as follows:</span>
 <span class="s2">    collapsed:: true</span>
-<span class="s2">    - r</span>
-<span class="s2">    - a</span>
-<span class="s2">    - e_{1}</span>
-<span class="s2">    - e_{2}</span>
+<span class="s2">    - r = review</span>
+<span class="s2">    - a = assess</span>
+<span class="s2">    - e_{1} = atomic evidence 1</span>
+<span class="s2">    - e_{2} = atomic evidence 2</span>
 
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
