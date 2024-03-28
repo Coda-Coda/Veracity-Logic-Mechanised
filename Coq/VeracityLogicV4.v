@@ -1980,10 +1980,8 @@ eapply (assume review).
 eapply (assume assess certifier).
 eapply (impl_elim applicant _ percentage_ingredients_valid).
 eapply (assume compile).
-(* eapply (assume percentage_ingredients_list). *)
-(* eapply (assume breakdown_of_formulations_list). *)
-eapply hole.
-eapply hole.
+eapply (assume percentage_ingredients_list). 
+eapply (assume breakdown_of_formulations_list).
 Defined.
 
 (*|
@@ -1999,6 +1997,37 @@ Eval compute in showForProofTree useCaseExample1.
 
 Eval compute in (showForNaturalLanguage useCaseExample1).
 Eval compute in showForLogSeq useCaseExample1.
+
+Definition useCaseExample1WithEvidHoles : proofTreeOf (JudgementPart certifier recipe_valid).
+Proof.
+eapply (impl_elim applicant _ recipe_valid).
+eapply (assume review).
+eapply (impl_elim applicant _ breakdown_of_formulations_valid).
+eapply (impl_elim certifier _ ingredients_valid).
+eapply (assume HoleEvid).
+eapply (impl_elim applicant _ (ingredients_valid)).
+eapply (impl_elim _ _ successful_market_compliance_assessment).
+eapply (assume review).
+eapply (assume assess certifier).
+eapply (impl_elim applicant _ percentage_ingredients_valid).
+eapply (assume HoleEvid).
+eapply (assume HoleEvid). 
+eapply (assume HoleEvid).
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in showForProofTree useCaseExample1WithEvidHoles.
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage useCaseExample1WithEvidHoles).
+Eval compute in showForLogSeq useCaseExample1WithEvidHoles.
 
 Open Scope string_scope.
 
