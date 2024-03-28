@@ -547,7 +547,7 @@ Instance : ShowForProofTree evid := {
   fix showForProofTreeEvid e :=
       match e with
       | AtomicEvid name => showForProofTree name
-      | HoleEvid => "e_{?}"
+      | HoleEvid => "e_{???}"
       | Pair e1 e2 => "(" ++ (showForProofTreeEvid e1) ++ ", "
                           ++ (showForProofTreeEvid e2) ++ ")"
       | Left e => "i(" ++ showForProofTreeEvid e ++ ")"
