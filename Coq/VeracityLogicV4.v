@@ -1,5 +1,5 @@
 (*|
-Veracity Logic Mechanised in Coq V3
+Veracity Logic Mechanised in Coq V4
 ===================================
 
 This version aims to more closely align with the draft paper.
