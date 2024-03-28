@@ -1156,16 +1156,24 @@ match j with
 | JudgementPart a c => "### Veracity proof that " ++ showForLogSeq c ++ " is held by " ++ showForLogSeq a
 end.
 
-Definition showForLogSeq_proofTreeOf j p := "
+Instance : ShowForLogSeq string := { showForLogSeq := id}.
+
+Definition showForLogSeq_proofTreeOf j p := 
+let evidenceList := (removeDups (filter isAtomicEvidence (getAllEvidence j p))) in
+let evidenceWithNames := map (fun e => match e with
+                                   | AtomicEvid n => showForLogSeq e ++ " = " ++ showForLogSeq n
+                                   | _ => ""
+                                   end) evidenceList in
+"
 
 " ++ printProofTitle j ++ "
 " ++ showForLogSeq_proofTreeOf_helper "  " j p ++ "
   - Atomic evidence is abbreviated as follows:
     collapsed:: true
-" ++ showForLogSeq_list "    " (removeDups (filter isAtomicEvidence (getAllEvidence j p))) ++ "
+" ++ showForLogSeq_list "    " evidenceWithNames ++ "
 
 ".
-Instance showLong2ProofTreeOfInstance (j : judgementPart)
+Instance showForLogSeq_proofTreeOf_instance (j : judgementPart)
   : ShowForLogSeq (proofTreeOf j) := { showForLogSeq := showForLogSeq_proofTreeOf j}.
 
 
