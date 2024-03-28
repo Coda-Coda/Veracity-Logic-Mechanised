@@ -759,7 +759,7 @@ Definition showForNaturalLanguage_judgement (Ps : list judgement) (Ts : list tru
       | (h :: tl) as Ps => "Assuming " ++ showForNaturalLanguage Ps ++ " then " ++ showForNaturalLanguage (Judgement computedEvidence j)
     end.
 
-Definition showForLogSeq_judgement (Ps : list judgement) (Ts : list trustRelation) (indent : string) (j : judgementPart) (p : proofTreeOf j) :=
+(* Definition showForLogSeq_judgement (Ps : list judgement) (Ts : list trustRelation) (indent : string) (j : judgementPart) (p : proofTreeOf j) :=
   let computedEvidence := computeEvidence j p in  
   match Ps,Ts with
         | [],[] => showForLogSeq (Judgement computedEvidence j) ++ "
@@ -774,35 +774,32 @@ Definition showForLogSeq_judgement (Ps : list judgement) (Ts : list trustRelatio
         | (h :: tl),(h2::tl2) => showForLogSeq (Judgement computedEvidence j) ++ "
 " ++ indent ++ "- " ++ "Assumptions made:" ++ showForLogSeq_list ("  " ++ indent) Ps ++ "
 " ++ indent ++ "- " ++ "Trust relations used:" ++ showForLogSeq_list ("  " ++ indent) Ts
+      end. *)
+
+
+Definition showForLogSeq_judgement (Ps : list judgement) (Ts : list trustRelation) (indent : string) (j : judgementPart) (p : proofTreeOf j) :=
+  let computedEvidence := computeEvidence j p in        
+    match Ps,Ts with
+        | [],[] => showForLogSeq (Judgement computedEvidence j)
+        | (h :: tl),[] => showForLogSeq (Judgement computedEvidence j) ++ "
+" ++ indent ++ "collapsed:: true
+" ++ indent ++ "- " ++ "Assumptions made:
+" ++ indent ++ "  collapsed:: true
+" ++ showForLogSeq_list ("  " ++ indent) Ps
+        | [],(h :: tl) => showForLogSeq (Judgement computedEvidence j) ++ "
+" ++ indent ++ "collapsed:: true
+" ++ indent ++ "- " ++ "Trust relations used:
+" ++ indent ++ "  collapsed:: true
+" ++ showForLogSeq_list ("  " ++ indent) Ts
+        | (h :: tl),(h2::tl2) => showForLogSeq (Judgement computedEvidence j) ++ "
+" ++ indent ++ "collapsed:: true
+" ++ indent ++ "- " ++ "Assumptions made:
+" ++ indent ++ "  collapsed:: true
+" ++ showForLogSeq_list ("  " ++ indent) Ps ++ "
+" ++ indent ++ "- " ++ "Trust relations used:
+" ++ indent ++ "  collapsed:: true
+" ++ showForLogSeq_list ("  " ++ indent) Ts
       end.
-
-
-(* Definition showForLogSeq_judgement (Ps : list singleJudgement) (Ts : list trustRelationInfo) (indent : string) (j : judgement) (p : proofTreeOf j) :=
-  match j with
-  | Entail s => 
-      match Ps,Ts with
-        | [],[] => showForLogSeq s
-        | (h :: tl),[] => showForLogSeq s ++ "
-" ++ indent ++ "collapsed:: true
-" ++ indent ++ "- " ++ "Assumptions made:
-" ++ indent ++ "  collapsed:: true
-" ++ showLong2List ("  " ++ indent) Ps
-        | [],(h :: tl) => showForLogSeq s ++ "
-" ++ indent ++ "collapsed:: true
-" ++ indent ++ "- " ++ "Trust relations used:
-" ++ indent ++ "  collapsed:: true
-" ++ showLong2List ("  " ++ indent) Ts
-        | (h :: tl),(h2::tl2) => showForLogSeq s ++ "
-" ++ indent ++ "collapsed:: true
-" ++ indent ++ "- " ++ "Assumptions made:
-" ++ indent ++ "  collapsed:: true
-" ++ showLong2List ("  " ++ indent) Ps ++ "
-" ++ indent ++ "- " ++ "Trust relations used:
-" ++ indent ++ "  collapsed:: true
-" ++ showLong2List ("  " ++ indent) Ts
-      end
-  | IsAVeracityClaim c => showForNaturalLanguage c ++ " is a veracity claim" (* ShowLong2 won't actually use this branch. *)
-  end. *)
 
 Fixpoint getAllTrustRelationsUsed (j : judgementPart) (p : proofTreeOf j)
   : list trustRelation :=
