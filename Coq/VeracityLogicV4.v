@@ -81,6 +81,11 @@ Inductive atomic_evid_name :=
   | _belief_
   | _testing_
   | _audit_
+  | _compile_
+  | _review_
+  | _assess_
+  | _ingredients_percentage_list_
+  | _breakdown_of_formulations_list_
 .
 
 Scheme Equality for atomic_evid_name.
@@ -96,6 +101,8 @@ Inductive actor_name :=
   | _winery_
   | _P_
   | _Q_
+  | _applicant_
+  | _certifier_
 .
 
 Scheme Equality for actor_name.
@@ -111,7 +118,12 @@ Inductive claim_name :=
   | _healthy_
   | _nonToxic_
   | _organic_
-.
+  | _ingredients_valid_
+  | _recipe_valid_
+  | _percentage_ingredients_valid_
+  | _breakdown_of_formulations_valid_
+  | _successful_market_compliance_assessment_
+. 
 
 Scheme Equality for claim_name.
 
@@ -146,6 +158,11 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _belief_ => "b"
       | _testing_ => "t"
       | _audit_ => "a"
+      | _compile_=> "c"
+      | _review_=> "r"
+      | _assess_ => "a"
+      | _ingredients_percentage_list_ => "e_{PI}"
+      | _breakdown_of_formulations_list_=> "e_{BF}"
     end
   }.
 
@@ -162,6 +179,8 @@ Instance : ShowForProofTree actor_name := {
       | _winery_ => "w"
       | _P_ => "P"
       | _Q_ => "Q"
+      | _applicant_ => "A"
+      | _certifier_ => "C"
     end
   }.
 
@@ -178,6 +197,11 @@ Instance : ShowForProofTree claim_name := {
       | _healthy_ => "H"
       | _nonToxic_ => "N"
       | _organic_ => "O"
+      | _ingredients_valid_ => "IV"
+      | _recipe_valid_ => "RV"      
+      | _percentage_ingredients_valid_ => "PIV"
+      | _breakdown_of_formulations_valid_ => "BFV"
+      | _successful_market_compliance_assessment_ => "SMCA"
     end
   }.
 
@@ -215,6 +239,11 @@ Instance : ShowForNaturalLanguage atomic_evid_name := {
       | _belief_ => "belief"
       | _testing_ => "testing"
       | _audit_ => "audit"
+      | _compile_=> "compile"
+      | _review_=> "review"
+      | _assess_ => "assess"
+      | _ingredients_percentage_list_ => "ingredients percentage list"
+      | _breakdown_of_formulations_list_ => "breakdown of formulations list"
     end
   }.
 Instance : ShowForLogSeq atomic_evid_name := {showForLogSeq := showForNaturalLanguage}.
@@ -232,6 +261,8 @@ Instance : ShowForNaturalLanguage actor_name := {
       | _winery_ => "winery"
       | _P_ => "Penelope"
       | _Q_ => "Quintin"
+      | _applicant_ => "applicant"
+      | _certifier_ => "certifier"
     end
   }.
 Instance : ShowForLogSeq actor_name := {showForLogSeq := showForNaturalLanguage}.
@@ -249,6 +280,11 @@ Instance : ShowForNaturalLanguage claim_name := {
       | _healthy_ => "healthy"
       | _nonToxic_ => "non-toxic"
       | _organic_ => "organic"
+      | _ingredients_valid_ => "ingredients-valid"
+      | _recipe_valid_ => "recipe-valid"      
+      | _percentage_ingredients_valid_ => "percentage-ingredients-valid"
+      | _breakdown_of_formulations_valid_ => "breakdown-of-formulations-valid"
+      | _successful_market_compliance_assessment_ => "successful-market-compliance-assessment"
     end
   }.
 Instance : ShowForLogSeq claim_name := {showForLogSeq := showForNaturalLanguage}.
@@ -1917,6 +1953,53 @@ Eval compute in showForProofTree whiteboardExample.
 Eval compute in (showForNaturalLanguage whiteboardExample).
 Eval compute in showForLogSeq whiteboardExample.
 
+Definition certifier := Actor _certifier_.
+Definition applicant := Actor _applicant_.
+Definition ingredients_valid := AtomicClaim _ingredients_valid_.
+Definition recipe_valid := AtomicClaim _recipe_valid_.
+Definition percentage_ingredients_valid := AtomicClaim _ingredients_valid_.
+Definition breakdown_of_formulations_valid := AtomicClaim _breakdown_of_formulations_valid_.
+Definition successful_market_compliance_assessment := AtomicClaim _successful_market_compliance_assessment_.
+Definition compile := AtomicEvid _compile_.
+Definition review := AtomicEvid _review_.
+Definition assess := AtomicEvid _assess_.
+Definition percentage_ingredients_list := AtomicEvid _ingredients_percentage_list_.
+Definition breakdown_of_formulations_list := AtomicEvid _breakdown_of_formulations_list_.
+
+
+Definition useCaseExample1 : proofTreeOf (JudgementPart certifier recipe_valid).
+Proof.
+eapply (impl_elim applicant _ recipe_valid).
+eapply (assume review).
+eapply (impl_elim applicant _ breakdown_of_formulations_valid).
+eapply (impl_elim certifier _ ingredients_valid).
+eapply (assume compile).
+eapply (impl_elim applicant _ (ingredients_valid)).
+eapply (impl_elim _ _ successful_market_compliance_assessment).
+eapply (assume review).
+eapply (assume assess certifier).
+eapply (impl_elim applicant _ percentage_ingredients_valid).
+eapply (assume compile).
+(* eapply (assume percentage_ingredients_list). *)
+(* eapply (assume breakdown_of_formulations_list). *)
+eapply hole.
+eapply hole.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in showForProofTree useCaseExample1.
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage useCaseExample1).
+Eval compute in showForLogSeq useCaseExample1.
+
 Open Scope string_scope.
 
 Definition allProofsAsString := 
@@ -1932,7 +2015,8 @@ Definition allProofsAsString :=
  ++ showForProofTree fromPaper1
  ++ showForProofTree exampleFromJosh
  ++ showForProofTree exampleFromJoshAuto
- ++ showForProofTree whiteboardExample.
+ ++ showForProofTree whiteboardExample
+ ++ showForProofTree useCaseExample1.
 
 (* Definition allProofsAsString := 
     showForLogSeq concreteProofTreeExampleWith2Conjuncts
