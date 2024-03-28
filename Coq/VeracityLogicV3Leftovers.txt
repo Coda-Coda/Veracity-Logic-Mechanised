@@ -222,3 +222,82 @@ eapply H. apply H0.
 all: contradiction.
 Qed.
 *)
+
+
+Open Scope char_scope.
+
+Definition natToDigit (n : nat) : ascii :=
+  match n with
+    | 0 => "0"
+    | 1 => "1"
+    | 2 => "2"
+    | 3 => "3"
+    | 4 => "4"
+    | 5 => "5"
+    | 6 => "6"
+    | 7 => "7"
+    | 8 => "8"
+    | _ => "9"
+  end.
+
+Require Import Coq.Numbers.Natural.Peano.NPeano.
+Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
+  let acc' := String (natToDigit (n mod 10)) acc in
+  match time with
+    | 0 => acc'
+    | S time' =>
+      match n / 10 with
+        | 0 => acc'
+        | n' => writeNatAux time' n' acc'
+      end
+  end.
+
+Definition writeNat (n : nat) : string :=
+  writeNatAux n n "".
+
+Eval compute in writeNat 42.
+
+Instance : Show nat := { show := writeNat }.
+
+
+
+  | IsAVeracityClaim c => show c ++ " \em{ is a veracity claim}"
+
+
+
+
+
+
+
+
+
+
+
+
+Instance : ShowForProofTree judgementPart := {
+  showForProofTree j :=
+  match j with
+    | JudgementPart a c => showForProofTree a ++ " \in " ++ showForProofTree c
+  end
+}.
+
+Instance : ShowForNaturalLanguage judgementPart := {
+  showForNaturalLanguage j :=
+  match j with
+    | JudgementPart a c => showForProofTree a ++ " \in " ++ showForProofTree c
+  end
+}.
+
+Instance : ShowForLogSeq judgementPart := {
+  showForLogSeq j :=
+  match j with
+    | JudgementPart a c => showForProofTree a ++ " \in " ++ showForProofTree c
+  end
+}.
+
+Definition showJudgementForholes (j : judgement) :=
+  match j with
+  | Entail (SingleJudgement a c) => 
+      
+  | IsAVeracityClaim c => show c
+  end.
