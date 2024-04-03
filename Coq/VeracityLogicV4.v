@@ -1292,23 +1292,25 @@ Definition oneLevelDeeperOfList step j (l : list (proofTreeOf j)) : list (proofT
 .. coq::
 |*)
 
+(* Not needed, using proofSearch instead which has a similar idea to using this but has some optimisations.
 Fixpoint repeatFn {A : Type} (n : nat) (f : A -> A) :=
 match n with
   | 0 => id
   | 1 => f
   | S n' => fun a => f (repeatFn n' f a)
 end.
+*)
 
 Open Scope list_scope.
-
+(* Not needed, using proofSearch instead which has a similar idea to using this but has some optimisations.
 Fixpoint repeatListFnAndKeepPartials {A : Type} `{Beq A} (n : nat) (f : list A -> list A) (l : list A) :=
 match n with
   | 0 => []
   | 1 => removeDups (f l)
   | S n' => removeDups ((f l) ++ f (repeatListFnAndKeepPartials n' f l))
 end.
-
 Definition generateProofsWithDepthLimit step j d := repeatListFnAndKeepPartials d (oneLevelDeeperOfList step j).
+*)
 
 Fixpoint noHoles {j : judgementPart} (p : proofTreeOf j) : bool :=
   match p with
