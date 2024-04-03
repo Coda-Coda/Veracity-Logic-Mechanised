@@ -1328,10 +1328,10 @@ Fixpoint noHoles {j : judgementPart} (p : proofTreeOf j) : bool :=
 end
 .
 
-Fixpoint proofSearch step (j : judgementPart) (l : list (proofTreeOf j)) (d : nat) : list (proofTreeOf j) := 
+Fixpoint proofSearch (d : nat) step (j : judgementPart) (l : list (proofTreeOf j))  : list (proofTreeOf j) := 
   match d with
   | 0 => []
-  | S d' => let newL := removeDups (oneLevelDeeperOfList step j l) in (filter noHoles newL) ++ proofSearch step j (filter (fun p => negb (noHoles p)) newL) d'
+  | S d' => let newL := removeDups (oneLevelDeeperOfList step j l) in (filter noHoles newL) ++ proofSearch d' step j (filter (fun p => negb (noHoles p)) newL) 
   end.
 
 (** TODO: Try removing string comparison and replacing it with more native comparison, might cause speedup. *)
@@ -1343,7 +1343,7 @@ Fixpoint proofSearch step (j : judgementPart) (l : list (proofTreeOf j)) (d : na
 
 Open Scope beq_scope.
 
-Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch proofStepExample1 _  [toProofTreeWithHole a1 ((Implies a1 _|_ C))] 4)))).
+Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch 4 proofStepExample1 _  [toProofTreeWithHole a1 ((Implies a1 _|_ C))])))).
 
 Definition proofStepExample2 (j : judgementPart) : list (proofTreeOf j) :=
   match j with
@@ -1362,7 +1362,7 @@ Definition proofStepExample2 (j : judgementPart) : list (proofTreeOf j) :=
 
 Close Scope beq_scope.
 
-Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch proofStepExample2 _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))] 10)))).
+Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch 10 proofStepExample2 _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))])))).
 
 (* Time Eval compute in (showListOfProofTrees (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C) /\' (C /\' C) /\' (C /\' C))] 20)))). *)
 (* Time Eval compute in (showListOfProofTrees ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))). *)
