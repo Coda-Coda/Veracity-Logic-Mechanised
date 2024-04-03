@@ -700,14 +700,14 @@ Fixpoint showForLogSeq_list {A} `{ShowForLogSeq A} (indent : string) (l : list A
     showForLogSeq l := showForLogSeq_list indent l
   }. *)
 
-Fixpoint showListForProofs {A} `{ShowForProofTree A} (l : list A) :=
+Fixpoint showListOfProofTrees {A} `{ShowForProofTree A} (l : list A) :=
     match l with
       | [] => ""
       | h :: tl => "
 
 ----------------
 
-" ++ showForProofTree h ++ showListForProofs tl
+" ++ showForProofTree h ++ showListOfProofTrees tl
     end.
 
 Instance : ShowForProofTree judgement := {
@@ -1344,7 +1344,7 @@ Fixpoint proofSearch step (j : judgementPart) (l : list (proofTreeOf j)) (d : na
 
 Open Scope beq_scope.
 
-Timeout 20 Eval vm_compute in (showListForProofs (( (proofSearch proofStepExample1 _  [toProofTreeWithHole a1 ((Implies a1 _|_ C))] 4)))).
+Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch proofStepExample1 _  [toProofTreeWithHole a1 ((Implies a1 _|_ C))] 4)))).
 
 Definition proofStepExample2 (j : judgementPart) : list (proofTreeOf j) :=
   match j with
@@ -1363,10 +1363,10 @@ Definition proofStepExample2 (j : judgementPart) : list (proofTreeOf j) :=
 
 Close Scope beq_scope.
 
-Timeout 20 Eval vm_compute in (showListForProofs (( (proofSearch proofStepExample2 _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))] 10)))).
+Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch proofStepExample2 _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))] 10)))).
 
-(* Time Eval compute in (showListForProofs (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C) /\' (C /\' C) /\' (C /\' C))] 20)))). *)
-(* Time Eval compute in (showListForProofs ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))). *)
+(* Time Eval compute in (showListOfProofTrees (( (proofSearch _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C) /\' (C /\' C) /\' (C /\' C))] 20)))). *)
+(* Time Eval compute in (showListOfProofTrees ( filter noHoles (( (generateProofsWithDepthLimit _ 7  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))]))))). *)
 
 (*|
 .. coq::
@@ -1923,7 +1923,7 @@ Close Scope beq_scope.
    :class: coq-math
 |*)
 
-Time Timeout 5 Eval vm_compute in (showListForProofs (( (proofSearch exampleFromJoshProofStep _  [toProofTreeWithHole retailer healthy] 10)))).
+Time Timeout 5 Eval vm_compute in (showListOfProofTrees (( (proofSearch exampleFromJoshProofStep _  [toProofTreeWithHole retailer healthy] 10)))).
 
 (*|
 .. coq::
