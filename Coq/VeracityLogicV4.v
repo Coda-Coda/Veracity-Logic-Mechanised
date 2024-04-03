@@ -700,16 +700,6 @@ Fixpoint showForLogSeq_list {A} `{ShowForLogSeq A} (indent : string) (l : list A
     showForLogSeq l := showForLogSeq_list indent l
   }. *)
 
-Fixpoint showListOfProofTrees {A} `{ShowForProofTree A} (l : list A) :=
-    match l with
-      | [] => ""
-      | h :: tl => "
-
-----------------
-
-" ++ showForProofTree h ++ showListOfProofTrees tl
-    end.
-
 Instance : ShowForProofTree judgement := {
   showForProofTree j :=
   match j with
@@ -1176,6 +1166,15 @@ let evidenceWithNames := map (fun e => match e with
 Instance showForLogSeq_proofTreeOf_instance (j : judgementPart)
   : ShowForLogSeq (proofTreeOf j) := { showForLogSeq := showForLogSeq_proofTreeOf j}.
 
+Fixpoint showListOfProofTrees {j : judgementPart} (l : list (proofTreeOf j)) :=
+    match l with
+      | [] => ""
+      | h :: tl => "
+
+----------------
+
+" ++ showForProofTree h ++ showListOfProofTrees tl
+    end.
 
 (* |
 
