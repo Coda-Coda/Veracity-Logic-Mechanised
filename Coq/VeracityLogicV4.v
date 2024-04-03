@@ -1400,10 +1400,8 @@ Definition trustV := Trust _V_.
 
 Definition concreteProofTreeExampleWith2Conjuncts : 
 proofTreeOf (\by P \in (C1 /\' C2)).
-epose proof (and_intro _ C1 C2).
-simpl in H.
-apply H.
-apply (assume l).
+apply and_intro.
+apply (assume e).
 apply (assume s).
 Defined.
 
