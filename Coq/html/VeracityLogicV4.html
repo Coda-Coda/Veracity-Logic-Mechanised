@@ -1236,24 +1236,26 @@ indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps T
 <span class="c">(* Eval compute in oneLevelDeeper _ (toProofTreeWithHole a1 (C /\&#39; C)). *)</span>
 
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">oneLevelDeeperOfList</span> <span class="nv">step</span> <span class="nv">j</span> (<span class="nv">l</span> : list (proofTreeOf j)) : list (proofTreeOf j) :=
- removeDups (flat_map (oneLevelDeeper step j) l).</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-wsp"><span class="c">(* Eval compute in  showForProofTree (oneLevelDeeperOfList _ (oneLevelDeeperOfList _ (oneLevelDeeper _ (toProofTreeWithHole a1 (C /\&#39; C /\&#39; C))))). *)</span></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">repeatFn</span> {<span class="nv">A</span> : <span class="kt">Type</span>} (<span class="nv">n</span> : nat) (<span class="nv">f</span> : A -&gt; A) :=
-<span class="kr">match</span> n <span class="kr">with</span>
-  | <span class="mi">0</span> =&gt; id
-  | <span class="mi">1</span> =&gt; f
-  | S n&#39; =&gt; <span class="kr">fun</span> <span class="nv">a</span> =&gt; f (repeatFn n&#39; f a)
-<span class="kr">end</span>.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
+ removeDups (flat_map (oneLevelDeeper step j) l).</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-wsp"><span class="c">(* Eval compute in  showForProofTree (oneLevelDeeperOfList _ (oneLevelDeeperOfList _ (oneLevelDeeper _ (toProofTreeWithHole a1 (C /\&#39; C /\&#39; C))))). *)</span></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-wsp"><span class="c">(* Not needed, using proofSearch instead which has a similar idea to using this but has some optimisations.</span>
+<span class="c">Fixpoint repeatFn {A : Type} (n : nat) (f : A -&gt; A) :=</span>
+<span class="c">match n with</span>
+<span class="c">  | 0 =&gt; id</span>
+<span class="c">  | 1 =&gt; f</span>
+<span class="c">  | S n&#39; =&gt; fun a =&gt; f (repeatFn n&#39; f a)</span>
+<span class="c">end.</span>
+<span class="c">*)</span>
+
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> list_scope.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">repeatListFnAndKeepPartials</span> {<span class="nv">A</span> : <span class="kt">Type</span>} `{Beq A} (n : nat) (f : list A -&gt; list A) (l : list A) :=
-<span class="kr">match</span> n <span class="kr">with</span>
-  | <span class="mi">0</span> =&gt; []
-  | <span class="mi">1</span> =&gt; removeDups (f l)
-  | S n&#39; =&gt; removeDups ((f l) ++ f (repeatListFnAndKeepPartials n&#39; f l))
-<span class="kr">end</span>.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">generateProofsWithDepthLimit</span> <span class="nv">step</span> <span class="nv">j</span> <span class="nv">d</span> := repeatListFnAndKeepPartials d (oneLevelDeeperOfList step j).</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp"><span class="c">(* Not needed, using proofSearch instead which has a similar idea to using this but has some optimisations.</span>
+<span class="c">Fixpoint repeatListFnAndKeepPartials {A : Type} `{Beq A} (n : nat) (f : list A -&gt; list A) (l : list A) :=</span>
+<span class="c">match n with</span>
+<span class="c">  | 0 =&gt; []</span>
+<span class="c">  | 1 =&gt; removeDups (f l)</span>
+<span class="c">  | S n&#39; =&gt; removeDups ((f l) ++ f (repeatListFnAndKeepPartials n&#39; f l))</span>
+<span class="c">end.</span>
+<span class="c">Definition generateProofsWithDepthLimit step j d := repeatListFnAndKeepPartials d (oneLevelDeeperOfList step j).</span>
+<span class="c">*)</span>
+
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">noHoles</span> {<span class="nv">j</span> : judgementPart} (<span class="nv">p</span> : proofTreeOf j) : bool :=
   <span class="kr">match</span> p <span class="kr">with</span>
 | hole j =&gt; false
@@ -1272,15 +1274,15 @@ indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps T
 <span class="kr">end</span>
 .</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">proofSearch</span> <span class="nv">step</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">l</span> : list (proofTreeOf j)) (<span class="nv">d</span> : nat) : list (proofTreeOf j) := 
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">proofSearch</span> (<span class="nv">d</span> : nat) <span class="nv">step</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">l</span> : list (proofTreeOf j))  : list (proofTreeOf j) := 
   <span class="kr">match</span> d <span class="kr">with</span>
   | <span class="mi">0</span> =&gt; []
-  | S d&#39; =&gt; <span class="kr">let</span> <span class="nv">newL</span> := removeDups (oneLevelDeeperOfList step j l) <span class="kr">in</span> (filter noHoles newL) ++ proofSearch step j (filter (<span class="kr">fun</span> <span class="nv">p</span> =&gt; negb (noHoles p)) newL) d&#39;
+  | S d&#39; =&gt; <span class="kr">let</span> <span class="nv">newL</span> := removeDups (oneLevelDeeperOfList step j l) <span class="kr">in</span> (filter noHoles newL) ++ proofSearch d&#39; step j (filter (<span class="kr">fun</span> <span class="nv">p</span> =&gt; negb (noHoles p)) newL) 
   <span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 <span class="sd">(** TODO: Try removing string comparison and replacing it with more native comparison, might cause speedup. *)</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> beq_scope.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chk9" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9"><span class="kn">Timeout</span> <span class="mi">20</span> <span class="kn">Eval</span> <span class="nb">vm_compute</span> <span class="kr">in</span> (showListOfProofTrees (( (proofSearch proofStepExample1 _  [toProofTreeWithHole a1 ((Implies a1 _|_ C))] <span class="mi">4</span>)))).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
+</span><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chk9" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9"><span class="kn">Timeout</span> <span class="mi">20</span> <span class="kn">Eval</span> <span class="nb">vm_compute</span> <span class="kr">in</span> (showListOfProofTrees (( (proofSearch <span class="mi">4</span> proofStepExample1 _  [toProofTreeWithHole a1 ((Implies a1 _|_ C))])))).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
 
 <span class="s2">----------------</span>
 
@@ -1380,7 +1382,7 @@ indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps T
 </span></span><span class="alectryon-wsp">
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Close Scope</span> beq_scope.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chka" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka"><span class="kn">Timeout</span> <span class="mi">20</span> <span class="kn">Eval</span> <span class="nb">vm_compute</span> <span class="kr">in</span> (showListOfProofTrees (( (proofSearch proofStepExample2 _  [toProofTreeWithHole a1 ((C /\&#39; C) /\&#39; (C /\&#39; C))] <span class="mi">10</span>)))).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
+</span><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chka" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka"><span class="kn">Timeout</span> <span class="mi">20</span> <span class="kn">Eval</span> <span class="nb">vm_compute</span> <span class="kr">in</span> (showListOfProofTrees (( (proofSearch <span class="mi">10</span> proofStepExample2 _  [toProofTreeWithHole a1 ((C /\&#39; C) /\&#39; (C /\&#39; C))])))).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
 
 <span class="s2">----------------</span>
 
@@ -2655,7 +2657,7 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 </span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk94" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk94"><span class="kn">Definition</span> <span class="nf">exampleFromJoshAuto</span> : proofTreeOfClaim healthy.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim healthy</div></blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk95" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk95"><span class="nb">eexists</span> retailer.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> retailer \<span class="kr">in</span> healthy</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk96" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk96"><span class="kn">Time</span> autoProve2 ().</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">2</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">3</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">4</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">5</span></blockquote><blockquote class="alectryon-message">Finished transaction <span class="kr">in</span> <span class="mi">0</span>.<span class="mi">034</span> secs (<span class="mi">0</span>.<span class="mi">034</span>u,<span class="mi">0</span>.s) (successful)</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk96" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk96"><span class="kn">Time</span> autoProve2 ().</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">1</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">2</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">3</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">4</span></blockquote><blockquote class="alectryon-message">Depth:</blockquote><blockquote class="alectryon-message"><span class="mi">5</span></blockquote><blockquote class="alectryon-message">Finished transaction <span class="kr">in</span> <span class="mi">0</span>.<span class="mi">031</span> secs (<span class="mi">0</span>.<span class="mi">031</span>u,<span class="mi">0</span>.s) (successful)</blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk97" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk97"><span class="kn">Show Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">{|
   _a := retailer;
   _p :=
@@ -2703,169 +2705,24 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
       <span class="kr">end</span>
   <span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Close Scope</span> beq_scope.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chk99" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk99"><span class="kn">Time</span> <span class="kn">Timeout</span> <span class="mi">5</span> <span class="kn">Eval</span> <span class="nb">vm_compute</span> <span class="kr">in</span> (showListOfProofTrees (( (proofSearch exampleFromJoshProofStep _  [toProofTreeWithHole retailer healthy] <span class="mi">10</span>)))).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
-
-<span class="s2">----------------</span>
-
-<span class="s2">\begin{prooftree}\AxiomC{$ N \wedge O \rightarrow_{r} H \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H \vdash_{} b^{r} \in N \wedge O \rightarrow_{r} H $}\AxiomC{$ N \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ t^{v} \in N \vdash_{} t^{v} \in N $} \AxiomC{$rTv$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ t^{v} \in N \vdash_{T} t^{r} \in N $}\AxiomC{$ O \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{w} \in O \vdash_{} a^{w} \in O $} \AxiomC{$rTw$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ a^{w} \in O \vdash_{T} a^{r} \in O $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ t^{v} \in N, a^{w} \in O \vdash_{T} (t, a)^{r} \in N \wedge O $} \RightLabel{ $ \rightarrow^{-}_{r} $} \BinaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H, t^{v} \in N, a^{w} \in O \vdash_{T} b((t, a))^{r} \in H $}\end{prooftree}</span>
-
-<span class="s2">----------------</span>
-
-<span class="s2">\begin{prooftree}\AxiomC{$ N \wedge O \rightarrow_{r} H \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H \vdash_{} b^{r} \in N \wedge O \rightarrow_{r} H $}\AxiomC{$ N \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ t^{v} \in N \vdash_{} t^{v} \in N $} \AxiomC{$rTv$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ t^{v} \in N \vdash_{T} t^{r} \in N $}\AxiomC{$ O \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{w} \in O \vdash_{} a^{w} \in O $} \AxiomC{$rTw$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ a^{w} \in O \vdash_{T} a^{r} \in O $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ t^{v} \in N, a^{w} \in O \vdash_{T} (t, a)^{r} \in N \wedge O $} \RightLabel{ $ \rightarrow^{-}_{r} $} \BinaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H, t^{v} \in N, a^{w} \in O \vdash_{T} b((t, a))^{r} \in H $}\end{prooftree}</span>
-
-<span class="s2">----------------</span>
-
-<span class="s2">\begin{prooftree}\AxiomC{$ N \wedge O \rightarrow_{r} H \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H \vdash_{} b^{r} \in N \wedge O \rightarrow_{r} H $}\AxiomC{$ N \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ t^{v} \in N \vdash_{} t^{v} \in N $} \AxiomC{$rTv$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ t^{v} \in N \vdash_{T} t^{r} \in N $}\AxiomC{$ O \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{w} \in O \vdash_{} a^{w} \in O $} \AxiomC{$rTw$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ a^{w} \in O \vdash_{T} a^{r} \in O $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ t^{v} \in N, a^{w} \in O \vdash_{T} (t, a)^{r} \in N \wedge O $} \RightLabel{ $ \rightarrow^{-}_{r} $} \BinaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H, t^{v} \in N, a^{w} \in O \vdash_{T} b((t, a))^{r} \in H $}\end{prooftree}</span>
-
-<span class="s2">----------------</span>
-
-<span class="s2">\begin{prooftree}\AxiomC{$ N \wedge O \rightarrow_{r} H \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H \vdash_{} b^{r} \in N \wedge O \rightarrow_{r} H $}\AxiomC{$ N \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ t^{v} \in N \vdash_{} t^{v} \in N $} \AxiomC{$rTv$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ t^{v} \in N \vdash_{T} t^{r} \in N $}\AxiomC{$ O \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{w} \in O \vdash_{} a^{w} \in O $} \AxiomC{$rTw$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ a^{w} \in O \vdash_{T} a^{r} \in O $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ t^{v} \in N, a^{w} \in O \vdash_{T} (t, a)^{r} \in N \wedge O $} \RightLabel{ $ \rightarrow^{-}_{r} $} \BinaryInfC{$ b^{r} \in N \wedge O \rightarrow_{r} H, t^{v} \in N, a^{w} \in O \vdash_{T} b((t, a))^{r} \in H $}\end{prooftree}&quot;</span>
-     : string</blockquote><blockquote class="alectryon-message">Finished transaction <span class="kr">in</span> <span class="mi">0</span>.<span class="mi">159</span> secs (<span class="mi">0</span>.<span class="mi">159</span>u,<span class="mi">0</span>.s) (successful)</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk9a" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9a"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage exampleFromJoshAuto).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
-
-<span class="s2">- Assuming ((non-toxic and organic), believed by retailer, implies healthy) is supported by $b$ which retailer uses, non-toxic is supported by $t$ which vineyard uses, and organic is supported by $a$ which winery uses then healthy is supported by $b((t, a))$ which retailer uses, because</span>
-<span class="s2">  - Assuming ((non-toxic and organic), believed by retailer, implies healthy) is supported by $b$ which retailer uses then ((non-toxic and organic), believed by retailer, implies healthy) is supported by $b$ which retailer uses, because</span>
-<span class="s2">  - ((non-toxic and organic), believed by retailer, implies healthy) is a veracity claim.</span>
-<span class="s2">  - by assumption.</span>
-<span class="s2">  - Assuming non-toxic is supported by $t$ which vineyard uses, and organic is supported by $a$ which winery uses then (non-toxic and organic) is supported by $(t, a)$ which retailer uses, because</span>
-<span class="s2">    - Assuming non-toxic is supported by $t$ which vineyard uses then non-toxic is supported by $t$ which retailer uses, because</span>
-<span class="s2">      - Assuming non-toxic is supported by $t$ which vineyard uses then non-toxic is supported by $t$ which vineyard uses, because</span>
-<span class="s2">      - non-toxic is a veracity claim.</span>
-<span class="s2">      - by assumption.</span>
-<span class="s2">    - by the trust relation trust relation T.</span>
-<span class="s2">    - Assuming organic is supported by $a$ which winery uses then organic is supported by $a$ which retailer uses, because</span>
-<span class="s2">      - Assuming organic is supported by $a$ which winery uses then organic is supported by $a$ which winery uses, because</span>
-<span class="s2">      - organic is a veracity claim.</span>
-<span class="s2">      - by assumption.</span>
-<span class="s2">    - by the trust relation trust relation T.</span>
-<span class="s2">  - by a logical rule for &#39;and&#39;.</span>
-<span class="s2">- by a logical rule for implication.</span>
-
-<span class="s2">&quot;</span>
-     : string</blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk9b" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9b"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForLogSeq exampleFromJoshAuto.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
-
-<span class="s2">### Veracity proof that healthy is held by retailer</span>
-<span class="s2">  - healthy is held by retailer by the evidence $b((t, a))$</span>
-<span class="s2">    collapsed:: true</span>
-<span class="s2">    - Assumptions made:</span>
-<span class="s2">      collapsed:: true</span>
-<span class="s2">      - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
-<span class="s2">      - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">      - organic is held by winery by the evidence $a$</span>
-<span class="s2">    - Trust relations used:</span>
-<span class="s2">      collapsed:: true</span>
-<span class="s2">      - trust relation T</span>
-<span class="s2">    - Logical rule used: implication elimination</span>
-<span class="s2">      - Sub-proofs:</span>
-<span class="s2">        - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
-<span class="s2">          collapsed:: true</span>
-<span class="s2">          - Assumptions made:</span>
-<span class="s2">            collapsed:: true</span>
-<span class="s2">            - ((non-toxic and organic), believed by retailer, implies healthy) is held by retailer by the evidence $b$</span>
-<span class="s2">          - Logical rule used: we assume this</span>
-<span class="s2">        - (non-toxic and organic) is held by retailer by the evidence $(t, a)$</span>
-<span class="s2">          collapsed:: true</span>
-<span class="s2">          - Assumptions made:</span>
-<span class="s2">            collapsed:: true</span>
-<span class="s2">            - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">            - organic is held by winery by the evidence $a$</span>
-<span class="s2">          - Trust relations used:</span>
-<span class="s2">            collapsed:: true</span>
-<span class="s2">            - trust relation T</span>
-<span class="s2">          - Logical rule used: and introduction</span>
-<span class="s2">            - Sub-proofs:</span>
-<span class="s2">              - non-toxic is held by retailer by the evidence $t$</span>
-<span class="s2">                collapsed:: true</span>
-<span class="s2">                - Assumptions made:</span>
-<span class="s2">                  collapsed:: true</span>
-<span class="s2">                  - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">                - Trust relations used:</span>
-<span class="s2">                  collapsed:: true</span>
-<span class="s2">                  - trust relation T</span>
-<span class="s2">                - Logical rule used: trust, with relation trust relation T</span>
-<span class="s2">                  - Sub-proof:</span>
-<span class="s2">                    - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">                      collapsed:: true</span>
-<span class="s2">                      - Assumptions made:</span>
-<span class="s2">                        collapsed:: true</span>
-<span class="s2">                        - non-toxic is held by vineyard by the evidence $t$</span>
-<span class="s2">                      - Logical rule used: we assume this</span>
-<span class="s2">              - organic is held by retailer by the evidence $a$</span>
-<span class="s2">                collapsed:: true</span>
-<span class="s2">                - Assumptions made:</span>
-<span class="s2">                  collapsed:: true</span>
-<span class="s2">                  - organic is held by winery by the evidence $a$</span>
-<span class="s2">                - Trust relations used:</span>
-<span class="s2">                  collapsed:: true</span>
-<span class="s2">                  - trust relation T</span>
-<span class="s2">                - Logical rule used: trust, with relation trust relation T</span>
-<span class="s2">                  - Sub-proof:</span>
-<span class="s2">                    - organic is held by winery by the evidence $a$</span>
-<span class="s2">                      collapsed:: true</span>
-<span class="s2">                      - Assumptions made:</span>
-<span class="s2">                        collapsed:: true</span>
-<span class="s2">                        - organic is held by winery by the evidence $a$</span>
-<span class="s2">                      - Logical rule used: we assume this</span>
-<span class="s2">  - Atomic evidence is abbreviated as follows:</span>
-<span class="s2">    collapsed:: true</span>
-<span class="s2">    - b = belief</span>
-<span class="s2">    - e_{1} = atomic evidence 1</span>
-<span class="s2">    - e_{2} = atomic evidence 2</span>
-<span class="s2">    - t = testing</span>
-<span class="s2">    - e = atomic evidence e</span>
-<span class="s2">    - a = audit</span>
-
-<span class="s2">&quot;</span>
-     : string</blockquote></div></div></small><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Close Scope</span> beq_scope.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chk99" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk99"><span class="kn">Time</span> <span class="kn">Timeout</span> <span class="mi">5</span> <span class="kn">Eval</span> <span class="nb">vm_compute</span> <span class="kr">in</span> (showListOfProofTrees (( (proofSearch exampleFromJoshProofStep _  [toProofTreeWithHole retailer healthy] <span class="mi">10</span>)))).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Finished failing transaction <span class="kr">in</span> <span class="mi">0</span>. secs (<span class="mi">0</span>.u,<span class="mi">0</span>.s) (failure)</blockquote><blockquote class="alectryon-message">In environment
+e4 : evid
+c4 : claim
+The term <span class="s2">&quot;exampleFromJoshProofStep&quot;</span> has type
+ <span class="s2">&quot;forall j : judgementPart, list (proofTreeOf j)&quot;</span>
+while it <span class="kr">is</span> expected to <span class="nb">have</span> type <span class="s2">&quot;nat&quot;</span>.</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage exampleFromJoshAuto).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForLogSeq exampleFromJoshAuto.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk9c" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9c"><span class="kn">Definition</span> <span class="nf">whiteboardExample</span> : proofTreeOfClaim (Implies a2 C1 C2).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim (Implies a2 C1 C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk9d" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9d"><span class="kn">Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOfClaim (Implies a2 C1 C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk9e" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9e"><span class="nb">eexists</span> a2.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> a2 \<span class="kr">in</span> (Implies a2 C1 C2)</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chk9f" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chk9f"><span class="nb">eapply</span> (impl_intro e1).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> a2 \<span class="kr">in</span> C2</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chka0" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka0"><span class="nb">eapply</span> (trust a2 _ _ trustT).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> <span class="nl">?a2</span> \<span class="kr">in</span> C2</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">whiteboardExample</span> : proofTreeOfClaim (Implies a2 C1 C2).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Proof</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eexists</span> a2.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_intro e1).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (trust a2 _ _ trustT).</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> hole.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chka1" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka1"><span class="kn">Unshelve</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">actor</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Unshelve</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">apply</span> a2.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chka2" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka2"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree whiteboardExample.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$\textcolor{red}{\textcolor{red}{e_{?}}^{a_{2}} \in C_{2}}$} \AxiomC{$a_{2}Ta_{2}$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ \textcolor{red}{e_{?}}^{a_{2}} \in C_{2} \vdash_{T} \textcolor{red}{e_{?}}^{a_{2}} \in C_{2} $} \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ \lambda (e_{1})(\textcolor{red}{e_{?}})^{a_{2}} \in C_{1} \rightarrow_{a_{2}} C_{2} $}\end{prooftree}&quot;</span>
-: string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chka3" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka3"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage whiteboardExample).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
-
-<span class="s2">- (claim 1, believed by actor 2, implies claim 2) is supported by $\lambda (e_{1})(\textcolor{red}{e_{?}})$ which actor 2 uses, because</span>
-<span class="s2">  - Assuming claim 2 is supported by $\textcolor{red}{e_{?}}$ which actor 2 uses then claim 2 is supported by $\textcolor{red}{e_{?}}$ which actor 2 uses, because</span>
-<span class="s2">    - we stopped the proof at this point and assumed it was provable.</span>
-<span class="s2">  - by the trust relation trust relation T.</span>
-<span class="s2">- by a logical rule for implication.</span>
-
-<span class="s2">&quot;</span>
-     : string</blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chka4" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka4"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForLogSeq whiteboardExample.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
-
-<span class="s2">### Veracity proof that (claim 1, believed by actor 2, implies claim 2) is held by actor 2</span>
-<span class="s2">  - (claim 1, believed by actor 2, implies claim 2) is held by actor 2 by the evidence $\lambda (e_{1})(\textcolor{red}{e_{?}})$</span>
-<span class="s2">    collapsed:: true</span>
-<span class="s2">    - Trust relations used:</span>
-<span class="s2">      collapsed:: true</span>
-<span class="s2">      - trust relation T</span>
-<span class="s2">    - Logical rule used: implication introduction</span>
-<span class="s2">      - Sub-proof:</span>
-<span class="s2">        - claim 2 is held by actor 2 by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">          collapsed:: true</span>
-<span class="s2">          - Assumptions made:</span>
-<span class="s2">            collapsed:: true</span>
-<span class="s2">            - claim 2 is held by actor 2 by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">          - Trust relations used:</span>
-<span class="s2">            collapsed:: true</span>
-<span class="s2">            - trust relation T</span>
-<span class="s2">          - Logical rule used: trust, with relation trust relation T</span>
-<span class="s2">            - Sub-proof:</span>
-<span class="s2">              - We stopped the proof at this point and assumed it was provable.</span>
-<span class="s2">  - Atomic evidence is abbreviated as follows:</span>
-<span class="s2">    collapsed:: true</span>
-<span class="s2">    - e_{1} = atomic evidence 1</span>
-<span class="s2">    - e_{2} = atomic evidence 2</span>
-<span class="s2">    - e = atomic evidence e</span>
-
-<span class="s2">&quot;</span>
-     : string</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree whiteboardExample.</span></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage whiteboardExample).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForLogSeq whiteboardExample.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">certifier</span> := Actor _certifier_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">applicant</span> := Actor _applicant_.</span><span class="alectryon-wsp">
@@ -2881,420 +2738,45 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">breakdown_of_formulations_list</span> := AtomicEvid _breakdown_of_formulations_list_.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 
-</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chka5" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka5"><span class="kn">Definition</span> <span class="nf">preAssessmentRequirements</span> : proofTreeOf (JudgementPart certifier recipe_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> certifier \<span class="kr">in</span> recipe_valid</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chka6" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka6"><span class="kn">Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> certifier \<span class="kr">in</span> recipe_valid</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chka7" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka7"><span class="nb">eapply</span> (impl_elim applicant _ recipe_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> certifier \<span class="kr">in</span>
-  (Implies applicant recipe_valid recipe_valid)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chka8" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chka8"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> recipe_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chka9" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chka9"><span class="nb">eapply</span> (assume review).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> recipe_valid</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkaa" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkaa"><span class="nb">eapply</span> (impl_elim applicant _ breakdown_of_formulations_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span>
-  (Implies applicant breakdown_of_formulations_valid
-     recipe_valid)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkab" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkab"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkac" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkac"><span class="nb">eapply</span> (impl_elim certifier _ ingredients_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span>
-  (Implies certifier ingredients_valid
-     (Implies applicant
-        breakdown_of_formulations_valid recipe_valid))</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkad" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkad"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> certifier \<span class="kr">in</span> ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkae" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkae"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkaf" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkaf"><span class="nb">eapply</span> (assume compile).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> certifier \<span class="kr">in</span> ingredients_valid</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkb0" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkb0"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkb1" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkb1"><span class="nb">eapply</span> (impl_elim applicant _ (ingredients_valid)).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> certifier \<span class="kr">in</span>
-  (Implies applicant ingredients_valid
-     ingredients_valid)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkb2" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkb2"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkb3" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkb3"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkb4" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkb4"><span class="nb">eapply</span> (impl_elim _ _ successful_market_compliance_assessment).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> certifier \<span class="kr">in</span>
-  (Implies <span class="nl">?a1</span> successful_market_compliance_assessment
-     (Implies applicant ingredients_valid
-        ingredients_valid))</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkb5" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkb5"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> <span class="nl">?a1</span> \<span class="kr">in</span> successful_market_compliance_assessment</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkb6" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkb6"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkb7" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkb7"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkb8" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkb8"><span class="nb">eapply</span> (assume review).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> <span class="nl">?a1</span> \<span class="kr">in</span> successful_market_compliance_assessment</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkb9" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkb9"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkba" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkba"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkbb" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkbb"><span class="nb">eapply</span> (assume assess certifier).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> ingredients_valid</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkbc" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkbc"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkbd" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkbd"><span class="nb">eapply</span> (impl_elim applicant _ percentage_ingredients_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span>
-  (Implies applicant percentage_ingredients_valid
-     ingredients_valid)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkbe" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkbe"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> percentage_ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkbf" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkbf"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc0" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc0"><span class="nb">eapply</span> (assume compile).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> percentage_ingredients_valid</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkc1" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkc1"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc2" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc2"><span class="nb">eapply</span> (assume ingredients_percentage_list).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></small><span class="alectryon-wsp"> 
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">preAssessmentRequirements</span> : proofTreeOf (JudgementPart certifier recipe_valid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Proof</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim applicant _ recipe_valid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume review).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim applicant _ breakdown_of_formulations_valid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim certifier _ ingredients_valid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume compile).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim applicant _ (ingredients_valid)).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim _ _ successful_market_compliance_assessment).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume review).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume assess certifier).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim applicant _ percentage_ingredients_valid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume compile).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume ingredients_percentage_list).</span><span class="alectryon-wsp"> 
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume breakdown_of_formulations_list).</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chkc3" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc3"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree preAssessmentRequirements.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ RV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in RV \rightarrow_{A} RV \vdash_{} r^{C} \in RV \rightarrow_{A} RV $}\AxiomC{$ IV \rightarrow_{C} BFV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV \vdash_{} c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV $}\AxiomC{$ SMCA \rightarrow_{C} IV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV \vdash_{} r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV $}\AxiomC{$ SMCA \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{C} \in SMCA \vdash_{} a^{C} \in SMCA $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA \vdash_{} r(a)^{C} \in IV \rightarrow_{A} IV $}\AxiomC{$ PIV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ c^{A} \in PIV \rightarrow_{A} IV \vdash_{} c^{A} \in PIV \rightarrow_{A} IV $}\AxiomC{$ PIV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{PI}^{A} \in PIV \vdash_{} e_{PI}^{A} \in PIV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV \vdash_{} c(e_{PI})^{A} \in IV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV \vdash_{} r(a)(c(e_{PI}))^{C} \in IV $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV \vdash_{} c(r(a)(c(e_{PI})))^{A} \in BFV \rightarrow_{A} RV $}\AxiomC{$ BFV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{BF}^{A} \in BFV \vdash_{} e_{BF}^{A} \in BFV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV, e_{BF}^{A} \in BFV \vdash_{} c(r(a)(c(e_{PI})))(e_{BF})^{A} \in RV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in RV \rightarrow_{A} RV, c^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, c^{A} \in PIV \rightarrow_{A} IV, e_{PI}^{A} \in PIV, e_{BF}^{A} \in BFV \vdash_{} r(c(r(a)(c(e_{PI})))(e_{BF}))^{C} \in RV $}\end{prooftree}&quot;</span>
-: string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc4" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc4"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage preAssessmentRequirements).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
-
-<span class="s2">- Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses, and breakdown-of-formulations-valid is supported by $e_{BF}$ which applicant uses then recipe-valid is supported by $r(c(r(a)(c(e_{PI})))(e_{BF}))$ which certifier uses, because</span>
-<span class="s2">  - Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses then (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, because</span>
-<span class="s2">  - (recipe-valid, believed by applicant, implies recipe-valid) is a veracity claim.</span>
-<span class="s2">  - by assumption.</span>
-<span class="s2">  - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses, and breakdown-of-formulations-valid is supported by $e_{BF}$ which applicant uses then recipe-valid is supported by $c(r(a)(c(e_{PI})))(e_{BF})$ which applicant uses, because</span>
-<span class="s2">    - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, and percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses then (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is supported by $c(r(a)(c(e_{PI})))$ which applicant uses, because</span>
-<span class="s2">      - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses then (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $c$ which applicant uses, because</span>
-<span class="s2">      - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is a veracity claim.</span>
-<span class="s2">      - by assumption.</span>
-<span class="s2">      - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, and percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses then ingredients-valid is supported by $r(a)(c(e_{PI}))$ which certifier uses, because</span>
-<span class="s2">        - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, and successful-market-compliance-assessment is supported by $a$ which certifier uses then (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $r(a)$ which certifier uses, because</span>
-<span class="s2">          - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses then (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, because</span>
-<span class="s2">          - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is a veracity claim.</span>
-<span class="s2">          - by assumption.</span>
-<span class="s2">          - Assuming successful-market-compliance-assessment is supported by $a$ which certifier uses then successful-market-compliance-assessment is supported by $a$ which certifier uses, because</span>
-<span class="s2">          - successful-market-compliance-assessment is a veracity claim.</span>
-<span class="s2">          - by assumption.</span>
-<span class="s2">        - by a logical rule for implication.</span>
-<span class="s2">        - Assuming (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, and percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses then ingredients-valid is supported by $c(e_{PI})$ which applicant uses, because</span>
-<span class="s2">          - Assuming (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses then (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $c$ which applicant uses, because</span>
-<span class="s2">          - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is a veracity claim.</span>
-<span class="s2">          - by assumption.</span>
-<span class="s2">          - Assuming percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses then percentage-ingredients-valid is supported by $e_{PI}$ which applicant uses, because</span>
-<span class="s2">          - percentage-ingredients-valid is a veracity claim.</span>
-<span class="s2">          - by assumption.</span>
-<span class="s2">        - by a logical rule for implication.</span>
-<span class="s2">      - by a logical rule for implication.</span>
-<span class="s2">    - by a logical rule for implication.</span>
-<span class="s2">    - Assuming breakdown-of-formulations-valid is supported by $e_{BF}$ which applicant uses then breakdown-of-formulations-valid is supported by $e_{BF}$ which applicant uses, because</span>
-<span class="s2">    - breakdown-of-formulations-valid is a veracity claim.</span>
-<span class="s2">    - by assumption.</span>
-<span class="s2">  - by a logical rule for implication.</span>
-<span class="s2">- by a logical rule for implication.</span>
-
-<span class="s2">&quot;</span>
-     : string</blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc5" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc5"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForLogSeq preAssessmentRequirements.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
-
-<span class="s2">### Veracity proof that recipe-valid is held by certifier</span>
-<span class="s2">  - recipe-valid is held by certifier by the evidence $r(c(r(a)(c(e_{PI})))(e_{BF}))$</span>
-<span class="s2">    collapsed:: true</span>
-<span class="s2">    - Assumptions made:</span>
-<span class="s2">      collapsed:: true</span>
-<span class="s2">      - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">      - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
-<span class="s2">      - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">      - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">      - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">      - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">      - breakdown-of-formulations-valid is held by applicant by the evidence $e_{BF}$</span>
-<span class="s2">    - Logical rule used: implication elimination</span>
-<span class="s2">      - Sub-proofs:</span>
-<span class="s2">        - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">          collapsed:: true</span>
-<span class="s2">          - Assumptions made:</span>
-<span class="s2">            collapsed:: true</span>
-<span class="s2">            - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">          - Logical rule used: we assume this</span>
-<span class="s2">        - recipe-valid is held by applicant by the evidence $c(r(a)(c(e_{PI})))(e_{BF})$</span>
-<span class="s2">          collapsed:: true</span>
-<span class="s2">          - Assumptions made:</span>
-<span class="s2">            collapsed:: true</span>
-<span class="s2">            - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
-<span class="s2">            - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">            - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">            - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">            - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">            - breakdown-of-formulations-valid is held by applicant by the evidence $e_{BF}$</span>
-<span class="s2">          - Logical rule used: implication elimination</span>
-<span class="s2">            - Sub-proofs:</span>
-<span class="s2">              - (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is held by applicant by the evidence $c(r(a)(c(e_{PI})))$</span>
-<span class="s2">                collapsed:: true</span>
-<span class="s2">                - Assumptions made:</span>
-<span class="s2">                  collapsed:: true</span>
-<span class="s2">                  - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
-<span class="s2">                  - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                  - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                  - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                  - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                - Logical rule used: implication elimination</span>
-<span class="s2">                  - Sub-proofs:</span>
-<span class="s2">                    - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
-<span class="s2">                      collapsed:: true</span>
-<span class="s2">                      - Assumptions made:</span>
-<span class="s2">                        collapsed:: true</span>
-<span class="s2">                        - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $c$</span>
-<span class="s2">                      - Logical rule used: we assume this</span>
-<span class="s2">                    - ingredients-valid is held by certifier by the evidence $r(a)(c(e_{PI}))$</span>
-<span class="s2">                      collapsed:: true</span>
-<span class="s2">                      - Assumptions made:</span>
-<span class="s2">                        collapsed:: true</span>
-<span class="s2">                        - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                        - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                        - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                        - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                      - Logical rule used: implication elimination</span>
-<span class="s2">                        - Sub-proofs:</span>
-<span class="s2">                          - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by certifier by the evidence $r(a)$</span>
-<span class="s2">                            collapsed:: true</span>
-<span class="s2">                            - Assumptions made:</span>
-<span class="s2">                              collapsed:: true</span>
-<span class="s2">                              - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                              - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                            - Logical rule used: implication elimination</span>
-<span class="s2">                              - Sub-proofs:</span>
-<span class="s2">                                - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                                  collapsed:: true</span>
-<span class="s2">                                  - Assumptions made:</span>
-<span class="s2">                                    collapsed:: true</span>
-<span class="s2">                                    - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">                                - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                                  collapsed:: true</span>
-<span class="s2">                                  - Assumptions made:</span>
-<span class="s2">                                    collapsed:: true</span>
-<span class="s2">                                    - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">                          - ingredients-valid is held by applicant by the evidence $c(e_{PI})$</span>
-<span class="s2">                            collapsed:: true</span>
-<span class="s2">                            - Assumptions made:</span>
-<span class="s2">                              collapsed:: true</span>
-<span class="s2">                              - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                              - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                            - Logical rule used: implication elimination</span>
-<span class="s2">                              - Sub-proofs:</span>
-<span class="s2">                                - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                                  collapsed:: true</span>
-<span class="s2">                                  - Assumptions made:</span>
-<span class="s2">                                    collapsed:: true</span>
-<span class="s2">                                    - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $c$</span>
-<span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">                                - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                                  collapsed:: true</span>
-<span class="s2">                                  - Assumptions made:</span>
-<span class="s2">                                    collapsed:: true</span>
-<span class="s2">                                    - percentage-ingredients-valid is held by applicant by the evidence $e_{PI}$</span>
-<span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">              - breakdown-of-formulations-valid is held by applicant by the evidence $e_{BF}$</span>
-<span class="s2">                collapsed:: true</span>
-<span class="s2">                - Assumptions made:</span>
-<span class="s2">                  collapsed:: true</span>
-<span class="s2">                  - breakdown-of-formulations-valid is held by applicant by the evidence $e_{BF}$</span>
-<span class="s2">                - Logical rule used: we assume this</span>
-<span class="s2">  - Atomic evidence is abbreviated as follows:</span>
-<span class="s2">    collapsed:: true</span>
-<span class="s2">    - r = review</span>
-<span class="s2">    - a = assess</span>
-<span class="s2">    - e_{1} = atomic evidence 1</span>
-<span class="s2">    - e_{2} = atomic evidence 2</span>
-<span class="s2">    - c = compile</span>
-<span class="s2">    - e_{PI} = ingredients percentage list</span>
-<span class="s2">    - e_{BF} = breakdown of formulations list</span>
-
-<span class="s2">&quot;</span>
-     : string</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree preAssessmentRequirements.</span></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage preAssessmentRequirements).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForLogSeq preAssessmentRequirements.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc6" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc6"><span class="kn">Definition</span> <span class="nf">preAssessmentRequirementsWithEvidHoles</span> : proofTreeOf (JudgementPart certifier recipe_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> certifier \<span class="kr">in</span> recipe_valid</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc7" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc7"><span class="kn">Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> certifier \<span class="kr">in</span> recipe_valid</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkc8" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkc8"><span class="nb">eapply</span> (impl_elim applicant _ recipe_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> certifier \<span class="kr">in</span>
-  (Implies applicant recipe_valid recipe_valid)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkc9" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkc9"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> recipe_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkca" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkca"><span class="nb">eapply</span> (assume review).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> recipe_valid</div></blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkcb" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkcb"><span class="nb">eapply</span> (impl_elim applicant _ breakdown_of_formulations_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span>
-  (Implies applicant breakdown_of_formulations_valid
-     recipe_valid)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkcc" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkcc"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkcd" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkcd"><span class="nb">eapply</span> (impl_elim certifier _ ingredients_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span>
-  (Implies certifier ingredients_valid
-     (Implies applicant
-        breakdown_of_formulations_valid recipe_valid))</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkce" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkce"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> certifier \<span class="kr">in</span> ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkcf" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkcf"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkd0" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkd0"><span class="nb">eapply</span> (assume HoleEvid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> certifier \<span class="kr">in</span> ingredients_valid</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkd1" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkd1"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkd2" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkd2"><span class="nb">eapply</span> (impl_elim applicant _ (ingredients_valid)).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> certifier \<span class="kr">in</span>
-  (Implies applicant ingredients_valid
-     ingredients_valid)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkd3" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkd3"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkd4" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkd4"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkd5" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkd5"><span class="nb">eapply</span> (impl_elim _ _ successful_market_compliance_assessment).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> certifier \<span class="kr">in</span>
-  (Implies <span class="nl">?a1</span> successful_market_compliance_assessment
-     (Implies applicant ingredients_valid
-        ingredients_valid))</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkd6" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkd6"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> <span class="nl">?a1</span> \<span class="kr">in</span> successful_market_compliance_assessment</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkd7" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkd7"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkd8" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkd8"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkd9" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkd9"><span class="nb">eapply</span> (assume review).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> <span class="nl">?a1</span> \<span class="kr">in</span> successful_market_compliance_assessment</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkda" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkda"><hr></label><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkdb" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkdb"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkdc" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkdc"><span class="nb">eapply</span> (assume assess certifier).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf \<span class="bp">by</span> applicant \<span class="kr">in</span> ingredients_valid</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkdd" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkdd"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chkde" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chkde"><span class="nb">eapply</span> (impl_elim applicant _ percentage_ingredients_valid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span>
-  (Implies applicant percentage_ingredients_valid
-     ingredients_valid)</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chkdf" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chkdf"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> percentage_ingredients_valid</div></blockquote><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chke0" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chke0"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chke1" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chke1"><span class="nb">eapply</span> (assume HoleEvid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> percentage_ingredients_valid</div></blockquote><div class="alectryon-extra-goals"><input class="alectryon-extra-goal-toggle" id="veracitylogicv4-v-chke2" style="display: none" type="checkbox"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><label class="goal-separator" for="veracitylogicv4-v-chke2"><hr></label><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chke3" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chke3"><span class="nb">eapply</span> (assume HoleEvid).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>e4</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>c4</var><span class="hyp-type"><b>: </b><span>claim</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
-  \<span class="bp">by</span> applicant \<span class="kr">in</span> breakdown_of_formulations_valid</div></blockquote></div></div></small><span class="alectryon-wsp"> 
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">preAssessmentRequirementsWithEvidHoles</span> : proofTreeOf (JudgementPart certifier recipe_valid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Proof</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim applicant _ recipe_valid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume review).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim applicant _ breakdown_of_formulations_valid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim certifier _ ingredients_valid).</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume HoleEvid).</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicv4-v-chke4" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chke4"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree preAssessmentRequirementsWithEvidHoles.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ RV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in RV \rightarrow_{A} RV \vdash_{} r^{C} \in RV \rightarrow_{A} RV $}\AxiomC{$ IV \rightarrow_{C} BFV \rightarrow_{A} RV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV \vdash_{} \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV $}\AxiomC{$ SMCA \rightarrow_{C} IV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV \vdash_{} r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV $}\AxiomC{$ SMCA \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ a^{C} \in SMCA \vdash_{} a^{C} \in SMCA $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA \vdash_{} r(a)^{C} \in IV \rightarrow_{A} IV $}\AxiomC{$ PIV \rightarrow_{A} IV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV \vdash_{} \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV $}\AxiomC{$ PIV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in PIV \vdash_{} \textcolor{red}{e_{?}}^{A} \in PIV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV \vdash_{} \textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})^{A} \in IV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV \vdash_{} r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}}))^{C} \in IV $} \RightLabel{ $ \rightarrow^{-}_{C} $} \BinaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV \vdash_{} \textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))^{A} \in BFV \rightarrow_{A} RV $}\AxiomC{$ BFV \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ \textcolor{red}{e_{?}}^{A} \in BFV \vdash_{} \textcolor{red}{e_{?}}^{A} \in BFV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV, \textcolor{red}{e_{?}}^{A} \in BFV \vdash_{} \textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}})^{A} \in RV $} \RightLabel{ $ \rightarrow^{-}_{A} $} \BinaryInfC{$ r^{C} \in RV \rightarrow_{A} RV, \textcolor{red}{e_{?}}^{A} \in IV \rightarrow_{C} BFV \rightarrow_{A} RV, r^{C} \in SMCA \rightarrow_{C} IV \rightarrow_{A} IV, a^{C} \in SMCA, \textcolor{red}{e_{?}}^{A} \in PIV \rightarrow_{A} IV, \textcolor{red}{e_{?}}^{A} \in PIV, \textcolor{red}{e_{?}}^{A} \in BFV \vdash_{} r(\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}}))^{C} \in RV $}\end{prooftree}&quot;</span>
-: string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chke5" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chke5"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage preAssessmentRequirementsWithEvidHoles).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
-
-<span class="s2">- Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and breakdown-of-formulations-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then recipe-valid is supported by $r(\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}}))$ which certifier uses, because</span>
-<span class="s2">  - Assuming (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses then (recipe-valid, believed by applicant, implies recipe-valid) is supported by $r$ which certifier uses, because</span>
-<span class="s2">  - (recipe-valid, believed by applicant, implies recipe-valid) is a veracity claim.</span>
-<span class="s2">  - by assumption.</span>
-<span class="s2">  - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and breakdown-of-formulations-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then recipe-valid is supported by $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}})$ which applicant uses, because</span>
-<span class="s2">    - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is supported by $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))$ which applicant uses, because</span>
-<span class="s2">      - Assuming (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses then (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, because</span>
-<span class="s2">      - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is a veracity claim.</span>
-<span class="s2">      - by assumption.</span>
-<span class="s2">      - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, successful-market-compliance-assessment is supported by $a$ which certifier uses, (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then ingredients-valid is supported by $r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}}))$ which certifier uses, because</span>
-<span class="s2">        - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, and successful-market-compliance-assessment is supported by $a$ which certifier uses then (ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $r(a)$ which certifier uses, because</span>
-<span class="s2">          - Assuming (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses then (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is supported by $r$ which certifier uses, because</span>
-<span class="s2">          - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is a veracity claim.</span>
-<span class="s2">          - by assumption.</span>
-<span class="s2">          - Assuming successful-market-compliance-assessment is supported by $a$ which certifier uses then successful-market-compliance-assessment is supported by $a$ which certifier uses, because</span>
-<span class="s2">          - successful-market-compliance-assessment is a veracity claim.</span>
-<span class="s2">          - by assumption.</span>
-<span class="s2">        - by a logical rule for implication.</span>
-<span class="s2">        - Assuming (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, and percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then ingredients-valid is supported by $\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})$ which applicant uses, because</span>
-<span class="s2">          - Assuming (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses then (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is supported by $\textcolor{red}{e_{?}}$ which applicant uses, because</span>
-<span class="s2">          - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is a veracity claim.</span>
-<span class="s2">          - by assumption.</span>
-<span class="s2">          - Assuming percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then percentage-ingredients-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, because</span>
-<span class="s2">          - percentage-ingredients-valid is a veracity claim.</span>
-<span class="s2">          - by assumption.</span>
-<span class="s2">        - by a logical rule for implication.</span>
-<span class="s2">      - by a logical rule for implication.</span>
-<span class="s2">    - by a logical rule for implication.</span>
-<span class="s2">    - Assuming breakdown-of-formulations-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses then breakdown-of-formulations-valid is supported by $\textcolor{red}{e_{?}}$ which applicant uses, because</span>
-<span class="s2">    - breakdown-of-formulations-valid is a veracity claim.</span>
-<span class="s2">    - by assumption.</span>
-<span class="s2">  - by a logical rule for implication.</span>
-<span class="s2">- by a logical rule for implication.</span>
-
-<span class="s2">&quot;</span>
-     : string</blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicv4-v-chke6" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicv4-v-chke6"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForLogSeq preAssessmentRequirementsWithEvidHoles.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
-
-<span class="s2">### Veracity proof that recipe-valid is held by certifier</span>
-<span class="s2">  - recipe-valid is held by certifier by the evidence $r(\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}}))$</span>
-<span class="s2">    collapsed:: true</span>
-<span class="s2">    - Assumptions made:</span>
-<span class="s2">      collapsed:: true</span>
-<span class="s2">      - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">      - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">      - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">      - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">      - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">      - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">      - breakdown-of-formulations-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">    - Logical rule used: implication elimination</span>
-<span class="s2">      - Sub-proofs:</span>
-<span class="s2">        - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">          collapsed:: true</span>
-<span class="s2">          - Assumptions made:</span>
-<span class="s2">            collapsed:: true</span>
-<span class="s2">            - (recipe-valid, believed by applicant, implies recipe-valid) is held by certifier by the evidence $r$</span>
-<span class="s2">          - Logical rule used: we assume this</span>
-<span class="s2">        - recipe-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))(\textcolor{red}{e_{?}})$</span>
-<span class="s2">          collapsed:: true</span>
-<span class="s2">          - Assumptions made:</span>
-<span class="s2">            collapsed:: true</span>
-<span class="s2">            - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">            - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">            - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">            - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">            - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">            - breakdown-of-formulations-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">          - Logical rule used: implication elimination</span>
-<span class="s2">            - Sub-proofs:</span>
-<span class="s2">              - (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}(r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})))$</span>
-<span class="s2">                collapsed:: true</span>
-<span class="s2">                - Assumptions made:</span>
-<span class="s2">                  collapsed:: true</span>
-<span class="s2">                  - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                  - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                  - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                  - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                  - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                - Logical rule used: implication elimination</span>
-<span class="s2">                  - Sub-proofs:</span>
-<span class="s2">                    - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                      collapsed:: true</span>
-<span class="s2">                      - Assumptions made:</span>
-<span class="s2">                        collapsed:: true</span>
-<span class="s2">                        - (ingredients-valid, believed by certifier, implies (breakdown-of-formulations-valid, believed by applicant, implies recipe-valid)) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                      - Logical rule used: we assume this</span>
-<span class="s2">                    - ingredients-valid is held by certifier by the evidence $r(a)(\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}}))$</span>
-<span class="s2">                      collapsed:: true</span>
-<span class="s2">                      - Assumptions made:</span>
-<span class="s2">                        collapsed:: true</span>
-<span class="s2">                        - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                        - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                        - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                        - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                      - Logical rule used: implication elimination</span>
-<span class="s2">                        - Sub-proofs:</span>
-<span class="s2">                          - (ingredients-valid, believed by applicant, implies ingredients-valid) is held by certifier by the evidence $r(a)$</span>
-<span class="s2">                            collapsed:: true</span>
-<span class="s2">                            - Assumptions made:</span>
-<span class="s2">                              collapsed:: true</span>
-<span class="s2">                              - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                              - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                            - Logical rule used: implication elimination</span>
-<span class="s2">                              - Sub-proofs:</span>
-<span class="s2">                                - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                                  collapsed:: true</span>
-<span class="s2">                                  - Assumptions made:</span>
-<span class="s2">                                    collapsed:: true</span>
-<span class="s2">                                    - (successful-market-compliance-assessment, believed by certifier, implies (ingredients-valid, believed by applicant, implies ingredients-valid)) is held by certifier by the evidence $r$</span>
-<span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">                                - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                                  collapsed:: true</span>
-<span class="s2">                                  - Assumptions made:</span>
-<span class="s2">                                    collapsed:: true</span>
-<span class="s2">                                    - successful-market-compliance-assessment is held by certifier by the evidence $a$</span>
-<span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">                          - ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}(\textcolor{red}{e_{?}})$</span>
-<span class="s2">                            collapsed:: true</span>
-<span class="s2">                            - Assumptions made:</span>
-<span class="s2">                              collapsed:: true</span>
-<span class="s2">                              - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                              - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                            - Logical rule used: implication elimination</span>
-<span class="s2">                              - Sub-proofs:</span>
-<span class="s2">                                - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                                  collapsed:: true</span>
-<span class="s2">                                  - Assumptions made:</span>
-<span class="s2">                                    collapsed:: true</span>
-<span class="s2">                                    - (percentage-ingredients-valid, believed by applicant, implies ingredients-valid) is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">                                - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                                  collapsed:: true</span>
-<span class="s2">                                  - Assumptions made:</span>
-<span class="s2">                                    collapsed:: true</span>
-<span class="s2">                                    - percentage-ingredients-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                                  - Logical rule used: we assume this</span>
-<span class="s2">              - breakdown-of-formulations-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                collapsed:: true</span>
-<span class="s2">                - Assumptions made:</span>
-<span class="s2">                  collapsed:: true</span>
-<span class="s2">                  - breakdown-of-formulations-valid is held by applicant by the evidence $\textcolor{red}{e_{?}}$</span>
-<span class="s2">                - Logical rule used: we assume this</span>
-<span class="s2">  - Atomic evidence is abbreviated as follows:</span>
-<span class="s2">    collapsed:: true</span>
-<span class="s2">    - r = review</span>
-<span class="s2">    - a = assess</span>
-<span class="s2">    - e_{1} = atomic evidence 1</span>
-<span class="s2">    - e_{2} = atomic evidence 2</span>
-
-<span class="s2">&quot;</span>
-     : string</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim applicant _ (ingredients_valid)).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim _ _ successful_market_compliance_assessment).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume review).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume assess certifier).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (impl_elim applicant _ percentage_ingredients_valid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume HoleEvid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume HoleEvid).</span><span class="alectryon-wsp"> 
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">eapply</span> (assume HoleEvid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree preAssessmentRequirementsWithEvidHoles.</span></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> (showForNaturalLanguage preAssessmentRequirementsWithEvidHoles).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForLogSeq preAssessmentRequirementsWithEvidHoles.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> string_scope.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">allProofsAsString</span> := 
+<span class="kn">Open Scope</span> string_scope.
+
+<span class="kn">Definition</span> <span class="nf">allProofsAsString</span> := 
     showForProofTree concreteProofTreeExampleWith2Conjuncts
  ++ showForProofTree concreteProofTreeExampleWith3Conjuncts
  ++ showForProofTree concreteProofTreeExampleTrust
@@ -3308,8 +2790,8 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
  ++ showForProofTree exampleFromJosh
  ++ showForProofTree exampleFromJoshAuto
  ++ showForProofTree whiteboardExample
- ++ showForProofTree preAssessmentRequirements.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
+ ++ showForProofTree preAssessmentRequirements.
+
 <span class="c">(* Definition allProofsAsString := </span>
 <span class="c">    showForLogSeq concreteProofTreeExampleWith2Conjuncts</span>
 <span class="c"> ++ showForLogSeq concreteProofTreeExampleWith3Conjuncts</span>
@@ -3328,7 +2810,37 @@ proof scripts. [require-<span class="kr">in</span>-section,fragile]</blockquote>
 
 <span class="c">(* Eval compute in allProofsAsString. *)</span>
 
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">End</span> <span class="nf">VeracityLogic</span>.</span></span></pre></div>
+<span class="kn">End</span> <span class="nf">VeracityLogic</span>.</span></pre></div>
+<div class="system-messages section">
+<h1>Docutils System Messages</h1>
+<div class="system-message">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">VeracityLogicV4.v</tt>, line 2040)</p>
+Coq raised an exception:
+  &gt; In environment
+  &gt; e4 : evid
+  &gt; c4 : claim
+  &gt; The term &quot;exampleFromJoshProofStep&quot; has type
+  &gt;  &quot;forall j : judgementPart, list (proofTreeOf j)&quot;
+  &gt; while it is expected to have type &quot;nat&quot;.
+The offending chunk is delimited by &gt;&gt;&gt;…&lt;&lt;&lt; below:
+  &gt; Time Timeout 5 Eval vm_compute in (showListOfProofTrees (( (proofSearch &gt;&gt;&gt;exampleFromJoshProofStep&lt;&lt;&lt; _  [toProofTreeWithHole retailer healthy] 10)))).
+Results past this point may be unreliable.</div>
+<div class="system-message">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">VeracityLogicV4.v</tt>, line 2035)</p>
+Coq raised an exception:
+  &gt; In environment
+  &gt; e4 : evid
+  &gt; c4 : claim
+  &gt; The term &quot;exampleFromJoshProofStep&quot; has type
+  &gt;  &quot;forall j : judgementPart, list (proofTreeOf j)&quot;
+  &gt; while it is expected to have type &quot;nat&quot;.
+The offending chunk is delimited by &gt;&gt;&gt;…&lt;&lt;&lt; below:
+  &gt; Eval compute in (showForNaturalLanguage preAssessmentRequirementsWithEvi&gt;&gt;&gt;dHoles).
+  &gt; Eval compute in&lt;&lt;&lt; showForLogSeq preAssessmentRequirementsWithEvidHoles.
+  &gt;
+  &gt; Open Scope string_scope.
+Results past this point may be unreliable.</div>
+</div>
 </div>
 </div></body>
 </html>
