@@ -313,19 +313,19 @@ Inductive evid :=
 
 Scheme Equality for evid.
 
-Inductive actor :=
-  | Actor (n : actor_name).
-
-Scheme Equality for actor.
-
 Inductive claim :=
   | AtomicClaim (n : claim_name)
   | Bottom
   | And (c1 c2 : claim)
   | Or  (c1 c2 : claim)
-  | Implies (a : actor) (c1 c2 : claim).
+  | Implies  (c1 c2 : claim).
 
 Scheme Equality for claim.
+
+Inductive actor :=
+  | Actor (n : actor_name).
+
+Scheme Equality for actor.
 
 Inductive judgementPart :=
   | JudgementPart (a : actor) (c: claim).
@@ -454,18 +454,18 @@ Inductive proofTreeOf : judgementPart -> Type :=
                           :
             proofTreeOf (\by a1 \in C)
 
-| impl_intro (e1 : evid) (C1 : claim) a1 a2 C2
+| impl_intro (e1 : evid) (C1 : claim) a C2
 
-         (M: proofTreeOf (\by a2 \in C2))
+         (M: proofTreeOf (\by a \in C2))
                               :
-   proofTreeOf (\by a2 \in (Implies a1 C1 C2))
+   proofTreeOf (\by a \in (Implies C1 C2))
 
-| impl_elim a1 a2 C1 C2
+| impl_elim a C1 C2
 
-(L: proofTreeOf (\by a2 \in (Implies a1 C1 C2)))
-                           (R: proofTreeOf (\by a1 \in C1))
+(L: proofTreeOf (\by a \in (Implies C1 C2)))
+                           (R: proofTreeOf (\by a \in C1))
                         :
-    proofTreeOf (\by a2 \in C2)
+    proofTreeOf (\by a \in C2)
 .
 (*|
 This is the :coq:`and_intro` rule as Coq sees it:
@@ -498,8 +498,8 @@ match p with
                           | e => e
                           end
 | trust a1 a2 C name L => computeEvidence _ L
-| impl_intro e1 C1 a1 a2 C2 M => Lambda e1 (computeEvidence _ M)
-| impl_elim a1 a2 C1 C2 L R => Apply (computeEvidence _ L) (computeEvidence _ R)
+| impl_intro e1 C1 a C2 M => Lambda e1 (computeEvidence _ M)
+| impl_elim a C1 C2 L R => Apply (computeEvidence _ L) (computeEvidence _ R)
 end.
 
 (*|
@@ -598,7 +598,30 @@ Instance : ShowForProofTree evid := {
 Instance : ShowForNaturalLanguage evid := { showForNaturalLanguage := showForProofTree }.
 Instance : ShowForLogSeq evid := {showForLogSeq := showForNaturalLanguage}.
 
+Instance : ShowForProofTree claim := {
+  showForProofTree :=
+  fix showForProofTreeClaim c :=
+    match c with
+      | AtomicClaim name => showForProofTree name
+      | Bottom => "\bot"
+      | And c1 c2 => showForProofTreeClaim c1 ++ " \wedge " ++ showForProofTreeClaim c2
+      | Or c1 c2 => showForProofTreeClaim c1 ++ " \vee " ++ showForProofTreeClaim c2
+      | Implies c1 c2 => showForProofTreeClaim c1 ++ " \rightarrow " ++ showForProofTreeClaim c2
+    end
+}.
 
+Instance : ShowForNaturalLanguage claim := {
+  showForNaturalLanguage :=
+  fix showForNaturalLanguageClaim c :=
+    match c with
+      | AtomicClaim name => showForNaturalLanguage name
+      | Bottom => "impossible"
+      | And c1 c2 => "(" ++ showForNaturalLanguageClaim c1 ++ " and " ++ showForNaturalLanguageClaim c2  ++ ")"
+      | Or c1 c2 => "(" ++ showForNaturalLanguageClaim c1 ++ " or " ++ showForNaturalLanguageClaim c2 ++ ")"
+      | Implies c1 c2 => "(" ++ showForNaturalLanguageClaim c1 ++ " implies " ++ showForNaturalLanguageClaim c2 ++ ")"
+    end
+}.
+Instance : ShowForLogSeq claim := {showForLogSeq := showForNaturalLanguage}.
 
 Instance : ShowForProofTree actor := {
   showForProofTree a :=
@@ -620,31 +643,6 @@ Instance : ShowForLogSeq actor := {
     | Actor name => showForLogSeq name
   end
 }.
-
-Instance : ShowForProofTree claim := {
-  showForProofTree :=
-  fix showForProofTreeClaim c :=
-    match c with
-      | AtomicClaim name => showForProofTree name
-      | Bottom => "\bot"
-      | And c1 c2 => showForProofTreeClaim c1 ++ " \wedge " ++ showForProofTreeClaim c2
-      | Or c1 c2 => showForProofTreeClaim c1 ++ " \vee " ++ showForProofTreeClaim c2
-      | Implies a1 c1 c2 => showForProofTreeClaim c1 ++ " \rightarrow_{" ++ showForProofTree a1 ++ "} " ++ showForProofTreeClaim c2
-    end
-}.
-
-Instance : ShowForNaturalLanguage claim := {
-  showForNaturalLanguage :=
-  fix showForNaturalLanguageClaim c :=
-    match c with
-      | AtomicClaim name => showForNaturalLanguage name
-      | Bottom => "impossible"
-      | And c1 c2 => "(" ++ showForNaturalLanguageClaim c1 ++ " and " ++ showForNaturalLanguageClaim c2  ++ ")"
-      | Or c1 c2 => "(" ++ showForNaturalLanguageClaim c1 ++ " or " ++ showForNaturalLanguageClaim c2 ++ ")"
-      | Implies a1 c1 c2 => "(" ++ showForNaturalLanguageClaim c1 ++ ", believed by " ++ showForNaturalLanguage a1 ++ ", implies " ++ showForNaturalLanguageClaim c2 ++ ")"
-    end
-}.
-Instance : ShowForLogSeq claim := {showForLogSeq := showForNaturalLanguage}.
 
 Instance : ShowForProofTree trustRelation := {
   showForProofTree t :=
@@ -807,8 +805,8 @@ match p with
 | or_elim2 a C1 C2 M => getAllTrustRelationsUsed _ M
 | trust a1 a2 C name L => 
     name :: getAllTrustRelationsUsed _ L
-| impl_intro e1 C1 a1 a2 C2 M => getAllTrustRelationsUsed _ M
-| impl_elim a1 a2 C1 C2 L R => 
+| impl_intro e1 C1 a C2 M => getAllTrustRelationsUsed _ M
+| impl_elim a C1 C2 L R => 
    getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
 end.
 
@@ -827,8 +825,8 @@ match p with
 | or_elim1 a C1 C2 M => e1 :: getAllEvidence _ M
 | or_elim2 a C1 C2 M => e2 :: getAllEvidence _ M
 | trust a1 a2 C name L => e ::  getAllEvidence _ L
-| impl_intro e1 C1 a1 a2 C2 M => e1 :: e2 :: getAllEvidence _ M
-| impl_elim a1 a2 C1 C2 L R => 
+| impl_intro e1 C1 a C2 M => e1 :: e2 :: getAllEvidence _ M
+| impl_elim a C1 C2 L R => 
    e1 :: e2 :: getAllEvidence _ L ++ getAllEvidence _ R 
 end.
 
@@ -853,8 +851,8 @@ match p with
 | or_elim2 a C1 C2 M => getAssumptions _ M
 | trust a1 a2 C name L => 
     getAssumptions _ L
-| impl_intro e1 C1 a1 a2 C2 M => filter (judgementPart_beq (\by a1 \in C1)) (getAssumptions _ M)
-| impl_elim a1 a2 C1 C2 L R => 
+| impl_intro e1 C1 a C2 M => filter (judgementPart_beq (\by a \in C1)) (getAssumptions _ M)
+| impl_elim a C1 C2 L R => 
    getAssumptions _ L ++ getAssumptions _ R 
 end.
 
@@ -873,8 +871,8 @@ match p with
 | or_elim2 a C1 C2 M => getAssumptionsWithEvidence _ M
 | trust a1 a2 C name L => 
     getAssumptionsWithEvidence _ L
-| impl_intro e1 C1 a1 a2 C2 M => filter (judgement_beq (Judgement e1 (\by a1 \in C1))) (getAssumptionsWithEvidence _ M)
-| impl_elim a1 a2 C1 C2 L R => 
+| impl_intro e1 C1 a C2 M => filter (judgement_beq (Judgement e1 (\by a \in C1))) (getAssumptionsWithEvidence _ M)
+| impl_elim a C1 C2 L R => 
    getAssumptionsWithEvidence _ L ++ getAssumptionsWithEvidence _ R 
 end.
 
@@ -901,8 +899,8 @@ match P1,P2 with
 | or_elim1 a C1 C2 M, or_elim1 a' C1' C2' M' => (a =? a') && (C1 =? C1') && (C2 =? C2') && proofTreeOf_beq M M'
 | or_elim2 a C1 C2 M, or_elim2 a' C1' C2' M' => (a =? a') && (C1 =? C1') && (C2 =? C2') && proofTreeOf_beq M M'
 | trust a1 a2 C T L, trust a1' a2' C' T' L' => (a1 =? a1') && (a2 =? a2') && (C =? C') && (T =? T') && proofTreeOf_beq L L'
-| impl_intro e C1 a1 a2 C2 M, impl_intro e' C1' a1' a2' C2' M' => (e =? e') && (C1 =? C1') && (a1 =? a1') && (a2 =? a2') && (C2 =? C2') && proofTreeOf_beq M M'
-| impl_elim a1 a2 C1 C2 L R, impl_elim a1' a2' C1' C2' L' R' => (a1 =? a1') && (a2 =? a2') && (C1 =? C1') && (C2 =? C2') && proofTreeOf_beq L L' && proofTreeOf_beq R R'
+| impl_intro e C1 a C2 M, impl_intro e' C1' a' C2' M' => (e =? e') && (C1 =? C1') && (a =? a') && (C2 =? C2') && proofTreeOf_beq M M'
+| impl_elim a C1 C2 L R, impl_elim a' C1' C2' L' R' => (a =? a') && (C1 =? C1') && (C2 =? C2') && proofTreeOf_beq L L' && proofTreeOf_beq R R'
 | _,_ => false
 end.
 
@@ -962,14 +960,14 @@ match p with
  ++ " \RightLabel{ $ trust\ " ++ showForProofTree name
  ++ "$} \BinaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p ++ " $}"
-| impl_intro e1 C1 a1 a2 C2 M => showForProofTree_proofTreeOf_helper _ M
+| impl_intro e1 C1 a C2 M => showForProofTree_proofTreeOf_helper _ M
  ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p
  ++ " $}"
-| impl_elim a1 a2 C1 C2 L R => 
+| impl_elim a C1 C2 L R => 
      showForProofTree_proofTreeOf_helper _ L
  ++ showForProofTree_proofTreeOf_helper _ R 
- ++ " \RightLabel{ $ \rightarrow^{-}_{" ++ showForProofTree a1 ++ "} $} \BinaryInfC{$ "
+ ++ " \RightLabel{ $ \rightarrow^{-} $} \BinaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p ++ " $}"
 end.
 
@@ -1041,13 +1039,13 @@ indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ L ++ "
 "
 ++ indent ++ "by the trust relation " ++ showForNaturalLanguage name ++ "."
-| impl_intro e1 C1 a1 a2 C2 M => 
+| impl_intro e1 C1 a C2 M => 
 indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for implication."
-| impl_elim a1 a2 C1 C2 L R => 
+| impl_elim a C1 C2 L R => 
 indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ L ++ "
@@ -1112,12 +1110,12 @@ indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: trust, with relation " ++ showForLogSeq name ++ "
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ L
-| impl_intro e1 C1 a1 a2 C2 M => 
+| impl_intro e1 C1 a C2 M => 
 indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication introduction
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ M
-| impl_elim a1 a2 C1 C2 L R => 
+| impl_elim a C1 C2 L R => 
 indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication elimination
     " ++ indent ++ "- " ++ "Sub-proofs:
@@ -1218,14 +1216,14 @@ Definition proofStepExample1 (j : judgementPart) : list (proofTreeOf j) :=
       | And C1 C2 => [and_intro a C1 C2 (hole _) (hole _)] 
       | Or C1 C2 => [or_intro1 a C1 C2 (hole _); or_intro2 a C1 C2 (hole _)]
       (** The rules for Implies should echo the rules for assumptions, ideally. Or else involve eQ. *)
-      | Implies a' C1 C2 =>
-          (if (a =? a1) && (C1 =? _|_) then [impl_intro e C1 a' a C2 (hole _)] else [])
+      | Implies C1 C2 =>
+          (if (a =? a1) && (C1 =? _|_) then [impl_intro e C1 a C2 (hole _)] else [])
           ++
-          (if (a =? a1) && (C1 =? C) then [impl_intro e C1 a' a C2 (hole _)] else [])
+          (if (a =? a1) && (C1 =? C) then [impl_intro e C1 a C2 (hole _)] else [])
           ++
-          (if (a =? a2) && (C1 =? C) then [impl_intro e C1 a' a C2 (hole _)] else [])
+          (if (a =? a2) && (C1 =? C) then [impl_intro e C1 a C2 (hole _)] else [])
           ++
-          (if (a =? a1) && (C1 =? (C /\' C)) then [impl_intro e C1 a' a C2 (hole _)] else [])
+          (if (a =? a1) && (C1 =? (C /\' C)) then [impl_intro e C1 a C2 (hole _)] else [])
       | _ => []
       end
     ++
@@ -1244,7 +1242,7 @@ Definition proofStepExample1 (j : judgementPart) : list (proofTreeOf j) :=
       ; (and_elim2 a c1 c (hole _))
       ; (and_elim2 a c2 c (hole _))
       ; (and_elim2 a c3 c (hole _)) *)
-      ; (impl_elim a a _|_ c (hole _) (hole _))
+      ; (impl_elim a _|_ c (hole _) (hole _))
       (* ; (impl_elim a c1 c (hole _) (hole _))
       ; (impl_elim a c2 c (hole _) (hole _))
       ; (impl_elim a c3 c (hole _) (hole _)) *)
@@ -1269,9 +1267,9 @@ Fixpoint oneLevelDeeper (step : forall j : judgementPart, list (proofTreeOf j)) 
 | or_elim1 a C1 C2 M => map (or_elim1 a C1 C2) (oneLevelDeeper step _ M)
 | or_elim2 a C1 C2 M => map (or_elim2 a C1 C2) (oneLevelDeeper step _ M)
 | trust a1 a2 C name L => map (trust a1 a2 C name) (oneLevelDeeper step _ L)
-| impl_intro e1 C1 a1 a2 C2 M => map (impl_intro e1 C1 a1 a2 C2) (oneLevelDeeper step _ M)
-| impl_elim a1 a2 C1 C2 L R => map (fun L2 => impl_elim a1 a2 C1 C2 L2 R) (oneLevelDeeper step _ L)
-                        ++ map (impl_elim a1 a2 C1 C2 L) (oneLevelDeeper step _ R)
+| impl_intro e1 C1 a C2 M => map (impl_intro e1 C1 a C2) (oneLevelDeeper step _ M)
+| impl_elim a C1 C2 L R => map (fun L2 => impl_elim a C1 C2 L2 R) (oneLevelDeeper step _ L)
+                        ++ map (impl_elim a C1 C2 L) (oneLevelDeeper step _ R)
 end
 .
 
@@ -1325,8 +1323,8 @@ Fixpoint noHoles {j : judgementPart} (p : proofTreeOf j) : bool :=
 | or_elim1 a C1 C2 M => noHoles M
 | or_elim2 a C1 C2 M => noHoles M
 | trust a1 a2 C name L => noHoles L
-| impl_intro e1 C1 a1 a2 C2 M => noHoles M
-| impl_elim a1 a2 C1 C2 L R => noHoles L && noHoles R
+| impl_intro e1 C1 a C2 M => noHoles M
+| impl_elim a C1 C2 L R => noHoles L && noHoles R
 end
 .
 
@@ -1345,7 +1343,7 @@ Fixpoint proofSearch (d : nat) step (j : judgementPart) (l : list (proofTreeOf j
 
 Open Scope beq_scope.
 
-Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch 4 proofStepExample1 _  [toProofTreeWithHole a1 ((Implies a1 _|_ C))])))).
+Timeout 20 Eval vm_compute in (showListForProofs (( (proofSearch proofStepExample1 _  [toProofTreeWithHole a1 ((Implies _|_ C))] 4)))).
 
 Definition proofStepExample2 (j : judgementPart) : list (proofTreeOf j) :=
   match j with
@@ -1544,9 +1542,9 @@ Record proofTreeOfClaim (c : claim) := {
   _a : actor;
   _p : proofTreeOf(\by _a \in c)
 }.
-Instance showForProofTree_proofTreeOfClaim_instance (c : claim) : ShowForProofTree (proofTreeOfClaim c) := { showForProofTree p := showForProofTree (_p c p) }.
-Instance showForNaturalLanguage_proofTreeOfClaim_instance (c : claim) : ShowForNaturalLanguage (proofTreeOfClaim c) := { showForNaturalLanguage p := showForNaturalLanguage (_p c p) }.
-Instance showForLogSeq_proofTreeOfClaim_instance (c : claim) : ShowForLogSeq (proofTreeOfClaim c) := { showForLogSeq p := showForLogSeq (_p c p) }.
+Instance showProofTreeOfClaim (c : claim) : ShowForProofTree (proofTreeOfClaim c) := { showForProofTree p := showForProofTree (_p c p) }.
+(* Instance showLongProofTreeOfClaim (c : claim) : ShowLong (proofTreeOfClaim c) := { showForNaturalLanguage p := showForNaturalLanguage (_p c p) }. *)
+(* Instance showLong2ProofTreeOfClaim (c : claim) : ShowLong2 (proofTreeOfClaim c) := { showForLogSeq p := showForLogSeq (_p c p) }. *)
 
 Definition exampleWithProofOf : proofTreeOfClaim C1.
 Proof.
@@ -1570,11 +1568,7 @@ Eval compute in showForProofTree exampleWithProofOf.
 Eval compute in showForNaturalLanguage exampleWithProofOf.
 Eval compute in showForLogSeq exampleWithProofOf.
 
-Definition CQ := AtomicClaim _cQ_.
-Definition aQ := Actor _aQ_.
-Definition eQ := AtomicEvid _eQ_.
-
-Definition usingAll : forall a, proofTreeOfClaim (Implies a _|_ C1).
+Definition usingAll : proofTreeOfClaim (Implies _|_ C1).
 Proof.
 eexists _.
 eapply (or_elim1 _ _ C2).
@@ -1588,7 +1582,7 @@ eapply and_intro.
 apply (assume e2 a1); apply leaf.
 2: apply (assume e2 a1); apply leaf.
 eapply (trust _ _ _ trustT).
-eapply (impl_intro e2 _|_ a a1 C1).
+eapply (impl_intro e2 _|_ a1 C1).
 simpl.
 eapply bot_elim.
 apply (assume e2 a1 _|_).
@@ -1603,7 +1597,7 @@ Defined.
 |*)
 
 
-Eval compute in showForProofTree (usingAll aQ).
+Eval compute in showForProofTree usingAll.
 
 (*|
 .. coq::
@@ -1637,6 +1631,10 @@ repeat (apply a1
 .
 
 From Ltac2 Require Import Ltac2.
+
+Definition CQ := AtomicClaim _cQ_.
+Definition aQ := Actor _aQ_.
+Definition eQ := AtomicEvid _eQ_.
 
 (* Ltac2 maybePrintMessage1 s := Message.print (Message.of_string s). *)
 (* Ltac2 maybePrintMessage2 s := Message.print (Message.of_string s). *)
@@ -1808,8 +1806,8 @@ Definition winery := Actor _winery_.
 
 Definition exampleFromJosh : proofTreeOfClaim healthy.
 eexists retailer.
-eapply (impl_elim _ _ (nonToxic /\' organic)).
-try (eapply (assume belief retailer (Implies _ (nonToxic /\' organic) healthy))).
+eapply (impl_elim _ (nonToxic /\' organic)).
+try (apply (assume belief retailer (Implies (nonToxic /\' organic) healthy))).
 try (apply (assume testing vineyard nonToxic)).
 try (apply (assume audit winery organic)).
 eapply and_intro.
@@ -1849,7 +1847,7 @@ match Int.equal 0 max_depth with
     | eapply (trust retailer vineyard _ trustT); autoProveMain2 (Int.sub max_depth 1)
     | eapply (trust retailer winery _ trustT); autoProveMain2 (Int.sub max_depth 1)
     | eapply (assume testing vineyard nonToxic); autoProveMain2 (Int.sub max_depth 1)
-    | eapply (assume belief retailer (Implies _ (nonToxic /\' organic) healthy)); autoProveMain2 (Int.sub max_depth 1)
+    | eapply (assume belief retailer (Implies (nonToxic /\' organic) healthy)); autoProveMain2 (Int.sub max_depth 1)
     | eapply (assume audit winery organic); autoProveMain2 (Int.sub max_depth 1)
     (* | simpl; autoProveMain2 (Int.sub max_depth 1) *)
     (* | eapply (trust _ _ _ _ _ _); autoProveMain2 (Int.sub max_depth 1) *)
@@ -1895,7 +1893,7 @@ Definition exampleFromJoshProofStep (j : judgementPart) : list (proofTreeOf j) :
     (** Assumptions: *)
     (if (a =? vineyard) && (c =? nonToxic) then [assume testing a c] else [])
     ++
-    (if (a =? retailer) && (c =? (Implies a (nonToxic /\' organic) healthy)) then [assume belief a c] else [])
+    (if (a =? retailer) && (c =? (Implies (nonToxic /\' organic) healthy)) then [assume belief a c] else [])
     ++
     (if (a =? winery) && (c =? organic) then [assume audit a c] else [])
     ++
@@ -1903,7 +1901,7 @@ Definition exampleFromJoshProofStep (j : judgementPart) : list (proofTreeOf j) :
     (if (a =? retailer) then [trust a vineyard c trustT (hole _); trust a winery c T (hole _)] else [])
     ++
     (** Implication elimination: *)
-    (if (a =? retailer) && (c =? healthy) then [impl_elim a a (nonToxic /\' organic) c (hole _) (hole _)] else [])
+    (if (a =? retailer) && (c =? healthy) then [impl_elim a (nonToxic /\' organic) c (hole _) (hole _)] else [])
     ++
     (** Rules for specific claim patterns: *)
     match c with
@@ -1911,7 +1909,7 @@ Definition exampleFromJoshProofStep (j : judgementPart) : list (proofTreeOf j) :
       | And C1 C2 => [and_intro a C1 C2 (hole _) (hole _)] 
       | Or C1 C2 => [or_intro1 a C1 C2 (hole _); or_intro2 a C1 C2 (hole _)]
       (** The rules for Implies should echo the rules for assumptions, ideally. Or else involve eQ. *)
-      | Implies a1 C1 C2 =>
+      | Implies C1 C2 =>
           []
       | _ => []
       end
@@ -1934,7 +1932,7 @@ Time Timeout 5 Eval vm_compute in (showListOfProofTrees (( (proofSearch 10 examp
 Eval compute in (showForNaturalLanguage exampleFromJoshAuto).
 Eval compute in showForLogSeq exampleFromJoshAuto.
 
-Definition whiteboardExample : proofTreeOfClaim (Implies a2 C1 C2).
+Definition whiteboardExample : proofTreeOfClaim (Implies C1 C2).
 Proof.
 eexists a2.
 eapply (impl_intro e1).
@@ -1972,7 +1970,7 @@ Definition assess := AtomicEvid _assess_.
 Definition ingredients_percentage_list := AtomicEvid _ingredients_percentage_list_.
 Definition breakdown_of_formulations_list := AtomicEvid _breakdown_of_formulations_list_.
 
-
+(*
 Definition preAssessmentRequirements : proofTreeOf (JudgementPart certifier recipe_valid).
 Proof.
 eapply (impl_elim applicant _ recipe_valid).
@@ -2034,7 +2032,7 @@ Eval compute in showForProofTree preAssessmentRequirementsWithEvidHoles.
 
 Eval compute in (showForNaturalLanguage preAssessmentRequirementsWithEvidHoles).
 Eval compute in showForLogSeq preAssessmentRequirementsWithEvidHoles.
-
+*)
 Open Scope string_scope.
 
 Definition allProofsAsString := 
@@ -2044,14 +2042,14 @@ Definition allProofsAsString :=
  ++ showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrust
  ++ showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras
  ++ showForProofTree exampleWithProofOf
- ++ showForProofTree (usingAll aQ)
+ ++ showForProofTree usingAll
  ++ showForProofTree exampleC1
  ++ showForProofTree automatedProof
  ++ showForProofTree fromPaper1
  ++ showForProofTree exampleFromJosh
  ++ showForProofTree exampleFromJoshAuto
  ++ showForProofTree whiteboardExample
- ++ showForProofTree preAssessmentRequirements.
+ (*++ showForProofTree preAssessmentRequirements*).
 
 (* Definition allProofsAsString := 
     showForLogSeq concreteProofTreeExampleWith2Conjuncts
