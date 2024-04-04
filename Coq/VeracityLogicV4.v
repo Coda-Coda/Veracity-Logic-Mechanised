@@ -1924,7 +1924,7 @@ Close Scope beq_scope.
    :class: coq-math
 |*)
 
-Time Timeout 5 Eval vm_compute in (showListOfProofTrees (( (proofSearch exampleFromJoshProofStep _  [toProofTreeWithHole retailer healthy] 10)))).
+Time Timeout 5 Eval vm_compute in (showListOfProofTrees (( (proofSearch 10 exampleFromJoshProofStep _  [toProofTreeWithHole retailer healthy])))).
 
 (*|
 .. coq::
