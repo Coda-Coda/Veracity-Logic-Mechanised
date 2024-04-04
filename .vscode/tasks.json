@@ -6,7 +6,7 @@
     {
       "label": "alectryon-build",
       "type": "shell",
-      "command": "cd Coq; nix-shell --run \"time alectryon --long-line-threshold 999999 --output-directory html VeracityLogicV4.v\"",
+      "command": "cd Coq; nix-shell --run \"time alectryon --long-line-threshold 999999 --output-directory html VeracityLogicV5.v\"",
       "problemMatcher": [],
       "group": {
         "kind": "build",
