@@ -1343,7 +1343,7 @@ Fixpoint proofSearch (d : nat) step (j : judgementPart) (l : list (proofTreeOf j
 
 Open Scope beq_scope.
 
-Timeout 20 Eval vm_compute in (showListForProofs (( (proofSearch proofStepExample1 _  [toProofTreeWithHole a1 ((Implies _|_ C))] 4)))).
+Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch 4 proofStepExample1 _  [toProofTreeWithHole a1 ((Implies _|_ C))])))).
 
 Definition proofStepExample2 (j : judgementPart) : list (proofTreeOf j) :=
   match j with
