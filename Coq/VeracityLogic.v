@@ -818,19 +818,17 @@ Fixpoint getAllEvidence (j : judgementPart) (p : proofTreeOf j)
 match p with
 | hole _ => [HoleEvid]
 | assume e a C => [e]
-| bot_elim a C M => e :: (getAllEvidence _ M)
-| and_intro a C1 C2 L R => 
-    e1 :: e2 :: getAllEvidence _ L ++ getAllEvidence _ R 
-| and_elim1 a C1 C2 M => e1 :: e2 :: getAllEvidence _ M
-| and_elim2 a C1 C2 M => e1 :: e2 :: getAllEvidence _ M
-| or_intro1 a C1 C2 M => e1 :: getAllEvidence _ M
-| or_intro2 a C1 C2 M => e2 :: getAllEvidence _ M
-| or_elim1 a C1 C2 M => e1 :: getAllEvidence _ M
-| or_elim2 a C1 C2 M => e2 :: getAllEvidence _ M
-| trust a1 a2 C name L => e ::  getAllEvidence _ L
-| impl_intro e1 C1 a C2 M => e1 :: e2 :: getAllEvidence _ M
-| impl_elim a C1 C2 L R => 
-   e1 :: e2 :: getAllEvidence _ L ++ getAllEvidence _ R 
+| bot_elim a C M => (getAllEvidence _ M)
+| and_intro a C1 C2 L R => getAllEvidence _ L ++ getAllEvidence _ R 
+| and_elim1 a C1 C2 M => getAllEvidence _ M
+| and_elim2 a C1 C2 M => getAllEvidence _ M
+| or_intro1 a C1 C2 M => getAllEvidence _ M
+| or_intro2 a C1 C2 M => getAllEvidence _ M
+| or_elim1 a C1 C2 M => getAllEvidence _ M
+| or_elim2 a C1 C2 M => getAllEvidence _ M
+| trust a1 a2 C name L => getAllEvidence _ L
+| impl_intro e1 C1 a C2 M => getAllEvidence _ M
+| impl_elim a C1 C2 L R => getAllEvidence _ L ++ getAllEvidence _ R 
 end.
 
 Definition isAtomicEvidence (e : evid) : bool :=
