@@ -86,6 +86,7 @@ Inductive atomic_evid_name :=
   | _compile_
   | _review_
   | _assess_
+  | _business_procedure_
   | _ingredients_percentage_list_
   | _breakdown_of_formulations_list_
 .
@@ -163,6 +164,7 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _compile_=> "c"
       | _review_=> "r"
       | _assess_ => "a"
+      | _business_procedure_ => "p"
       | _ingredients_percentage_list_ => "e_{PI}"
       | _breakdown_of_formulations_list_=> "e_{BF}"
     end
@@ -244,6 +246,7 @@ Instance : ShowForNaturalLanguage atomic_evid_name := {
       | _compile_=> "compile"
       | _review_=> "review"
       | _assess_ => "assess"
+      | _business_procedure_ => "business procedure"
       | _ingredients_percentage_list_ => "ingredients percentage list"
       | _breakdown_of_formulations_list_ => "breakdown of formulations list"
     end
@@ -1193,6 +1196,8 @@ This will:
 Definition toProofTreeWithHole (a : actor) (c : claim) := hole (\by a \in c).
 Definition eB := AtomicEvid _eB_.
 Definition T := Trust _T_.
+Definition U := Trust _U_.
+Definition V := Trust _V_.
 
 Open Scope beq_scope.
 
@@ -1967,24 +1972,25 @@ Definition successful_market_compliance_assessment := AtomicClaim _successful_ma
 Definition compile := AtomicEvid _compile_.
 Definition review := AtomicEvid _review_.
 Definition assess := AtomicEvid _assess_.
+Definition business_procedure := AtomicEvid _business_procedure_.
 Definition ingredients_percentage_list := AtomicEvid _ingredients_percentage_list_.
 Definition breakdown_of_formulations_list := AtomicEvid _breakdown_of_formulations_list_.
 
-(*
 Definition preAssessmentRequirements : proofTreeOf (JudgementPart certifier recipe_valid).
 Proof.
-eapply (impl_elim applicant _ recipe_valid).
+eapply (trust certifier applicant _ T).
+eapply (impl_elim _ breakdown_of_formulations_valid).
+eapply (trust applicant certifier  _ U).
+eapply (impl_elim _ ingredients_valid).
+eapply (assume business_procedure).
+eapply (impl_elim _ successful_market_compliance_assessment).
+eapply (impl_elim _ (ingredients_valid)).
 eapply (assume review).
-eapply (impl_elim applicant _ breakdown_of_formulations_valid).
-eapply (impl_elim certifier _ ingredients_valid).
-eapply (assume compile).
-eapply (impl_elim applicant _ (ingredients_valid)).
-eapply (impl_elim _ _ successful_market_compliance_assessment).
-eapply (assume review).
-eapply (assume assess certifier).
-eapply (impl_elim applicant _ percentage_ingredients_valid).
+eapply (trust certifier applicant _ T).
+eapply (impl_elim _ percentage_ingredients_valid).
 eapply (assume compile).
 eapply (assume ingredients_percentage_list). 
+eapply (assume assess certifier).
 eapply (assume breakdown_of_formulations_list).
 Defined.
 
@@ -2004,18 +2010,19 @@ Eval compute in showForLogSeq preAssessmentRequirements.
 
 Definition preAssessmentRequirementsWithEvidHoles : proofTreeOf (JudgementPart certifier recipe_valid).
 Proof.
-eapply (impl_elim applicant _ recipe_valid).
-eapply (assume review).
-eapply (impl_elim applicant _ breakdown_of_formulations_valid).
-eapply (impl_elim certifier _ ingredients_valid).
+eapply (trust certifier applicant _ T).
+eapply (impl_elim _ breakdown_of_formulations_valid).
+eapply (trust applicant certifier  _ U).
+eapply (impl_elim _ ingredients_valid).
 eapply (assume HoleEvid).
-eapply (impl_elim applicant _ (ingredients_valid)).
-eapply (impl_elim _ _ successful_market_compliance_assessment).
-eapply (assume review).
-eapply (assume assess certifier).
-eapply (impl_elim applicant _ percentage_ingredients_valid).
+eapply (impl_elim _ successful_market_compliance_assessment).
+eapply (impl_elim _ (ingredients_valid)).
+eapply (assume HoleEvid).
+eapply (trust certifier applicant _ T).
+eapply (impl_elim _ percentage_ingredients_valid).
 eapply (assume HoleEvid).
 eapply (assume HoleEvid). 
+eapply (assume HoleEvid).
 eapply (assume HoleEvid).
 Defined.
 
@@ -2032,7 +2039,7 @@ Eval compute in showForProofTree preAssessmentRequirementsWithEvidHoles.
 
 Eval compute in (showForNaturalLanguage preAssessmentRequirementsWithEvidHoles).
 Eval compute in showForLogSeq preAssessmentRequirementsWithEvidHoles.
-*)
+
 Open Scope string_scope.
 
 Definition allProofsAsString := 
@@ -2049,7 +2056,7 @@ Definition allProofsAsString :=
  ++ showForProofTree exampleFromJosh
  ++ showForProofTree exampleFromJoshAuto
  ++ showForProofTree whiteboardExample
- (*++ showForProofTree preAssessmentRequirements*).
+ ++ showForProofTree preAssessmentRequirements.
 
 (* Definition allProofsAsString := 
     showForLogSeq concreteProofTreeExampleWith2Conjuncts
