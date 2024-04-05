@@ -122,6 +122,7 @@ Inductive claim_name :=
   | _nonToxic_
   | _organic_
   | _ingredients_valid_
+  | _ingredients_valid_approved_
   | _recipe_valid_
   | _percentage_ingredients_valid_
   | _breakdown_of_formulations_valid_
@@ -201,11 +202,12 @@ Instance : ShowForProofTree claim_name := {
       | _healthy_ => "H"
       | _nonToxic_ => "N"
       | _organic_ => "O"
-      | _ingredients_valid_ => "IV"
-      | _recipe_valid_ => "RV"      
-      | _percentage_ingredients_valid_ => "PIV"
-      | _breakdown_of_formulations_valid_ => "BFV"
-      | _successful_market_compliance_assessment_ => "SMCA"
+      | _ingredients_valid_ => "\mathit{IV}"
+      | _ingredients_valid_approved_ => "\mathit{IVA}"
+      | _recipe_valid_ => "\mathit{RV}"      
+      | _percentage_ingredients_valid_ => "\mathit{PIV}"
+      | _breakdown_of_formulations_valid_ => "\mathit{BFV}"
+      | _successful_market_compliance_assessment_ => "\mathit{SMCA}"
     end
   }.
 
@@ -286,6 +288,7 @@ Instance : ShowForNaturalLanguage claim_name := {
       | _nonToxic_ => "non-toxic"
       | _organic_ => "organic"
       | _ingredients_valid_ => "ingredients-valid"
+      | _ingredients_valid_approved_ => "ingredients-valid-approved"
       | _recipe_valid_ => "recipe-valid"      
       | _percentage_ingredients_valid_ => "percentage-ingredients-valid"
       | _breakdown_of_formulations_valid_ => "breakdown-of-formulations-valid"
@@ -1963,6 +1966,7 @@ Eval compute in showForLogSeq whiteboardExample.
 Definition certifier := Actor _certifier_.
 Definition applicant := Actor _applicant_.
 Definition ingredients_valid := AtomicClaim _ingredients_valid_.
+Definition ingredients_valid_approved := AtomicClaim _ingredients_valid_approved_.
 Definition recipe_valid := AtomicClaim _recipe_valid_.
 Definition percentage_ingredients_valid := AtomicClaim _percentage_ingredients_valid_.
 Definition breakdown_of_formulations_valid := AtomicClaim _breakdown_of_formulations_valid_.
@@ -1979,7 +1983,7 @@ Proof.
 eapply (trust certifier applicant _ T).
 eapply (impl_elim _ breakdown_of_formulations_valid).
 eapply (trust applicant certifier  _ U).
-eapply (impl_elim _ ingredients_valid).
+eapply (impl_elim _ ingredients_valid_approved).
 eapply (assume business_procedure).
 eapply (impl_elim _ successful_market_compliance_assessment).
 eapply (impl_elim _ (ingredients_valid)).
@@ -2011,7 +2015,7 @@ Proof.
 eapply (trust certifier applicant _ T).
 eapply (impl_elim _ breakdown_of_formulations_valid).
 eapply (trust applicant certifier  _ U).
-eapply (impl_elim _ ingredients_valid).
+eapply (impl_elim _ ingredients_valid_approved).
 eapply (assume HoleEvid).
 eapply (impl_elim _ successful_market_compliance_assessment).
 eapply (impl_elim _ (ingredients_valid)).
