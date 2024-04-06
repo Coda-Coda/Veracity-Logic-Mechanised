@@ -2044,6 +2044,24 @@ Eval compute in showForProofTree preAssessmentRequirementsWithEvidHoles.
 Eval compute in (showForNaturalLanguage preAssessmentRequirementsWithEvidHoles).
 Eval compute in showForLogSeq preAssessmentRequirementsWithEvidHoles.
 
+Lemma complexEvidenceExample : proofTreeOf (\by a1 \in c1).
+Proof.
+apply (and_elim1 _ _ c2).
+apply bot_elim.
+apply (assume eB).
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in showForProofTree complexEvidenceExample.
+
+(*|
+.. coq::
+|*)
+
 Open Scope string_scope.
 
 Definition allProofsAsString := 
