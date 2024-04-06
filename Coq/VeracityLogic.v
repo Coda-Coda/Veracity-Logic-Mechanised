@@ -310,6 +310,7 @@ Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNatural
 
 Inductive evid :=
   | HoleEvid
+  | ComplexEvid (e : evid)
   | AtomicEvid (n : atomic_evid_name)
   | Pair (e1 e2: evid)
   | Left (e1 : evid)
@@ -487,21 +488,21 @@ match p with
 | and_intro a C1 C2 L R => {{computeEvidence _ L,computeEvidence _ R}}
 | and_elim1 a C1 C2 M => match computeEvidence _ M with
                           | {{e1,e2}} => e1
-                          | e => e
+                          | e => ComplexEvid e
                           end
 | and_elim2 a C1 C2 M => match computeEvidence _ M with
                           | {{e1,e2}} => e2
-                          | e => e
+                          | e => ComplexEvid e
                           end
 | or_intro1 a C1 C2 M => Left (computeEvidence _ M)
 | or_intro2 a C1 C2 M => Right (computeEvidence _ M)
 | or_elim1 a C1 C2 M => match computeEvidence _ M with
                           | (Left e1) => e1
-                          | e => e
+                          | e => ComplexEvid e
                           end
 | or_elim2 a C1 C2 M => match computeEvidence _ M with
                           | (Right e2) => e2
-                          | e => e
+                          | e => ComplexEvid e
                           end
 | trust a1 a2 C name L => computeEvidence _ L
 | impl_intro e1 C1 a C2 M => Lambda e1 (computeEvidence _ M)
@@ -592,6 +593,7 @@ Instance : ShowForProofTree evid := {
       match e with
       | AtomicEvid name => showForProofTree name
       | HoleEvid => "\textcolor{red}{e_{?}}"
+      | ComplexEvid e => "\textcolor{blue}{complex(" ++ (showForProofTreeEvid e) ++ ")}"
       | Pair e1 e2 => "(" ++ (showForProofTreeEvid e1) ++ ", "
                           ++ (showForProofTreeEvid e2) ++ ")"
       | Left e => "i(" ++ showForProofTreeEvid e ++ ")"
