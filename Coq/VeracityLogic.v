@@ -2044,8 +2044,9 @@ Eval compute in showForProofTree preAssessmentRequirementsWithEvidHoles.
 Eval compute in (showForNaturalLanguage preAssessmentRequirementsWithEvidHoles).
 Eval compute in showForLogSeq preAssessmentRequirementsWithEvidHoles.
 
-Lemma complexEvidenceExample : proofTreeOf (\by a1 \in c1).
+Lemma complexEvidenceExample : proofTreeOf (\by a1 \in (Implies _|_ c1)).
 Proof.
+eapply (impl_intro eB).
 apply (and_elim1 _ _ c2).
 apply bot_elim.
 apply (assume eB).
