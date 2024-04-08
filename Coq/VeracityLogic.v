@@ -857,7 +857,7 @@ match p with
 | or_elim2 a C1 C2 M => getAssumptions _ M
 | trust a1 a2 C name L => 
     getAssumptions _ L
-| impl_intro e1 C1 a C2 M => filter (judgementPart_beq (\by a \in C1)) (getAssumptions _ M)
+| impl_intro e1 C1 a C2 M => filter (fun j => negb (judgementPart_beq (\by a \in C1) j)) (getAssumptions _ M)
 | impl_elim a C1 C2 L R => 
    getAssumptions _ L ++ getAssumptions _ R 
 end.
@@ -877,7 +877,7 @@ match p with
 | or_elim2 a C1 C2 M => getAssumptionsWithEvidence _ M
 | trust a1 a2 C name L => 
     getAssumptionsWithEvidence _ L
-| impl_intro e1 C1 a C2 M => filter (judgement_beq (Judgement e1 (\by a \in C1))) (getAssumptionsWithEvidence _ M)
+| impl_intro e1 C1 a C2 M => filter (fun j => negb (judgement_beq (Judgement e1 (\by a \in C1)) j)) (getAssumptionsWithEvidence _ M)
 | impl_elim a C1 C2 L R => 
    getAssumptionsWithEvidence _ L ++ getAssumptionsWithEvidence _ R 
 end.
