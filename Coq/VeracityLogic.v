@@ -309,7 +309,6 @@ Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNatural
 
 
 Inductive evid :=
-  | HoleEvid
   | AtomicEvid (n : atomic_evid_name)
   | Pair (e1 e2: evid)
   | Left (e1 : evid)
@@ -397,7 +396,6 @@ The remaining rules will be easy to add, this will be done in 2024.
 |*)
 
 Inductive proofTreeOf : judgement -> Type :=
-| hole j : proofTreeOf j
 | assume (e : evid) a (c : claim) : proofTreeOf (e \by a \in c)
 | bot_elim e a C
 
@@ -475,7 +473,6 @@ Check and_intro. (* .unfold *)
 
 Fixpoint computeEvidence (j : judgement) (p : proofTreeOf j) : evid := 
 match p with
-| hole _ => HoleEvid
 | assume e a c => e
 | bot_elim e a C M => computeEvidence _ M
 | and_intro e1 e2 a C1 C2 L R => {{computeEvidence _ L,computeEvidence _ R}}
@@ -583,7 +580,6 @@ Instance : ShowForProofTree evid := {
   fix showForProofTreeEvid e :=
       match e with
       | AtomicEvid name => showForProofTree name
-      | HoleEvid => "\textcolor{red}{e_{?}}"
       | Pair e1 e2 => "(" ++ (showForProofTreeEvid e1) ++ ", "
                           ++ (showForProofTreeEvid e2) ++ ")"
       | Left e => "i(" ++ showForProofTreeEvid e ++ ")"
@@ -724,8 +720,6 @@ Definition showForProofTree_judgement (Ps : list judgement) (Ts : list trustRela
       | (h :: tl) as Ps => showForProofTree Ps ++ " \vdash_{" ++ showForProofTree Ts ++ "} " ++ (showForProofTree j)
     end.
 
-Eval compute in showForProofTree_judgement [] [] j1 (hole j1).
-
 Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \in c1) (assume e1 a1 c1).
 
 Definition showForNaturalLanguage_judgement (Ps : list judgement) (Ts : list trustRelation) (j : judgement) (p : proofTreeOf j) :=
@@ -778,7 +772,6 @@ Definition showForLogSeq_judgement (Ps : list judgement) (Ts : list trustRelatio
 Fixpoint getAllTrustRelationsUsed (j : judgement) (p : proofTreeOf j)
   : list trustRelation :=
 match p with
-| hole _ => []
 | assume e a C => []
 | bot_elim e a C M => getAllTrustRelationsUsed _ M
 | and_intro e1 e2 a C1 C2 L R => 
@@ -799,7 +792,6 @@ end.
 Fixpoint getAllEvidence (j : judgement) (p : proofTreeOf j)
   : list evid :=
 match p with
-| hole _ => [HoleEvid]
 | assume e a C => [e]
 | bot_elim e a C M => (getAllEvidence _ M)
 | and_intro e1 e2 a C1 C2 L R => getAllEvidence _ L ++ getAllEvidence _ R 
@@ -822,7 +814,6 @@ end.
 
 Fixpoint getAssumptions (j : judgement) (p : proofTreeOf j) : list judgement := 
 match p with
-| hole _ => []
 | assume e a C => [e \by a \in C]
 | bot_elim e a C M => getAssumptions _ M
 | and_intro e1 e2 a C1 C2 L R => 
@@ -852,7 +843,6 @@ Open Scope beq_scope.
 
 Fixpoint proofTreeOf_beq {j1 j2 : judgement} (P1 : proofTreeOf j1) (P2 : proofTreeOf j2) : bool :=
 match P1,P2 with
-| hole j1,hole j2 => j1 =? j2
 | assume e a1 C1, assume e2 a2 C2 => (e =? e2) && (a1 =? a2) && (C1 =? C2)
 | bot_elim e a1 C1 M1, bot_elim e2 a2 C2 M2 => (e =? e2) && (a1 =? a2) && (C1 =? C2) && proofTreeOf_beq M1 M2
 | and_intro e1 e2 a C1 C2 L R, and_intro e1' e2' a' C1' C2' L' R' => (e1 =? e1') && (e2 =? e2') && (a =? a') && (C1 =? C1') && (C2 =? C2') && proofTreeOf_beq L L' && proofTreeOf_beq R R'
@@ -879,7 +869,6 @@ Fixpoint showForProofTree_proofTreeOf_helper (j : judgement) (p : proofTreeOf j)
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
 match p with
-| hole j => "\AxiomC{$\textcolor{red}{" ++ (showForProofTree j) ++ "}$}"
 | assume e a C => "\AxiomC{$ " 
              ++ showForProofTree C 
              ++ " \textit{ is a veracity claim} $}"
@@ -940,7 +929,6 @@ Fixpoint showForNaturalLanguage_proofTreeOf_helper (indent : string) (j : judgem
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
 match p with
-| hole p => indent ++ "we stopped the proof at this point and assumed it was provable."
 | assume e a C => 
 indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 " 
@@ -1024,7 +1012,6 @@ Fixpoint showForLogSeq_proofTreeOf_helper (indent : string) (j : judgement) (p :
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
 match p with
-| hole p => indent ++ "- " ++ "We stopped the proof at this point and assumed it was provable."
 | assume e a C => 
 indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: we assume this"
