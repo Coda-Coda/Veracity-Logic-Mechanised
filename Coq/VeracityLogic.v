@@ -432,7 +432,7 @@ Inductive proofTreeOf : judgement -> Type :=
 
 | or_intro2 e2 a C1 C2
 
-           (M: proofTreeOf ( (e2 \by a \in C2)))
+           (M: proofTreeOf (e2 \by a \in C2))
                           :
     proofTreeOf ((Right e2) \by a \in (C1 \/' C2))
 
