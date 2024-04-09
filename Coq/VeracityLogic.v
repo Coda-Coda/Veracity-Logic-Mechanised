@@ -2067,6 +2067,25 @@ Eval compute in showForProofTree complexEvidenceExample.
 .. coq::
 |*)
 
+Definition problematicExample1 : proofTreeOf (\by a1 \in (Implies c1 c2)).
+Proof.
+apply (impl_intro e1).
+eapply or_elim2.
+eapply or_intro1.
+eapply (assume e1 a1 c1).
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in showForProofTree problematicExample1.
+
+(*|
+.. coq::
+|*)
+
 Open Scope string_scope.
 
 Definition allProofsAsString := 
