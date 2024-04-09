@@ -487,20 +487,24 @@ match p with
 | bot_elim a C M => computeEvidence _ M
 | and_intro a C1 C2 L R => {{computeEvidence _ L,computeEvidence _ R}}
 | and_elim1 a C1 C2 M => match computeEvidence _ M with
+                          | HoleEvid => HoleEvid
                           | {{e1,e2}} => e1
                           | e => ComplexEvid e
                           end
 | and_elim2 a C1 C2 M => match computeEvidence _ M with
+                          | HoleEvid => HoleEvid
                           | {{e1,e2}} => e2
                           | e => ComplexEvid e
                           end
 | or_intro1 a C1 C2 M => Left (computeEvidence _ M)
 | or_intro2 a C1 C2 M => Right (computeEvidence _ M)
 | or_elim1 a C1 C2 M => match computeEvidence _ M with
+                          | HoleEvid => HoleEvid
                           | (Left e1) => e1
                           | e => ComplexEvid e
                           end
 | or_elim2 a C1 C2 M => match computeEvidence _ M with
+                          | HoleEvid => HoleEvid
                           | (Right e2) => e2
                           | e => ComplexEvid e
                           end
