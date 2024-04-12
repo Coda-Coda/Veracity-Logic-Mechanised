@@ -308,16 +308,6 @@ Instance : ShowForNaturalLanguage trust_relation_name := {
 Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
 
 
-Inductive evid :=
-  | AtomicEvid (n : atomic_evid_name)
-  | Pair (e1 e2: evid)
-  | Left (e1 : evid)
-  | Right (e1 : evid)
-  | Lambda (e1 e2: evid)
-  | Apply (e1 e2: evid).
-
-Scheme Equality for evid.
-
 Inductive claim :=
   | AtomicClaim (n : claim_name)
   | Bottom
@@ -326,6 +316,25 @@ Inductive claim :=
   | Implies  (c1 c2 : claim).
 
 Scheme Equality for claim.
+
+Inductive namedFunction : claim -> claim -> Type :=
+  | NamedFunction (name : string) {c1 c2} : namedFunction c1 c2
+.
+
+Instance showForProofTree_function_name {c1 c2} : ShowForProofTree (namedFunction c1 c2) := { 
+  showForProofTree f := 
+    match f with
+      | NamedFunction name => name
+    end
+  }.
+
+Inductive evid : claim -> Type :=
+  | AtomicEvid (n1 : atomic_evid_name) (n2 : claim_name) : evid (AtomicClaim n2)
+  | BotEvid {c} (e : evid Bottom) : evid c
+  | Pair {c1 c2} (e1 : evid c1) (e2 : evid c2) : evid (And c1 c2)
+  | Left {c1 c2} (e1 : evid c1) : evid (Or c1 c2)
+  | Right {c1 c2} (e2 : evid c2) : evid (Or c1 c2)
+  | Lambda {c1 c2} (f : namedFunction c1 c2) : evid (Implies c1 c2).
 
 Inductive actor :=
   | Actor (n : actor_name).
@@ -339,11 +348,7 @@ Inductive trustRelation :=
 Scheme Equality for trustRelation.
 
 Inductive judgement :=
-  Judgement (e : evid) (a : actor) (c: claim).
-
-Scheme Equality for judgement.
-
-
+  Judgement (c: claim) (e : evid c) (a : actor).
 
 (*|
 
@@ -355,7 +360,7 @@ Judgements are a list of **single** judgements entailing some single judgement, 
 Next, we introduce some notation for Coq.
 |*)
 
-Notation "E \by A \in C" := (Judgement E A C) (at level 2).
+Notation "E \by A \in C" := (Judgement C E A) (at level 2).
 Infix "/\'" := And (at level 81, left associativity).
 Infix "\/'" := Or (at level 86, left associativity). 
 Notation "_|_" := (Bottom) (at level 1).
@@ -368,7 +373,7 @@ We define a tagged type representing a trust relation.
 |*)
 
 
-Class Beq A : Type :=
+(* Class Beq A : Type :=
   {
     beq : A -> A -> bool
   }.
@@ -381,7 +386,7 @@ Instance : Beq evid := { beq := evid_beq }.
 Instance : Beq claim := { beq := claim_beq }.
 Instance : Beq actor := { beq := actor_beq }.
 Instance : Beq trustRelation := { beq := trustRelation_beq }.
-Instance : Beq judgement := { beq := judgement_beq }.
+Instance : Beq judgement := { beq := judgement_beq }. *)
 
 (*|
 
@@ -396,75 +401,78 @@ The remaining rules will be easy to add, this will be done in 2024.
 |*)
 
 Inductive proofTreeOf : judgement -> Type :=
-| assume (e : evid) a (c : claim) : proofTreeOf (e \by a \in c)
-| bot_elim e a C
+| assume (c : claim) (e : evid c) a : proofTreeOf (e \by a \in c)
+| bot_elim C e a
 
         (M : proofTreeOf (e \by a \in _|_))
                            :
-             proofTreeOf (e \by a \in C)
+             proofTreeOf ((BotEvid e) \by a \in C)
 
-| and_intro e1 e2 a C1 C2
+| and_intro C1 C2 e1 e2 a
 
 (L: proofTreeOf (e1 \by a \in C1))
                            (R: proofTreeOf (e2 \by a \in C2))
                         :
     proofTreeOf ({{e1, e2}} \by a \in (C1 /\' C2))
 
-| and_elim1 e1 e2 a C1 C2
+| and_elim1 C1 C2 e1 e2 a
 
     (M : proofTreeOf ({{e1, e2}} \by a \in (C1 /\' C2)))
                            :
              proofTreeOf (e1 \by a \in C1)
 
-| and_elim2 e1 e2 a C1 C2
+| and_elim2 C1 C2 e1 e2 a
 
     (M : proofTreeOf ({{e1, e2}} \by a \in (C1 /\' C2)))
                           :
         proofTreeOf (e2 \by a \in C2)
 
-| or_intro1 e1 a C1 C2
+| or_intro1 C1 C2 e1 a
 
            (M: proofTreeOf (e1 \by a \in C1))
                           :
     proofTreeOf ((Left e1) \by a \in (C1 \/' C2))
 
-| or_intro2 e2 a C1 C2
+| or_intro2 C1 C2 e2 a
 
            (M: proofTreeOf (e2 \by a \in C2))
                           :
     proofTreeOf ((Right e2) \by a \in (C1 \/' C2))
 
-| or_elim1 e1 a C1 C2
+| or_elim1 C1 C2 e1 a
 
       (M: proofTreeOf ((Left e1) \by a \in (C1 \/' C2)))
                           :
         proofTreeOf (e1 \by a \in C1)
 
-| or_elim2 e2 a C1 C2
+| or_elim2 C1 C2 e2 a
 
       (M : proofTreeOf ((Right e2) \by a \in (C1 \/' C2)))
                             :
           proofTreeOf (e2 \by a \in C2)
 
-| trust e a1 a2 C (name : trustRelation)
+| trust C e a1 a2 (name : trustRelation)
 
 (L: proofTreeOf (e \by a2 \in C))
                           :
             proofTreeOf (e \by a1 \in C)
 
-| impl_intro (e1 : evid) e2 a (C1 : claim) C2
+| impl_intro (C1 : claim) C2 (e1 : evid C1) e2 a f
 
               (M: proofTreeOf (e2 \by a \in C2))
                               :
-   proofTreeOf ((Lambda e1 e2) \by a \in (Implies C1 C2))
+   proofTreeOf ((Lambda f) \by a \in (Implies C1 C2))
 
-| impl_elim e1 e2 a C1 C2
+| impl_elim C1 C2 e2 a (f : namedFunction C1 C2) (fDef : (namedFunction C1 C2) -> (evid C1 -> evid C2))
 
-(L: proofTreeOf (e1 \by a \in (Implies C1 C2)))
+(L: proofTreeOf ((Lambda f) \by a \in (Implies C1 C2)))
                            (R: proofTreeOf (e2 \by a \in C1))
                         :
-    proofTreeOf ((Apply e1 e2) \by a \in C2)
+    proofTreeOf (((fDef f) e2) \by a \in C2)
 .
+
+(* UP TO HERE *)
+
 (*|
 This is the :coq:`and_intro` rule as Coq sees it:
 |*)
