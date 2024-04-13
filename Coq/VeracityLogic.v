@@ -307,17 +307,6 @@ Instance : ShowForNaturalLanguage trust_relation_name := {
   }.
 Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
 
-
-Inductive evid :=
-  | AtomicEvid (n : atomic_evid_name)
-  | Pair (e1 e2: evid)
-  | Left (e1 : evid)
-  | Right (e1 : evid)
-  | Lambda (e1 e2: evid)
-  | Apply (e1 e2: evid).
-
-Scheme Equality for evid.
-
 Inductive claim :=
   | AtomicClaim (n : claim_name)
   | Bottom
@@ -326,6 +315,16 @@ Inductive claim :=
   | Implies  (c1 c2 : claim).
 
 Scheme Equality for claim.
+
+Inductive evid :=
+  | AtomicEvid (n : atomic_evid_name)
+  | Pair (e1 e2: evid)
+  | Left (e1 : evid)
+  | Right (e1 : evid)
+  | Lambda (n : string) (c1 c2 : claim)
+  | Apply (n : string) (c1 c2 : claim) (e1 : evid).
+
+Scheme Equality for evid.
 
 Inductive actor :=
   | Actor (n : actor_name).
@@ -395,7 +394,7 @@ The remaining rules will be easy to add, this will be done in 2024.
 
 |*)
 
-Inductive proofTreeOf : judgement -> Type :=
+Inductive proofTreeOf {fDef : string -> evid -> evid} : judgement -> Type :=
 | assume (e : evid) a (c : claim) : proofTreeOf (e \by a \in c)
 | bot_elim e a C
 
@@ -452,19 +451,122 @@ Inductive proofTreeOf : judgement -> Type :=
                           :
             proofTreeOf (e \by a1 \in C)
 
-| impl_intro (e1 : evid) e2 a (C1 : claim) C2
+| impl_intro (e1 : evid) e2 a (C1 : claim) C2 n
+             (H : fDef n e1 = e2)
 
               (M: proofTreeOf (e2 \by a \in C2))
                               :
-   proofTreeOf ((Lambda e1 e2) \by a \in (Implies C1 C2))
+   proofTreeOf ((Lambda n C1 C2) \by a \in (Implies C1 C2))
 
-| impl_elim e1 e2 a C1 C2
+| impl_elim e1 a C1 C2 n
 
-(L: proofTreeOf (e1 \by a \in (Implies C1 C2)))
-                           (R: proofTreeOf (e2 \by a \in C1))
+(L: proofTreeOf ((Lambda n C1 C2) \by a \in (Implies C1 C2)))
+                           (R: proofTreeOf (e1 \by a \in C1))
                         :
-    proofTreeOf ((Apply e1 e2) \by a \in C2)
+    proofTreeOf ((Apply n C1 C2 e1) \by a \in C2)
+
+| by_def1 e1 e2 a n C1 C2 (H : fDef n e1 = e2)
+           (M : proofTreeOf (e2 \by a \in C2))
+                  :
+            proofTreeOf ((Apply n C1 C2 e1) \by a \in C2)
+| by_def2 e1 e2 a n C1 C2 (H : fDef n e1 = e2)
+     (M : proofTreeOf ((Apply n C1 C2 e1) \by a \in C2))
+                  :
+            proofTreeOf (e2 \by a \in C2)
 .
+
+Definition e := AtomicEvid _e_.
+Definition C := AtomicClaim _c_.
+
+Definition e1 := AtomicEvid _e1_.
+Definition a1 := Actor _a1_.
+Definition c1 := AtomicClaim _c1_.
+
+Definition e2 := AtomicEvid _e2_.
+Definition a2 := Actor  _a2_.
+Definition c2 := AtomicClaim _c2_.
+
+Record proofTreeOfClaim (a : actor) (c : claim) := {
+  _f : string -> evid -> evid;
+  _e : evid;
+  _p : @proofTreeOf _f (_e \by a \in c)
+}.
+
+Definition impl_elim1 : proofTreeOfClaim a1 C.
+eexists (
+  fun n e1 => match n,e1 with
+             | "g",e => Lambda "f" C C
+             | "h",e => Lambda _ _ _
+             | _,_ => e
+             end
+) _.
+eapply (impl_elim _ _ _ _ "f").
+eapply (by_def2 _ _ _ _ _ _ _).
+eapply (impl_elim _ _ _ _ "g").
+eapply (by_def2 _ _ _ _ _ _ _).
+eapply (impl_elim _ _ _ _ "h").
+eapply (assume _).
+eapply (assume e).
+eapply (assume e).
+eapply (assume e).
+Unshelve.
+shelve.
+eapply C.
+1,2,3:shelve.
+simpl. reflexivity.
+eapply C.
+simpl.
+reflexivity.
+Qed.
+
+(* Up to here *)
+
+Definition impl2 : proofTreeOfClaim a1 (Implies C (Implies C C)).
+eexists (
+  fun n e1 => match n,e1 with
+             | "f",e => _
+             | "g",e => _
+             | _,_ => e
+             end
+) _.
+eapply (impl_intro e1 _ _ _ _ "f" _).
+eapply (impl_intro e2 _ _ _ _ "g" _).
+eapply (assume e).
+Unshelve.
+1,2:shelve.
+simpl. reflexivity. reflexivity.
+Defined.
+
+(* Definition impl2 : 
+proofTreeOf (Lambda "f" C (Implies C C)) \by a1 \in (Implies C (Implies C C)).
+eapply (impl_intro e1 _).
+eapply (impl_intro e2 _).
+eapply (assume e).
+Defined. *)
+
+Definition impl : proofTreeOfClaim a1 (Implies C C).
+eexists (
+  fun n e1 => match n,e1 with
+             | "f",e => _
+             | _,_ => e
+             end
+) _.
+eapply (impl_intro e1 _ _ _ _ "f" _).
+eapply (assume e).
+Unshelve.
+1:shelve.
+simpl. reflexivity.
+Defined.
+
+(* Definition impl : 
+proofTreeOf (Lambda "f" C C) \by a1 \in (Implies C C).
+eapply (impl_intro e _).
+eapply (assume e).
+Defined. *)
+
+
+(* Up to here *)
+
 (*|
 This is the :coq:`and_intro` rule as Coq sees it:
 |*)
