@@ -322,7 +322,8 @@ Inductive evid :=
   | Left (e1 : evid)
   | Right (e1 : evid)
   | Lambda (n : string) (c1 c2 : claim)
-  | Apply (n : string) (c1 c2 : claim) (e1 : evid).
+  | Apply (n : string) (c1 c2 : claim) (e1 : evid)
+  | Cases (c : evid) (d e : string).
 
 Scheme Equality for evid.
 
@@ -444,6 +445,13 @@ Inductive proofTreeOf {fDef : string -> evid -> evid} : judgement -> Type :=
       (M : proofTreeOf ((Right e2) \by a \in (C1 \/' C2)))
                             :
           proofTreeOf (e2 \by a \in C2)
+
+| or_elim3 c A B x d C y e a
+      (H1 : proofTreeOf (c \by a \in (A \/' B)))
+      (H2 : proofTreeOf (Apply d A C x) \by a \in C)
+      (H3 : proofTreeOf (Apply y B C x) \by a \in C)
+                      :
+          proofTreeOf ((Cases c d e) \by a \in C)
 
 | trust e a1 a2 C (name : trustRelation)
 
