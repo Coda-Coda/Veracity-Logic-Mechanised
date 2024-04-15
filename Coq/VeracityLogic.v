@@ -1262,15 +1262,15 @@ Eval compute in (showForProofTree impl_intro2).
     Definition impl_elim1 : proofTreeOf_wrapped a1 c1.
     eexists (
       fun n' e' => 
-      if (n' =? _f_) && (e' =? e1) then Some e1 else
+      if (n' =? _f_) && (e' =? e2) then Some e1 else
       if (n' =? _g_) && (e' =? e1) then Some e1
       else
       None)
      _.
     eapply impl_elim.
-    eapply (impl_intro e1 _ _ _ _ _f_ _).
+    eapply (impl_intro e2 _ _ _ _ _f_ _).
     eapply (assume _e1_).
-    eapply (assume _e1_ _ _c2_).
+    eapply (assume _e2_ _ _c2_).
     Unshelve.
     simpl.
     reflexivity.
