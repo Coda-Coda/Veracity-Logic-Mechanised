@@ -527,64 +527,6 @@ Definition e4 := AtomicEvid  _e4_.
 Definition a4 := Actor _a4_ .
 Definition c4 := AtomicClaim _c4_.
 
-Record proofTreeOf_wrapped (a : actor) (c : claim) := {
-  _f : function_name -> evid -> option evid;
-  _e : evid;
-  _p : @proofTreeOf _f (_e \by a \in c)
-}.
-
-(* eassert(proofTreeOf ((Lambda "f" e2 e1) \by a1 \in (Implies c1 c1))) as lF.
-eapply (by_def2 _ _ _ _ _ _).
-eassert(proofTreeOf ((Lambda "g" _ _) \by a1 \in _)) as lG by eapply assume.
-eassert(proofTreeOf ((Lambda "h" _ _) \by a1 \in _)) as lH by eapply assume. *)
-
-Open Scope beq_scope.
-
-Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
-eexists (
-  fun n' e' => 
-  if (n' =? _f_) && (e' =? e1) then Some e1 else
-  None)
- _.
-eapply (impl_intro e1 _ _ _ _ _f_ _).
-eapply (assume _e1_).
-Unshelve.
-simpl. reflexivity.
-Defined.
-
-Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
-eexists (
-  fun n' e' => 
-  if (n' =? _f_) && (e' =? e1) then Some (Lambda _g_ e1 e1) else
-  if (n' =? _g_) && (e' =? e1) then Some e1
-  else
-  None)
- _.
-eapply (impl_intro e1 _ _ _ _ _f_ _).
-eapply (impl_intro e1 _ _ _ _ _g_ _).
-eapply (assume _e1_).
-Unshelve.
-simpl. reflexivity.
-simpl. reflexivity. 
-Defined.
-
-Definition impl_elim1 : proofTreeOf_wrapped a1 c1.
-eexists (
-  fun n' e' => 
-  if (n' =? _f_) && (e' =? e1) then Some e1 else
-  if (n' =? _g_) && (e' =? e1) then Some e1
-  else
-  None)
- _.
-eapply impl_elim.
-eapply (impl_intro e1 _ _ _ _ _f_ _).
-eapply (assume _e1_).
-eapply (assume _e1_ _ _c2_).
-Unshelve.
-simpl.
-reflexivity.
-Defined.
-
 
 (*|
 This is the :coq:`and_intro` rule as Coq sees it:
@@ -1242,6 +1184,110 @@ Fixpoint showListOfProofTrees {j : judgement} (l : list (proofTreeOf j)) :=
 " ++ showForProofTree h ++ showListOfProofTrees tl
     end. *)
 
+
+
+
+
+
+
+    Record proofTreeOf_wrapped (a : actor) (c : claim) := {
+      _f : function_name -> evid -> option evid;
+      _e : evid;
+      _p : @proofTreeOf _f (_e \by a \in c)
+    }.
+
+    Instance showForProofTree_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForProofTree (proofTreeOf_wrapped a c) := { showForProofTree p := showForProofTree (_p a c p) }.
+(* Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped c) := { showForNaturalLanguage p := showForNaturalLanguage (_p c p) }.
+Instance showForLogSeq_proofTreeOf_wrapped_instance (c : claim) : ShowForLogSeq (proofTreeOf_wrapped c) := { showForLogSeq p := showForLogSeq (_p c p) }. *)
+
+    
+    (* eassert(proofTreeOf ((Lambda "f" e2 e1) \by a1 \in (Implies c1 c1))) as lF.
+    eapply (by_def2 _ _ _ _ _ _).
+    eassert(proofTreeOf ((Lambda "g" _ _) \by a1 \in _)) as lG by eapply assume.
+    eassert(proofTreeOf ((Lambda "h" _ _) \by a1 \in _)) as lH by eapply assume. *)
+    
+    Open Scope beq_scope.
+    
+    Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
+    eexists (
+      fun n' e' => 
+      if (n' =? _f_) && (e' =? e1) then Some e1 else
+      None)
+     _.
+    eapply (impl_intro e1 _ _ _ _ _f_ _).
+    eapply (assume _e1_).
+    Unshelve.
+    simpl. reflexivity.
+    Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro1).
+
+(*|
+.. coq::
+|*)
+    
+    Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
+    eexists (
+      fun n' e' => 
+      if (n' =? _f_) && (e' =? e1) then Some (Lambda _g_ e1 e1) else
+      if (n' =? _g_) && (e' =? e1) then Some e1
+      else
+      None)
+     _.
+    eapply (impl_intro e1 _ _ _ _ _f_ _).
+    eapply (impl_intro e1 _ _ _ _ _g_ _).
+    eapply (assume _e1_).
+    Unshelve.
+    simpl. reflexivity.
+    simpl. reflexivity. 
+    Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro2).
+
+(*|
+.. coq::
+|*)
+
+
+    Definition impl_elim1 : proofTreeOf_wrapped a1 c1.
+    eexists (
+      fun n' e' => 
+      if (n' =? _f_) && (e' =? e1) then Some e1 else
+      if (n' =? _g_) && (e' =? e1) then Some e1
+      else
+      None)
+     _.
+    eapply impl_elim.
+    eapply (impl_intro e1 _ _ _ _ _f_ _).
+    eapply (assume _e1_).
+    eapply (assume _e1_ _ _c2_).
+    Unshelve.
+    simpl.
+    reflexivity.
+    Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_elim1).
+
+(*|
+.. coq::
+|*)
+
+
 (*|
 
 An example from the paper
@@ -1402,10 +1448,6 @@ Eval compute in (showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrus
 
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras. 
-
-Instance showForProofTree_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForProofTree (proofTreeOf_wrapped a c) := { showForProofTree p := showForProofTree (_p a c p) }.
-(* Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped c) := { showForNaturalLanguage p := showForNaturalLanguage (_p c p) }.
-Instance showForLogSeq_proofTreeOf_wrapped_instance (c : claim) : ShowForLogSeq (proofTreeOf_wrapped c) := { showForLogSeq p := showForLogSeq (_p c p) }. *)
 
 
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
