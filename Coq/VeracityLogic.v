@@ -1288,6 +1288,39 @@ Eval compute in (showForProofTree impl_elim1).
 |*)
 
 
+    Definition impl_by_def : proofTreeOf_wrapped a1 c1.
+    eexists (
+      fun n' e' => 
+      if (n' =? _f_) && (e' =? e2) then Some e1 else
+      if (n' =? _g_) && (e' =? e1) then Some e1
+      else
+      None)
+     _.
+    
+    eapply by_def2.
+    eapply (impl_intro e2 _ _ c1 _ _f_ _).
+    eapply (assume _e1_).
+    eapply by_def1.
+    eapply (impl_intro e2 _ _ c1 _ _f_ _).
+    eapply (assume _e1_).
+    eapply (assume _e1_ _ _c1_).
+    Unshelve.
+    simpl. reflexivity.
+    simpl. reflexivity.
+    Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_by_def).
+
+(*|
+.. coq::
+|*)
+
+
 (*|
 
 An example from the paper
