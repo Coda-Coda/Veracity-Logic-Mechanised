@@ -1321,6 +1321,68 @@ Eval compute in (showForProofTree impl_by_def).
 |*)
 
 
+    Definition impl_and : proofTreeOf_wrapped a1 (Implies (c1 /\' c2) c1).
+    eexists (
+      fun n' e' => 
+      if (n' =? _f_) && (e' =? e1) then Some e1 else
+      None)
+     _.
+
+     eapply (impl_intro e1 _ _ _ _ _f_ _).
+     eapply and_elim1.
+     eapply and_intro.
+     eapply (assume _e1_).
+     eapply (assume _e2_).
+     Unshelve.
+     simpl. reflexivity.
+     eapply _c2_.
+    Defined.
+    
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_and).
+
+(*|
+.. coq::
+|*)
+
+
+Definition impl_and' : proofTreeOf_wrapped a1 (Implies c1 (Implies c2 c1)).
+    eexists (
+      fun n' e' => 
+      if (n' =? _f_) && (e' =? e1) then Some (Lambda _g_ e2 e1) else
+      if (n' =? _g_) && (e' =? e2) then Some e1
+      else
+      None)
+     _.
+    eapply (impl_intro e1 _ _ _ _ _f_ _).
+    eapply (impl_intro e2 _ _ _ _ _g_ _).
+    eapply (and_elim1 _ _ _ _ c2).
+     eapply and_intro.
+     eapply (assume _e1_).
+     eapply (assume _e2_).
+    Unshelve.
+    simpl. reflexivity.
+    simpl. reflexivity. 
+    Defined.
+
+    (*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_and').
+
+(*|
+.. coq::
+|*)
+
+
+
 (*|
 
 An example from the paper
