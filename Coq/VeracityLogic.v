@@ -470,7 +470,7 @@ Inductive proofTreeOf {fDef : (function_name -> evid -> option evid)} : judgemen
 | or_elim3 c A B x d C y e a
       (H1 : proofTreeOf (c \by a \in (A \/' B)))
       (H2 : proofTreeOf (Apply d x) \by a \in C)
-      (H3 : proofTreeOf (Apply y x) \by a \in C)
+      (H3 : proofTreeOf (Apply e y) \by a \in C)
                       :
           proofTreeOf ((Cases c d e) \by a \in C)
 
@@ -908,7 +908,9 @@ match p with
 | or_intro2 e2 a C1 C2 M => getAssumptions _ M
 | or_elim1 e1 a C1 C2 M => getAssumptions _ M
 | or_elim2 e2 a C1 C2 M => getAssumptions _ M
-| or_elim3 _ _ _ _ _ _ _ _ _ _ _ M => getAssumptions _ M
+| or_elim3 c A B x d C y e a H1 H2 H3 => getAssumptions _ H1
+    ++ filter (fun j => negb (judgement_beq (x \by a \in A) j)) (getAssumptions _ H2)
+    ++ filter (fun j => negb (judgement_beq (y \by a \in B) j)) (getAssumptions _ H3)
 | trust e a1 a2 C name L => 
     getAssumptions _ L
 | impl_intro e1 e2 a C1 C2 _ _ M => filter (fun j => negb (judgement_beq (e1 \by a \in C1) j)) (getAssumptions _ M)
