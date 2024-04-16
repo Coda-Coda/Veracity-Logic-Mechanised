@@ -1428,8 +1428,26 @@ Eval compute in (showForProofTree impl_and'').
 .. coq::
 |*)
 
-(* Implies ((c1 \/' c2) /\' (Implies c1 _|_)) *)
+Definition and_example : proofTreeOf_wrapped a1 (Implies c1 (c1 /\' c1)).
+  eexists [DF _f_ e1 {{e1, e1}}] _ _.
+  eapply (impl_intro e1 _ _ _ _ _f_ _ ).
+  eapply (and_intro).
+  eapply (assume e1).
+  eapply (assume e1).
+  Unshelve.
+  all: reflexivity.
+Defined.
 
+ (*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_example).
+
+(*|
+.. coq::
+|*)
 
 Definition or_elim3_example : proofTreeOf_wrapped a1 (Implies ((c1 \/' c2) /\' (Implies c1 _|_)) c2).
     pose ([
@@ -1484,7 +1502,7 @@ all: try reflexivity.
 (* autounfold with veracityPrf. simpl. *)
 Defined.
 
- (*|
+(*|
 .. coq:: unfold
    :class: coq-math
 |*)
@@ -1494,11 +1512,6 @@ Eval compute in (showForProofTree or_elim3_example).
 (*|
 .. coq::
 |*)
-
-(*|
-.. coq::
-|*)
-
 
 
 (*|
