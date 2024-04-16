@@ -910,11 +910,11 @@ match p with
 | or_elim1 e1 a C1 C2 M => getAssumptions _ M
 | or_elim2 e2 a C1 C2 M => getAssumptions _ M
 | or_elim3 c A B x d C y e a H1 H2 H3 => getAssumptions _ H1
-    ++ removeFirstMatch (fun j => (judgement_beq (x \by a \in A) j)) (getAssumptions _ H2)
-    ++ removeFirstMatch (fun j => (judgement_beq (y \by a \in B) j)) (getAssumptions _ H3)
+    ++ filter (fun j => negb (judgement_beq (x \by a \in A) j)) (getAssumptions _ H2)
+    ++ filter (fun j => negb (judgement_beq (y \by a \in B) j)) (getAssumptions _ H3)
 | trust e a1 a2 C name L => 
     getAssumptions _ L
-| impl_intro e1 e2 a C1 C2 _ _ M => removeFirstMatch (fun j => judgement_beq (e1 \by a \in C1) j) (getAssumptions _ M)
+| impl_intro e1 e2 a C1 C2 _ _ M => filter (fun j => negb (judgement_beq (e1 \by a \in C1) j)) (getAssumptions _ M)
 | impl_elim _ _ _ _ _ _ _ L R => 
 getAssumptions _ L ++ getAssumptions _ R
 | by_def1 _ _ _ _ _ _ _ _ M => getAssumptions _ M
