@@ -415,7 +415,49 @@ The remaining rules will be easy to add, this will be done in 2024.
 
 |*)
 
-Inductive proofTreeOf {fDef : (function_name -> evid -> option evid)} : judgement -> Type :=
+
+Inductive definedFDef :=
+  DF : function_name -> evid -> evid -> definedFDef.
+
+Scheme Equality for definedFDef.
+Instance : Beq definedFDef := { beq := definedFDef_beq }.
+
+Open Scope beq_scope.
+Definition matchesFirstPart n e1 d :=
+  match d with
+  DF n' e1' _ => (n =? n') && (e1 =? e1')
+  end.
+
+Definition eqPart d d' :=
+  match d,d' with
+  DF n e1 e2,DF n' e1' e2' => (n =? n') && (e1 =? e1') && (e2 =? e2')
+  end.
+
+Fixpoint contains (x : definedFDef) (l : list definedFDef) : bool :=
+  match l with
+  | [] => false
+  | h :: tl => (x =? h) || contains x tl
+  end.
+
+Fixpoint containsMatchingArguments (x : definedFDef) (l : list definedFDef) : bool :=
+  match l with
+  | [] => false
+  | h :: tl =>
+    match x,h with
+    | DF n e _,DF n' e' _ => (n =? n') && (e =? e') || containsMatchingArguments x tl
+    end
+  end.
+
+Fixpoint keepOnlyDuplicates_helper (l : list definedFDef) (seenOnce : list definedFDef) (seenMultiple : list definedFDef) : list definedFDef :=
+  match l with
+  | [] => seenMultiple
+  | h :: tl => if containsMatchingArguments h seenOnce then keepOnlyDuplicates_helper tl seenOnce (h :: seenMultiple)
+          else keepOnlyDuplicates_helper tl (h :: seenOnce) seenMultiple
+  end.
+  
+Definition keepOnlyDuplicates l := keepOnlyDuplicates_helper l [] [].
+
+Inductive proofTreeOf {fDef : (list definedFDef)} {HFDefValid : (keepOnlyDuplicates fDef) = []} : judgement -> Type :=
 | assume (e : atomic_evid_name) a (c : claim_name) : proofTreeOf ((AtomicEvid e) \by a \in (AtomicClaim c))
 | assume_bot a : proofTreeOf (BotEvid \by a \in Bottom)
 | bot_elim e a C
@@ -481,7 +523,7 @@ Inductive proofTreeOf {fDef : (function_name -> evid -> option evid)} : judgemen
             proofTreeOf (e \by a1 \in C)
 
 | impl_intro (e1 : evid) e2 a (C1 : claim) C2 n
-             (H : fDef n e1 = Some e2)
+             (H : contains (DF n e1 e2) fDef = true)
 
               (M: proofTreeOf (e2 \by a \in C2))
                               :
@@ -730,7 +772,7 @@ Instance : ShowForLogSeq judgement := {
   end
 }.
 
-Definition showForProofTree_judgement {fDef} (Ps : list judgement) (Ts : list trustRelation) (j : judgement) (p : @proofTreeOf fDef j) :=
+Definition showForProofTree_judgement {fDef HfDef} (Ps : list judgement) (Ts : list trustRelation) (j : judgement) (p : @proofTreeOf fDef HfDef j) :=
     match Ps with
       | [] => showForProofTree j
       | (h :: tl) as Ps => showForProofTree Ps ++ " \vdash_{" ++ showForProofTree Ts ++ "} " ++ (showForProofTree j)
@@ -785,7 +827,7 @@ Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \i
 " ++ showForLogSeq_list ("  " ++ indent) Ts
   end. *)
 
-Fixpoint getAllTrustRelationsUsed {fDef} (j : judgement) (p : @proofTreeOf fDef j)
+Fixpoint getAllTrustRelationsUsed {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j)
   : list trustRelation :=
 match p with
 | assume e a C => []
@@ -809,7 +851,7 @@ match p with
 | by_def2 _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
 end.
 
-Fixpoint getAllEvidence {fDef} (j : judgement) (p : @proofTreeOf fDef j)
+Fixpoint getAllEvidence {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j)
   : list evid :=
 match p with
 | assume e a C => [AtomicEvid e]
@@ -844,7 +886,7 @@ Fixpoint removeFirstMatch {A} (f : A -> bool) (l:list A) : list A :=
         | h :: tl => if f h then tl else h :: removeFirstMatch f tl
       end.
 
-Fixpoint getAssumptions {fDef} (j : judgement) (p : @proofTreeOf fDef j) : list judgement := 
+Fixpoint getAssumptions {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j) : list judgement := 
 match p with
 | assume e a C => [(AtomicEvid e) \by a \in (AtomicClaim C)]
 | assume_bot a => [BotEvid \by a \in Bottom]
@@ -902,7 +944,7 @@ Close Scope beq_scope.
 
 Open Scope string.
 
-Fixpoint showForProofTree_proofTreeOf_helper {fDef} (j : judgement) (p : @proofTreeOf fDef j)
+Fixpoint showForProofTree_proofTreeOf_helper {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
@@ -1135,11 +1177,11 @@ end. *)
 
 Open Scope string.
 
-Definition showForProofTree_proofTreeOf fDef j p
-  := "\begin{prooftree}" ++ @showForProofTree_proofTreeOf_helper fDef j p
+Definition showForProofTree_proofTreeOf fDef HFDef j p
+  := "\begin{prooftree}" ++ @showForProofTree_proofTreeOf_helper fDef HFDef j p
        ++ "\end{prooftree}".
-Instance showForProofTree_proofTreeOf_instance fDef (j : judgement)
-  : ShowForProofTree (proofTreeOf j) := { showForProofTree := @showForProofTree_proofTreeOf fDef j}.
+Instance showForProofTree_proofTreeOf_instance fDef HFDef (j : judgement)
+  : ShowForProofTree (proofTreeOf j) := { showForProofTree := @showForProofTree_proofTreeOf fDef HFDef j}.
 
 (* Definition showForNaturalLanguage_proofTreeOf j p := "
 
@@ -1191,10 +1233,15 @@ Fixpoint showListOfProofTrees {j : judgement} (l : list (proofTreeOf j)) :=
 
 
     Record proofTreeOf_wrapped (a : actor) (c : claim) := {
-      _f : function_name -> evid -> option evid;
+      _f : list definedFDef;
+      _fDef : _;
       _e : evid;
-      _p : @proofTreeOf _f (_e \by a \in c)
+      _p : @proofTreeOf _f _fDef (_e \by a \in c)
     }.
+
+  (* Hint Unfold keepOnlyDuplicates : veracityPrf.
+  Hint Unfold keepOnlyDuplicates_helper : veracityPrf.
+  Hint Unfold containsMatchingArguments : veracityPrf. *)
 
     Instance showForProofTree_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForProofTree (proofTreeOf_wrapped a c) := { showForProofTree p := showForProofTree (_p a c p) }.
 (* Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped c) := { showForNaturalLanguage p := showForNaturalLanguage (_p c p) }.
@@ -1208,16 +1255,19 @@ Instance showForLogSeq_proofTreeOf_wrapped_instance (c : claim) : ShowForLogSeq 
     
     Open Scope beq_scope.
     
+Ltac validateFDef :=
+  try (intros; simpl; autounfold with veracityPrf; simpl; reflexivity);
+  try (simpl; reflexivity).
+
+
     Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
-    eexists (
-      fun n' e' => 
-      if (n' =? _f_) && (e' =? e1) then Some e1 else
-      None)
-     _.
+    eexists [DF _f_ e1 e1] _ _.
     eapply (impl_intro e1 _ _ _ _ _f_ _).
     eapply (assume _e1_).
     Unshelve.
-    simpl. reflexivity.
+    (* intros. simpl. autounfold with veracityPrf. simpl. reflexivity.
+    simpl. reflexivity. *)
+    all: reflexivity.
     Defined.
 
 (*|
@@ -1232,19 +1282,12 @@ Eval compute in (showForProofTree impl_intro1).
 |*)
     
     Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
-    eexists (
-      fun n' e' => 
-      if (n' =? _f_) && (e' =? e1) then Some (Lambda _g_ e1 e1) else
-      if (n' =? _g_) && (e' =? e1) then Some e1
-      else
-      None)
-     _.
+    eexists [DF _f_ e1 (Lambda _g_ e1 e1); DF _g_ e1 e1] _ _.
     eapply (impl_intro e1 _ _ _ _ _f_ _).
     eapply (impl_intro e1 _ _ _ _ _g_ _).
     eapply (assume _e1_).
     Unshelve.
-    simpl. reflexivity.
-    simpl. reflexivity. 
+    all: reflexivity.
     Defined.
 
 (*|
@@ -1260,20 +1303,13 @@ Eval compute in (showForProofTree impl_intro2).
 
 
     Definition impl_elim1 : proofTreeOf_wrapped a1 c1.
-    eexists (
-      fun n' e' => 
-      if (n' =? _f_) && (e' =? e2) then Some e1 else
-      if (n' =? _g_) && (e' =? e1) then Some e1
-      else
-      None)
-     _.
+    eexists [DF _f_ e2 e1; DF _g_ e1 e1] _ _.
     eapply impl_elim.
     eapply (impl_intro e2 _ _ _ _ _f_ _).
     eapply (assume _e1_).
     eapply (assume _e2_ _ _c2_).
     Unshelve.
-    simpl.
-    reflexivity.
+    all: reflexivity.
     Defined.
 
 (*|
@@ -1289,14 +1325,7 @@ Eval compute in (showForProofTree impl_elim1).
 
 
     Definition impl_by_def : proofTreeOf_wrapped a1 c1.
-    eexists (
-      fun n' e' => 
-      if (n' =? _f_) && (e' =? e2) then Some e1 else
-      if (n' =? _g_) && (e' =? e1) then Some e1
-      else
-      None)
-     _.
-    
+    eexists [DF _f_ e2 e1; DF _g_ e1 e1] _ _; 
     eapply by_def2.
     eapply (impl_intro e2 _ _ c1 _ _f_ _).
     eapply (assume _e1_).
@@ -1305,8 +1334,7 @@ Eval compute in (showForProofTree impl_elim1).
     eapply (assume _e1_).
     eapply (assume _e1_ _ _c1_).
     Unshelve.
-    simpl. reflexivity.
-    simpl. reflexivity.
+    all: reflexivity.
     Defined.
 
 (*|
@@ -1322,20 +1350,14 @@ Eval compute in (showForProofTree impl_by_def).
 
 
     Definition impl_and : proofTreeOf_wrapped a1 (Implies (c1 /\' c2) c1).
-    eexists (
-      fun n' e' => 
-      if (n' =? _f_) && (e' =? e1) then Some e1 else
-      None)
-     _.
-
+    eexists [DF _f_ e1 e1] _ _.
      eapply (impl_intro e1 _ _ _ _ _f_ _).
-     eapply and_elim1.
+     eapply (and_elim1 _ _ _ _ c2).
      eapply and_intro.
      eapply (assume _e1_).
      eapply (assume _e2_).
      Unshelve.
-     simpl. reflexivity.
-     eapply _c2_.
+     all: reflexivity.
     Defined.
     
 
@@ -1352,13 +1374,7 @@ Eval compute in (showForProofTree impl_and).
 
 
 Definition impl_and' : proofTreeOf_wrapped a1 (Implies c1 (Implies c2 c1)).
-    eexists (
-      fun n' e' => 
-      if (n' =? _f_) && (e' =? e1) then Some (Lambda _g_ e2 e1) else
-      if (n' =? _g_) && (e' =? e2) then Some e1
-      else
-      None)
-     _.
+    eexists [DF _f_ e1 (Lambda _g_ e2 e1); DF _g_ e2 e1] _ _.
     eapply (impl_intro e1 _ _ _ _ _f_ _).
     eapply (impl_intro e2 _ _ _ _ _g_ _).
     eapply (and_elim1 _ _ _ _ c2).
@@ -1366,8 +1382,7 @@ Definition impl_and' : proofTreeOf_wrapped a1 (Implies c1 (Implies c2 c1)).
      eapply (assume _e1_).
      eapply (assume _e2_).
     Unshelve.
-    simpl. reflexivity.
-    simpl. reflexivity. 
+    all: reflexivity.
     Defined.
 
     (*|
@@ -1409,8 +1424,8 @@ Definition trustT := Trust _T_.
 Definition trustU := Trust _U_.
 Definition trustV := Trust _V_.
 
-Definition concreteProofTreeExampleWith2Conjuncts : 
-@proofTreeOf (fun _ _ => None) ({{l, s}} \by P \in (C1 /\' C2)).
+Program Definition concreteProofTreeExampleWith2Conjuncts : 
+@proofTreeOf [] _ ({{l, s}} \by P \in (C1 /\' C2)).
 apply and_intro.
 apply assume.
 apply assume.
@@ -1430,8 +1445,8 @@ Eval compute in (showForProofTree concreteProofTreeExampleWith2Conjuncts).
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith2Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith2Conjuncts.
 
-Definition concreteProofTreeExampleWith3Conjuncts : 
-@proofTreeOf (fun _ _ => None) ({{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3)).
+Program Definition concreteProofTreeExampleWith3Conjuncts : 
+@proofTreeOf [] _ ({{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3)).
 apply and_intro.
 apply and_intro.
 apply (assume _l_).
@@ -1457,8 +1472,8 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 We can also combine existing trees into new trees, when appropriate. For example:
 |*)
 
-Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
-@proofTreeOf (fun _ _ => None) {{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3).
+Program Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
+@proofTreeOf [] _ {{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3).
 apply and_intro.
 exact concreteProofTreeExampleWith2Conjuncts.
 Show Proof.
@@ -1480,8 +1495,8 @@ Eval compute in (showForProofTree concreteProofTreeExampleWith3Conjuncts).
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 
-Definition concreteProofTreeExampleTrust : 
-@proofTreeOf (fun _ _ => None) e \by a1 \in (C).
+Program Definition concreteProofTreeExampleTrust : 
+@proofTreeOf [] _ e \by a1 \in (C).
 eapply (trust _ a1 a2 C trustT).
 apply (assume _e_).
 Defined.
@@ -1500,8 +1515,8 @@ Eval compute in (showForProofTree concreteProofTreeExampleTrust).
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleTrust).
 Eval compute in showForLogSeq concreteProofTreeExampleTrust.
 
-Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
-@proofTreeOf (fun _ _ => None) {{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3).
+Program Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
+@proofTreeOf [] _ {{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3).
 eapply (trust _ _ _ _ trustU).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
@@ -1520,8 +1535,8 @@ Eval compute in (showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrus
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWithTrust).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrust.
 
-Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
-@proofTreeOf (fun _ _ => None) {{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3).
+Program Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
+@proofTreeOf [] _ {{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3).
 eapply (trust _ Q Q _ trustU).
 eapply (trust _ Q Q _ trustV).
 eapply (trust _ _ _ _ trustU).
@@ -1547,8 +1562,10 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAnd
 
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
 Proof.
-eexists (fun _ _ => None) _.
+eexists [] _ _.
 apply (assume _e1_ a1).
+Unshelve.
+reflexivity.
 Defined.
 
 (*|
@@ -1569,7 +1586,7 @@ Eval compute in showForLogSeq exampleWithProofOf.
 
 Definition usingAll : proofTreeOf_wrapped a1 (Implies _|_ C1).
 Proof.
-eexists (fun _ _ => Some BotEvid) _.
+eexists [DF _f_ e2 BotEvid] _ _.
 eapply (or_elim1 _ _ _ C2).
 eapply or_intro1.
 eapply (or_elim2).
@@ -1588,7 +1605,7 @@ apply (assume_bot a1).
 Unshelve.
 Show Proof.
 all: try apply _c_; try apply C2.
-simpl. reflexivity.
+all: reflexivity.
 Defined.
 
 (*|
@@ -1700,7 +1717,7 @@ Defined. *)
 
 Definition problematicExample1 : proofTreeOf_wrapped a1 (Implies c1 c1).
 Proof.
-eexists (fun _ _ => _) _.
+eexists _ _ _.
 eapply (impl_intro e1 _ _ _ _ _f_ _).
 eapply or_elim2.
 Fail eapply or_intro1. (* .unfold *)
