@@ -320,6 +320,9 @@ Inductive function_name :=
   | _f_
   | _g_
   | _h_
+    | _u_
+  | _v_
+  | _w_
 .
 
 
@@ -329,6 +332,9 @@ Instance : ShowForProofTree function_name := {
       | _f_ => "f"
       | _g_ => "g"
       | _h_ => "h"
+      | _u_ => "u"
+      | _v_ => "v"
+      | _w_ => "w"
     end
   }.
 
@@ -337,6 +343,7 @@ Scheme Equality for function_name.
 Inductive evid :=
   | AtomicEvid (n : atomic_evid_name)
   | BotEvid
+  (* | BotEvidApplied (e1 : evid) *)
   | Pair (e1 e2: evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
@@ -458,8 +465,7 @@ Fixpoint keepOnlyDuplicates_helper (l : list definedFDef) (seenOnce : list defin
 Definition keepOnlyDuplicates l := keepOnlyDuplicates_helper l [] [].
 
 Inductive proofTreeOf {fDef : (list definedFDef)} {HFDefValid : (keepOnlyDuplicates fDef) = []} : judgement -> Type :=
-| assume (e : atomic_evid_name) a (c : claim_name) : proofTreeOf ((AtomicEvid e) \by a \in (AtomicClaim c))
-| assume_bot a : proofTreeOf (BotEvid \by a \in Bottom)
+| assume e a c : proofTreeOf (e \by a \in c)
 | bot_elim e a C
 
         (M : proofTreeOf (e \by a \in _|_))
@@ -530,6 +536,7 @@ Inductive proofTreeOf {fDef : (list definedFDef)} {HFDefValid : (keepOnlyDuplica
    proofTreeOf ((Lambda n e1 e2) \by a \in (Implies C1 C2))
 
 | impl_elim e1 e2 a C1 C2 n
+             (H : contains (DF n e1 e2) fDef = true)
 
 (L: proofTreeOf ((Lambda n e1 e2) \by a \in (Implies C1 C2)))
                            (R: proofTreeOf (e1 \by a \in C1))
@@ -537,12 +544,14 @@ Inductive proofTreeOf {fDef : (list definedFDef)} {HFDefValid : (keepOnlyDuplica
     proofTreeOf ((Apply n e1) \by a \in C2)
 
 | by_def1 e1 e2 a n C1 C2 
+             (H : contains (DF n e1 e2) fDef = true)
 
      (H1 : proofTreeOf ((Lambda n e1 e2) \by a \in (Implies C1 C2)))
            (M : proofTreeOf (e2 \by a \in C2))
                   :
             proofTreeOf ((Apply n e1) \by a \in C2)
 | by_def2 e1 e2 a n C1 C2 
+               (H : contains (DF n e1 e2) fDef = true)
 
        (H1 : proofTreeOf ((Lambda n e1 e2) \by a \in (Implies C1 C2)))
      (M : proofTreeOf ((Apply n e1) \by a \in C2))
@@ -645,6 +654,7 @@ Instance : ShowForProofTree evid := {
       | Apply f e1 => showForProofTree f ++ "(" ++ showForProofTreeEvid e1 ++ ")"
       | Cases c d e => "cases(" ++ showForProofTreeEvid c ++ ",  " ++ showForProofTree d ++ ", " ++ showForProofTree e ++ ")"
       | BotEvid => "e_{\bot}"
+      (* | BotEvidApplied e => "R_{0}(" ++ showForProofTreeEvid e ++ ")" *)
     end
 }.
 Instance : ShowForNaturalLanguage evid := { showForNaturalLanguage := showForProofTree }.
@@ -656,8 +666,8 @@ Instance : ShowForProofTree claim := {
     match c with
       | AtomicClaim name => showForProofTree name
       | Bottom => "\bot"
-      | And c1 c2 => showForProofTreeClaim c1 ++ " \wedge " ++ showForProofTreeClaim c2
-      | Or c1 c2 => showForProofTreeClaim c1 ++ " \vee " ++ showForProofTreeClaim c2
+      | And c1 c2 => "(" ++ showForProofTreeClaim c1 ++ " \wedge " ++ showForProofTreeClaim c2 ++ ")"
+      | Or c1 c2 => "(" ++ showForProofTreeClaim c1 ++ " \vee " ++ showForProofTreeClaim c2 ++ ")"
       | Implies c1 c2 => "(" ++ showForProofTreeClaim c1 ++ " \rightarrow " ++ showForProofTreeClaim c2 ++ ")"
     end
 }.
@@ -778,7 +788,7 @@ Definition showForProofTree_judgement {fDef HfDef} (Ps : list judgement) (Ts : l
       | (h :: tl) as Ps => showForProofTree Ps ++ " \vdash_{" ++ showForProofTree Ts ++ "} " ++ (showForProofTree j)
     end.
 
-Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \in c1) (assume _e1_ a1 _c1_).
+Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \in c1) (assume e1 a1 c1).
 
 (* Definition showForNaturalLanguage_judgement (Ps : list judgement) (Ts : list trustRelation) (j : judgement) (p : proofTreeOf j) :=
   match Ps with
@@ -831,7 +841,7 @@ Fixpoint getAllTrustRelationsUsed {fDef HFDef} (j : judgement) (p : @proofTreeOf
   : list trustRelation :=
 match p with
 | assume e a C => []
-| assume_bot a => []
+(* | assume_bot a => [] *)
 | bot_elim e a C M => getAllTrustRelationsUsed _ M
 | and_intro e1 e2 a C1 C2 L R => 
     getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
@@ -845,17 +855,17 @@ match p with
 | trust e a1 a2 C name L => 
     name :: getAllTrustRelationsUsed _ L
 | impl_intro _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
-| impl_elim _ _ _ _ _ _ L R => 
+| impl_elim _ _ _ _ _ _ _ L R => 
    getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
-| by_def1 _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
-| by_def2 _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
+| by_def1 _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
+| by_def2 _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
 end.
 
 Fixpoint getAllEvidence {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j)
   : list evid :=
 match p with
-| assume e a C => [AtomicEvid e]
-| assume_bot a => [BotEvid]
+| assume e a C => [e]
+(* | assume_bot a => [BotEvid] *)
 | bot_elim e a C M => (getAllEvidence _ M)
 | and_intro e1 e2 a C1 C2 L R => getAllEvidence _ L ++ getAllEvidence _ R 
 | and_elim1 e1 e2 a C1 C2 M => getAllEvidence _ M
@@ -867,10 +877,10 @@ match p with
 | or_elim3 _ _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ M
 | trust e a1 a2 C name L => getAllEvidence _ L
 | impl_intro _ _ _ _ _ _ _ M => getAllEvidence _ M
-| impl_elim _ _ _ _ _ _ L R => 
+| impl_elim _ _ _ _ _ _ _ L R => 
 getAllEvidence _ L ++ getAllEvidence _ R
-| by_def1 _ _ _ _ _ _ _ M => getAllEvidence _ M
-| by_def2 _ _ _ _ _ _ _ M => getAllEvidence _ M
+| by_def1 _ _ _ _ _ _ _ _ M => getAllEvidence _ M
+| by_def2 _ _ _ _ _ _ _ _ M => getAllEvidence _ M
 end.
 
 Definition isAtomicEvidence (e : evid) : bool :=
@@ -888,8 +898,8 @@ Fixpoint removeFirstMatch {A} (f : A -> bool) (l:list A) : list A :=
 
 Fixpoint getAssumptions {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j) : list judgement := 
 match p with
-| assume e a C => [(AtomicEvid e) \by a \in (AtomicClaim C)]
-| assume_bot a => [BotEvid \by a \in Bottom]
+| assume e a C => [e \by a \in C]
+(* | assume_bot a => [BotEvid \by a \in Bottom] *)
 | bot_elim e a C M => getAssumptions _ M
 | and_intro e1 e2 a C1 C2 L R => 
     getAssumptions _ L ++ getAssumptions _ R 
@@ -905,10 +915,10 @@ match p with
 | trust e a1 a2 C name L => 
     getAssumptions _ L
 | impl_intro e1 e2 a C1 C2 _ _ M => removeFirstMatch (fun j => judgement_beq (e1 \by a \in C1) j) (getAssumptions _ M)
-| impl_elim _ _ _ _ _ _ L R => 
+| impl_elim _ _ _ _ _ _ _ L R => 
 getAssumptions _ L ++ getAssumptions _ R
-| by_def1 _ _ _ _ _ _ _ M => getAssumptions _ M
-| by_def2 _ _ _ _ _ _ _ M => getAssumptions _ M
+| by_def1 _ _ _ _ _ _ _ _ M => getAssumptions _ M
+| by_def2 _ _ _ _ _ _ _ _ M => getAssumptions _ M
 end.
 
 Close Scope string.
@@ -954,11 +964,11 @@ match p with
              ++ " \textit{ is a veracity claim} $}"
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
     ++ showForProofTree_judgement Ps Ts _ p ++ " $}"
-| assume_bot a => "\AxiomC{$ " 
+(* | assume_bot a => "\AxiomC{$ " 
              ++ showForProofTree C 
              ++ " \textit{ is a veracity claim} $}"
     ++ " \RightLabel{ $ assume_{bot} $}\UnaryInfC{$ "
-    ++ showForProofTree_judgement Ps Ts _ p ++ " $}"
+    ++ showForProofTree_judgement Ps Ts _ p ++ " $}" *)
 | bot_elim e a C M => showForProofTree_proofTreeOf_helper _ M
     ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
     ++ showForProofTree_judgement Ps Ts _ p
@@ -1008,17 +1018,17 @@ match p with
  ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p
  ++ " $}"
-| impl_elim e1 e2 a C1 C2 n L R => 
+| impl_elim e1 e2 a C1 C2 n H L R => 
      showForProofTree_proofTreeOf_helper _ L
  ++ showForProofTree_proofTreeOf_helper _ R 
  ++ " \RightLabel{ $ \rightarrow^{-} $} \BinaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p ++ " $}"
-| by_def1 _ _ _ _ _ _ L R =>
+| by_def1 _ _ _ _ _ _ _ L R =>
     showForProofTree_proofTreeOf_helper _ L
  ++ showForProofTree_proofTreeOf_helper _ R 
  ++ " \RightLabel{ $ \rightarrow^{=}_1 $} \BinaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p ++ " $}"
- | by_def2 _ _ _ _ _ _ L R =>
+ | by_def2 _ _ _ _ _ _ _ L R =>
     showForProofTree_proofTreeOf_helper _ L
  ++ showForProofTree_proofTreeOf_helper _ R 
  ++ " \RightLabel{ $ \rightarrow^{=}_2 $} \BinaryInfC{$ "
@@ -1239,9 +1249,9 @@ Fixpoint showListOfProofTrees {j : judgement} (l : list (proofTreeOf j)) :=
       _p : @proofTreeOf _f _fDef (_e \by a \in c)
     }.
 
-  (* Hint Unfold keepOnlyDuplicates : veracityPrf.
+  Hint Unfold keepOnlyDuplicates : veracityPrf.
   Hint Unfold keepOnlyDuplicates_helper : veracityPrf.
-  Hint Unfold containsMatchingArguments : veracityPrf. *)
+  Hint Unfold containsMatchingArguments : veracityPrf.
 
     Instance showForProofTree_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForProofTree (proofTreeOf_wrapped a c) := { showForProofTree p := showForProofTree (_p a c p) }.
 (* Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped c) := { showForNaturalLanguage p := showForNaturalLanguage (_p c p) }.
@@ -1263,7 +1273,7 @@ Ltac validateFDef :=
     Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
     eexists [DF _f_ e1 e1] _ _.
     eapply (impl_intro e1 _ _ _ _ _f_ _).
-    eapply (assume _e1_).
+    eapply (assume e1).
     Unshelve.
     (* intros. simpl. autounfold with veracityPrf. simpl. reflexivity.
     simpl. reflexivity. *)
@@ -1285,7 +1295,7 @@ Eval compute in (showForProofTree impl_intro1).
     eexists [DF _f_ e1 (Lambda _g_ e1 e1); DF _g_ e1 e1] _ _.
     eapply (impl_intro e1 _ _ _ _ _f_ _).
     eapply (impl_intro e1 _ _ _ _ _g_ _).
-    eapply (assume _e1_).
+    eapply (assume e1).
     Unshelve.
     all: reflexivity.
     Defined.
@@ -1304,10 +1314,10 @@ Eval compute in (showForProofTree impl_intro2).
 
     Definition impl_elim1 : proofTreeOf_wrapped a1 c1.
     eexists [DF _f_ e2 e1; DF _g_ e1 e1] _ _.
-    eapply impl_elim.
+    eapply (impl_elim _ _ _ _ _ _ _).
     eapply (impl_intro e2 _ _ _ _ _f_ _).
-    eapply (assume _e1_).
-    eapply (assume _e2_ _ _c2_).
+    eapply (assume e1).
+    eapply (assume e2 _ c2).
     Unshelve.
     all: reflexivity.
     Defined.
@@ -1326,13 +1336,13 @@ Eval compute in (showForProofTree impl_elim1).
 
     Definition impl_by_def : proofTreeOf_wrapped a1 c1.
     eexists [DF _f_ e2 e1; DF _g_ e1 e1] _ _; 
-    eapply by_def2.
+    eapply (by_def2 _ _ _ _ _ _ _).
     eapply (impl_intro e2 _ _ c1 _ _f_ _).
-    eapply (assume _e1_).
-    eapply by_def1.
+    eapply (assume e1).
+    eapply (by_def1 _ _ _ _ _ _ _).
     eapply (impl_intro e2 _ _ c1 _ _f_ _).
-    eapply (assume _e1_).
-    eapply (assume _e1_ _ _c1_).
+    eapply (assume e1).
+    eapply (assume e1 _ c1).
     Unshelve.
     all: reflexivity.
     Defined.
@@ -1354,8 +1364,8 @@ Eval compute in (showForProofTree impl_by_def).
      eapply (impl_intro e1 _ _ _ _ _f_ _).
      eapply (and_elim1 _ _ _ _ c2).
      eapply and_intro.
-     eapply (assume _e1_).
-     eapply (assume _e2_).
+     eapply (assume e1).
+     eapply (assume e2).
      Unshelve.
      all: reflexivity.
     Defined.
@@ -1379,8 +1389,8 @@ Definition impl_and' : proofTreeOf_wrapped a1 (Implies c1 (Implies c2 c1)).
     eapply (impl_intro e2 _ _ _ _ _g_ _).
     eapply (and_elim1 _ _ _ _ c2).
      eapply and_intro.
-     eapply (assume _e1_).
-     eapply (assume _e2_).
+     eapply (assume e1).
+     eapply (assume e2).
     Unshelve.
     all: reflexivity.
     Defined.
@@ -1391,6 +1401,99 @@ Definition impl_and' : proofTreeOf_wrapped a1 (Implies c1 (Implies c2 c1)).
 |*)
 
 Eval compute in (showForProofTree impl_and').
+
+(*|
+.. coq::
+|*)
+
+
+
+Definition impl_and'' : proofTreeOf_wrapped a1 (Implies (c1 /\' c2) c1).
+    eexists [DF _f_ {{e1,e2}} e1] _ _.
+    eapply (impl_intro {{e1,e2}} _ _ _ _ _f_ _).
+    eapply (and_elim1 _ _ _ _ c2).
+    eapply (assume {{e1,e2}}).
+    Unshelve.
+    all: reflexivity.
+    Defined.
+
+    (*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_and'').
+
+(*|
+.. coq::
+|*)
+
+(* Implies ((c1 \/' c2) /\' (Implies c1 _|_)) *)
+
+
+Definition or_elim3_example : proofTreeOf_wrapped a1 (Implies ((c1 \/' c2) /\' (Implies c1 _|_)) c2).
+    pose ([
+      DF _g_ e2 e2;
+      DF _h_ e4 (Cases e4 _f_ _g_);
+      DF _h_ {{Apply _f_ e4, Lambda _f_ e1 (Apply _f_ e1)}} (Cases (Apply _f_ e4) _u_ _g_);
+      DF _u_ e1 BotEvid
+    ] : list definedFDef).    
+    eexists l _ _.
+
+    epose proof (@assume l _ {{_, (Lambda _u_ e1 BotEvid)}} a1 ((c1 \/' c2) /\' (Implies c1 _|_))) as p1.
+
+    eassert(@proofTreeOf l _ (_ \by a1 \in (c1 \/' c2))) as p2.
+    eapply(and_elim1).
+    eapply p1.
+    
+    eassert(@proofTreeOf l _ ((Lambda _u_ _ _) \by a1 \in (Implies c1 _|_))) as p3.
+    eapply(and_elim2).
+    eapply p1.
+
+    eassert(@proofTreeOf l _ _ \by a1 \in (Implies c1 c2)) as p4.
+    eapply(impl_intro e1 _ _ _ _ _u_). shelve.
+    eapply (bot_elim BotEvid).
+    eapply (by_def2 _ _ _ _ _ _ _).
+    eapply p3.
+    eapply(impl_elim e1 _ _ _ _ _ _).
+    eapply p3.
+    eapply assume.
+
+    eassert(@proofTreeOf l _ ((Apply _u_ _) \by a1 \in c2)) as p5.
+    eapply (impl_elim _ _ _ _ _ _). shelve.
+    eapply p4.
+    eapply (assume _).    
+
+    eassert(@proofTreeOf l _ ((Lambda _g_ e2 e2) \by a1 \in (Implies c2 c2))) as p6.
+    eapply (impl_intro e2 _ _ _ _ _g_ _).
+    eapply assume.
+
+    eassert(@proofTreeOf l _ ((Apply _g_ _) \by a1 \in c2)) as p7.
+    eapply (by_def1 _ _ _ _ _ _ _).
+    eapply p6.
+    eapply assume.
+
+    eapply(impl_intro {{Apply _f_ e4, Lambda _f_ e1 (Apply _f_ e1)}} _ _ _ _ _h_ _).
+    eapply (or_elim3 (Apply _f_ e4) _ _ _).
+    apply p2.
+    apply p5.
+    apply p7.
+
+Unshelve.
+all: try reflexivity.
+(* autounfold with veracityPrf. simpl. *)
+Defined.
+
+ (*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree or_elim3_example).
+
+(*|
+.. coq::
+|*)
 
 (*|
 .. coq::
@@ -1449,9 +1552,9 @@ Program Definition concreteProofTreeExampleWith3Conjuncts :
 @proofTreeOf [] _ ({{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3)).
 apply and_intro.
 apply and_intro.
-apply (assume _l_).
-apply (assume _s_).
-apply (assume _c_evid_).
+apply (assume l).
+apply (assume s).
+apply (assume c).
 Defined.
 
 (*|
@@ -1477,7 +1580,7 @@ Program Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree :
 apply and_intro.
 exact concreteProofTreeExampleWith2Conjuncts.
 Show Proof.
-apply (assume _c_evid_).
+apply (assume c).
 Defined.
 
 
@@ -1498,7 +1601,7 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 Program Definition concreteProofTreeExampleTrust : 
 @proofTreeOf [] _ e \by a1 \in (C).
 eapply (trust _ a1 a2 C trustT).
-apply (assume _e_).
+apply (assume e).
 Defined.
 
 (*|
@@ -1563,7 +1666,7 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAnd
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
 Proof.
 eexists [] _ _.
-apply (assume _e1_ a1).
+apply (assume e a1).
 Unshelve.
 reflexivity.
 Defined.
@@ -1595,13 +1698,13 @@ eapply and_elim1.
 eapply and_intro.
 eapply and_elim2.
 eapply and_intro.
-apply (assume _e2_ a1).
-2: apply (assume _e2_ a1).
+apply (assume e a1).
+2: apply (assume e a1).
 eapply (trust _ _ _ _ trustT).
 eapply (impl_intro e2 BotEvid a1 _|_ C1 _f_ _).
 simpl.
 eapply bot_elim.
-apply (assume_bot a1).
+apply (assume BotEvid a1).
 Unshelve.
 Show Proof.
 all: try apply _c_; try apply C2.
