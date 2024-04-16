@@ -1435,7 +1435,7 @@ Definition or_elim3_example : proofTreeOf_wrapped a1 (Implies ((c1 \/' c2) /\' (
     pose ([
       DF _g_ e2 e2;
       DF _h_ e4 (Cases e4 _f_ _g_);
-      DF _h_ {{Apply _f_ e4, Lambda _f_ e1 (Apply _f_ e1)}} (Cases (Apply _f_ e4) _u_ _g_);
+      DF _h_ {{e4, Lambda _u_ e1 BotEvid}} (Cases e4 _u_ _g_);
       DF _u_ e1 BotEvid
     ] : list definedFDef).    
     eexists l _ _.
@@ -1473,8 +1473,8 @@ Definition or_elim3_example : proofTreeOf_wrapped a1 (Implies ((c1 \/' c2) /\' (
     eapply p6.
     eapply assume.
 
-    eapply(impl_intro {{Apply _f_ e4, Lambda _f_ e1 (Apply _f_ e1)}} _ _ _ _ _h_ _).
-    eapply (or_elim3 (Apply _f_ e4) _ _ _).
+    eapply(impl_intro {{e4, Lambda _u_ e1 BotEvid}} _ _ _ _ _h_ _).
+    eapply (or_elim3 e4 _ _ _).
     apply p2.
     apply p5.
     apply p7.
