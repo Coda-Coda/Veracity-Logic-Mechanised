@@ -1487,10 +1487,10 @@ Eval compute in (showForProofTree and_example).
 
 Definition or_elim3_example : proofTreeOf_wrapped a1 (Implies ((c1 \/' c2) /\' (Implies c1 _|_)) c2).
     pose ([
-      DF _g_ e2 e2 c2 c2;  
-      DF _h_ {{e4, Lambda _u_ e1 BotEvid c1 _|_}} (Cases e4 _w_ _g_) ((c1 \/' c2) /\' Implies c1 _|_) c2;
       DF _u_ e1 BotEvid c1 _|_;
-      DF _w_ e1 (BotEvidApplied BotEvid) c1 c2
+      DF _w_ e1 (BotEvidApplied BotEvid) c1 c2;
+      DF _g_ e2 e2 c2 c2;  
+      DF _h_ {{e4, Lambda _u_ e1 BotEvid c1 _|_}} (Cases e4 _w_ _g_) ((c1 \/' c2) /\' Implies c1 _|_) c2
     ] : list definedFDef).    
     eexists l _ _.
 
