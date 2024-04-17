@@ -1745,3 +1745,7 @@ Eval compute in showForNaturalLanguage exampleFromJosh.
 Eval compute in showForLogSeq exampleFromJosh.
 
 End VeracityLogic.
+
+(*|
+*The proofs on this page are rendered using MathJax which happens to require at least one explicit math command*. Hence: :math:`x`.
+|*)
