@@ -1852,53 +1852,6 @@ Eval compute in showForProofTree exampleFromJosh.
 Eval compute in showForNaturalLanguage exampleFromJosh.
 Eval compute in showForLogSeq exampleFromJosh.
 
-(* Definition certifier := Actor _certifier_.
-Definition applicant := Actor _applicant_.
-Definition ingredients_valid := AtomicClaim _ingredients_valid_.
-Definition ingredients_valid_approved := AtomicClaim _ingredients_valid_approved_.
-Definition recipe_valid := AtomicClaim _recipe_valid_.
-Definition percentage_ingredients_valid := AtomicClaim _percentage_ingredients_valid_.
-Definition breakdown_of_formulations_valid := AtomicClaim _breakdown_of_formulations_valid_.
-Definition successful_market_compliance_assessment := AtomicClaim _successful_market_compliance_assessment_.
-Definition compile := AtomicEvid _compile_.
-Definition review := AtomicEvid _review_.
-Definition assess := AtomicEvid _assess_.
-Definition business_procedure := AtomicEvid _business_procedure_.
-Definition ingredients_percentage_list := AtomicEvid _ingredients_percentage_list_.
-Definition breakdown_of_formulations_list := AtomicEvid _breakdown_of_formulations_list_.
-
-Definition preAssessmentRequirements : proofTreeOf_wrapped recipe_valid.
-Proof.
-eexists _ certifier.
-eapply (trust _ certifier applicant _ trustT).
-eapply (impl_elim _ _ _ breakdown_of_formulations_valid).
-eapply (trust _ applicant certifier  _ trustU).
-eapply (impl_elim _ _ _ ingredients_valid_approved).
-eapply (assume business_procedure).
-eapply (impl_elim _ _ _ successful_market_compliance_assessment).
-eapply (impl_elim _ _ _ (ingredients_valid)).
-eapply (assume review).
-eapply (trust _ certifier applicant _ trustT).
-eapply (impl_elim _ _ _ percentage_ingredients_valid).
-eapply (assume compile).
-eapply (assume ingredients_percentage_list). 
-eapply (assume assess certifier).
-eapply (assume breakdown_of_formulations_list).
-Defined. *)
-
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-(* Eval compute in showForProofTree preAssessmentRequirements. *)
-
-(*|
-.. coq::
-|*)
-
-(* Eval compute in (showForNaturalLanguage preAssessmentRequirements). *)
-(* Eval compute in showForLogSeq preAssessmentRequirements. *)
 
 Definition problematicExample1 : proofTreeOf_wrapped a1 (Implies c1 c1).
 Proof.
@@ -1920,6 +1873,5 @@ Definition allProofsAsString :=
  ++ showForProofTree exampleWithProofOf
  ++ showForProofTree usingAll
  ++ showForProofTree exampleFromJosh
- (* ++ showForProofTree preAssessmentRequirements *)
 .
 End VeracityLogic.
