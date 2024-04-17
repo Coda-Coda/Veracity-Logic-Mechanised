@@ -1204,9 +1204,27 @@ end. *)
 
 Open Scope string.
 
+Fixpoint showForProofTree_list_newline {A} `{ShowForProofTree A} (l : list A) :=
+  match l with
+    | [] => ""
+    | [h] => showForProofTree h
+    | h1 :: (h2 :: tl) as tl' => showForProofTree h1 ++ "
+" ++ showForProofTree_list_newline tl'
+  end.
+
+
+Instance : ShowForProofTree definedFDef := {
+  showForProofTree f := match f with
+    | DF f e1 e2 C1 C2 => 
+    showForProofTree f ++ "(" ++ showForProofTree e1 ++ ") = " ++ showForProofTree e2 ++ "\text{ where }" ++ showForProofTree f ++ "\text{ has type }" ++ showForProofTree C1 ++ "\text{ to }"  ++ showForProofTree C2
+    end
+}.
+
 Definition showForProofTree_proofTreeOf fDef HFDef j p
   := "\begin{prooftree}" ++ @showForProofTree_proofTreeOf_helper fDef HFDef j p
-       ++ "\end{prooftree}".
+       ++ "\end{prooftree}" ++ if Nat.eqb (Datatypes.length fDef) 0 then "" else "
+Functions:
+" ++ showForProofTree_list_newline fDef.
 Instance showForProofTree_proofTreeOf_instance fDef HFDef (j : judgement)
   : ShowForProofTree (proofTreeOf j) := { showForProofTree := @showForProofTree_proofTreeOf fDef HFDef j}.
 
