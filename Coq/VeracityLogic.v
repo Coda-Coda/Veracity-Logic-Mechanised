@@ -343,7 +343,7 @@ Scheme Equality for function_name.
 Inductive evid :=
   | AtomicEvid (n : atomic_evid_name)
   | BotEvid
-  (* | BotEvidApplied (e1 : evid) *)
+  | BotEvidApplied (e1 : evid)
   | Pair (e1 e2: evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
@@ -493,7 +493,7 @@ Inductive proofTreeOf {fDef : (list definedFDef)} {HFDefValid : (keepOnlyDuplica
 
         (M : proofTreeOf (e \by a \in _|_))
                            :
-             proofTreeOf (e \by a \in C)
+             proofTreeOf ((BotEvidApplied e) \by a \in C)
 
 | and_intro e1 e2 a C1 C2
 
@@ -677,7 +677,7 @@ Instance : ShowForProofTree evid := {
       | Apply f e1 => showForProofTree f ++ "(" ++ showForProofTreeEvid e1 ++ ")"
       | Cases c d e => "cases(" ++ showForProofTreeEvid c ++ ",  " ++ showForProofTree d ++ ", " ++ showForProofTree e ++ ")"
       | BotEvid => "e_{\bot}"
-      (* | BotEvidApplied e => "R_{0}(" ++ showForProofTreeEvid e ++ ")" *)
+      | BotEvidApplied e => "R_{0}(" ++ showForProofTreeEvid e ++ ")"
     end
 }.
 Instance : ShowForNaturalLanguage evid := { showForNaturalLanguage := showForProofTree }.
@@ -1472,7 +1472,7 @@ Definition or_elim3_example : proofTreeOf_wrapped a1 (Implies ((c1 \/' c2) /\' (
       DF _g_ e2 e2 c2 c2;  
       DF _h_ {{e4, Lambda _u_ e1 BotEvid c1 _|_}} (Cases e4 _w_ _g_) ((c1 \/' c2) /\' Implies c1 _|_) c2;
       DF _u_ e1 BotEvid c1 _|_;
-      DF _w_ e1 BotEvid c1 c2
+      DF _w_ e1 (BotEvidApplied BotEvid) c1 c2
     ] : list definedFDef).    
     eexists l _ _.
 
@@ -1721,7 +1721,7 @@ Eval compute in showForLogSeq exampleWithProofOf.
 
 Definition usingAll : proofTreeOf_wrapped a1 (Implies _|_ C1).
 Proof.
-eexists [DF _f_ BotEvid BotEvid _|_ c1] _ _.
+eexists [DF _f_ BotEvid (BotEvidApplied BotEvid) _|_ c1] _ _.
 eapply (or_elim1 _ _ _ C2).
 eapply or_intro1.
 eapply (or_elim2).
@@ -1733,7 +1733,7 @@ eapply and_intro.
 apply (assume e a1).
 2: apply (assume e a1).
 eapply (trust _ _ _ _ trustT).
-eapply (impl_intro BotEvid BotEvid a1 _|_ C1 _f_ _).
+eapply (impl_intro BotEvid (BotEvidApplied BotEvid) a1 _|_ C1 _f_ _).
 eapply bot_elim.
 apply (assume BotEvid a1).
 Unshelve.
