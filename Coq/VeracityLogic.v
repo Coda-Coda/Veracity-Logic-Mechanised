@@ -133,6 +133,18 @@ Inductive trust_relation_name :=
 
 Scheme Equality for trust_relation_name.
 
+Inductive function_name :=
+  | _f_
+  | _g_
+  | _h_
+  | _u_
+  | _v_
+  | _w_
+  | _b_
+.
+
+Scheme Equality for function_name.
+
 (*|
 
 Types of aspecs of the veracity logic
@@ -148,19 +160,6 @@ Inductive claim :=
   | Implies  (c1 c2 : claim).
 
 Scheme Equality for claim.
-
-Inductive function_name :=
-  | _f_
-  | _g_
-  | _h_
-  | _u_
-  | _v_
-  | _w_
-  | _b_
-.
-
-
-Scheme Equality for function_name.
 
 Inductive evid :=
   | AtomicEvid (n : atomic_evid_name)
