@@ -323,6 +323,7 @@ Inductive function_name :=
   | _u_
   | _v_
   | _w_
+  | _b_
 .
 
 Instance : ShowForProofTree function_name := { 
@@ -334,6 +335,7 @@ Instance : ShowForProofTree function_name := {
       | _u_ => "u"
       | _v_ => "v"
       | _w_ => "w"
+      | _b_ => "b"
     end
   }.
 Instance : ShowForNaturalLanguage function_name := {showForNaturalLanguage := showForProofTree}.
@@ -1812,31 +1814,28 @@ Eval compute in showForLogSeq usingAll.
 Definition healthy := AtomicClaim _healthy_ .
 Definition nonToxic := AtomicClaim _nonToxic_.
 Definition organic := AtomicClaim _organic_.
-Definition belief := AtomicEvid _belief_.
 Definition testing := AtomicEvid _testing_.
 Definition audit := AtomicEvid _audit_.
+Definition belief := Lambda _b_  {{testing,audit}} e1 (nonToxic /\' organic) healthy.
 Definition retailer := Actor _retailer_.
 Definition vineyard := Actor _vineyard_.
 Definition winery := Actor _winery_.
 
 
-(* Definition exampleFromJosh : proofTreeOf_wrapped healthy.
-eexists _ retailer.
-eapply (impl_elim _ _ _ (nonToxic /\' organic)).
-try (apply (assume belief retailer (Implies (nonToxic /\' organic) healthy))).
-try (apply (assume testing vineyard nonToxic)).
-try (apply (assume audit winery organic)).
+Definition exampleFromJosh : proofTreeOf_wrapped retailer healthy.
+eexists [FDef _b_ {{testing, audit}} e1
+(nonToxic /\' organic) healthy] _ _.
+eapply (impl_elim _ _ _ (nonToxic /\' organic) _ _ _).
+(apply (assume belief retailer (Implies (nonToxic /\' organic) healthy))).
 eapply and_intro.
 eapply (trust _ retailer vineyard _ trustT).
-try (apply (assume belief retailer (Implies (nonToxic /\' organic) healthy))).
-try (apply (assume testing vineyard nonToxic)).
-try (apply (assume audit winery organic)).
+(apply (assume testing vineyard nonToxic)).
 eapply (trust _ retailer winery _ trustT).
-try (apply (assume belief retailer (Implies (nonToxic /\' organic) healthy))).
-try (apply (assume testing vineyard nonToxic)).
-try (apply (assume audit winery organic)).
+(apply (assume audit winery organic)).
 Show Proof.
-Defined. *)
+Unshelve.
+all: try reflexivity.
+Defined.
 
 
 (*|
@@ -1844,14 +1843,14 @@ Defined. *)
    :class: coq-math
 |*)
 
-(* Eval compute in showForProofTree exampleFromJosh. *)
+Eval compute in showForProofTree exampleFromJosh.
 
 (*|
 .. coq::
 |*)
 
-(* Eval compute in showForNaturalLanguage exampleFromJosh. *)
-(* Eval compute in showForLogSeq exampleFromJosh. *)
+Eval compute in showForNaturalLanguage exampleFromJosh.
+Eval compute in showForLogSeq exampleFromJosh.
 
 (* Definition certifier := Actor _certifier_.
 Definition applicant := Actor _applicant_.
@@ -1920,7 +1919,7 @@ Definition allProofsAsString :=
  ++ showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras
  ++ showForProofTree exampleWithProofOf
  ++ showForProofTree usingAll
- (* ++ showForProofTree exampleFromJosh *)
+ ++ showForProofTree exampleFromJosh
  (* ++ showForProofTree preAssessmentRequirements *)
 .
 End VeracityLogic.
