@@ -37,11 +37,16 @@ Veracity Logic Mechanised in Coq
 .. coq:: all
 |*)
 
+(*|
+
+Imports
+-------
+
+|*)
 
 Require Import List.
 Import ListNotations.
 Require Import String.
-Require Import Coq.Strings.Ascii.
 Require Import Bool.
 Require Import Program.
 
@@ -50,6 +55,13 @@ Require Import Program.
 |*)
 
 Section VeracityLogic.
+
+(*|
+
+Types for names
+---------------
+
+|*)
 
 Inductive atomic_evid_name :=
   | _e_
@@ -121,173 +133,12 @@ Inductive trust_relation_name :=
 
 Scheme Equality for trust_relation_name.
 
-Open Scope string.
+(*|
 
-Class ShowForProofTree A : Type :=
-  {
-    showForProofTree : A -> string
-  }.
+Types of aspecs of the veracity logic
+-------------------------------------
 
-Instance : ShowForProofTree atomic_evid_name := { 
-  showForProofTree n := 
-    match n with
-      | _e_ => "e"
-      | _e1_ => "e_{1}"
-      | _e2_ => "e_{2}"
-      | _e3_ => "e_{3}"
-      | _e4_ => "e_{4}"
-      | _eB_  => "e_{\bot}"
-      | _eQ_ => "e_{?}"
-      | _l_ => "l"
-      | _s_ => "s"
-      | _c_evid_ => "c"
-      | _belief_ => "b"
-      | _testing_ => "t"
-      | _audit_ => "a"
-      | _compile_=> "c"
-      | _review_=> "r"
-      | _assess_ => "a"
-      | _business_procedure_ => "p"
-      | _ingredients_percentage_list_ => "e_{PI}"
-      | _breakdown_of_formulations_list_=> "e_{BF}"
-    end
-  }.
-
-Instance : ShowForProofTree actor_name := { 
-  showForProofTree n := 
-    match n with
-      | _a1_ => "a_{1}"
-      | _a2_ => "a_{2}"
-      | _a3_ => "a_{3}"
-      | _a4_ => "a_{4}"
-      | _aQ_ => "a_{?}"
-      | _retailer_ => "r"
-      | _vineyard_ => "v"
-      | _winery_ => "w"
-      | _P_ => "P"
-      | _Q_ => "Q"
-      | _applicant_ => "A"
-      | _certifier_ => "C"
-    end
-  }.
-
-Instance : ShowForProofTree claim_name := { 
-  showForProofTree n := 
-    match n with
-      | _c_ => "C"
-      | _c1_ => "C_{1}"
-      | _c2_ => "C_{2}"
-      | _c3_ => "C_{3}"
-      | _c4_ => "C_{4}"
-      | _c5_ => "C_{5}"
-      | _cQ_ => "C_{?}"
-      | _healthy_ => "H"
-      | _nonToxic_ => "N"
-      | _organic_ => "O"
-      | _ingredients_valid_ => "\mathit{IV}"
-      | _ingredients_valid_approved_ => "\mathit{IVA}"
-      | _recipe_valid_ => "\mathit{RV}"      
-      | _percentage_ingredients_valid_ => "\mathit{PIV}"
-      | _breakdown_of_formulations_valid_ => "\mathit{BFV}"
-      | _successful_market_compliance_assessment_ => "\mathit{SMCA}"
-    end
-  }.
-
-Instance : ShowForProofTree trust_relation_name := { 
-  showForProofTree n := 
-    match n with
-      | _T_ => "T"
-      | _U_ => "U"
-      | _V_ => "V"
-    end
-  }.
-
-Class ShowForNaturalLanguage A : Type :=
-  {
-    showForNaturalLanguage : A -> string
-  }.
-Class ShowForLogSeq A : Type :=
-  {
-    showForLogSeq : A -> string
-  }.
-
-Instance : ShowForNaturalLanguage atomic_evid_name := { 
-  showForNaturalLanguage n := 
-    match n with
-      | _e_ => "atomic evidence e"
-      | _e1_ => "atomic evidence 1"
-      | _e2_ => "atomic evidence 2"
-      | _e3_ => "atomic evidence 3"
-      | _e4_ => "atomic evidence 4"
-      | _eB_ =>  "evidence for bottom"
-      | _eQ_ =>  "unknown evidence"
-      | _l_ => "atomic evidence l"
-      | _s_ => "atomic evidence s"
-      | _c_evid_ => "atomic evidence c"
-      | _belief_ => "belief"
-      | _testing_ => "testing"
-      | _audit_ => "audit"
-      | _compile_=> "compile"
-      | _review_=> "review"
-      | _assess_ => "assess"
-      | _business_procedure_ => "business procedure"
-      | _ingredients_percentage_list_ => "ingredients percentage list"
-      | _breakdown_of_formulations_list_ => "breakdown of formulations list"
-    end
-  }.
-Instance : ShowForLogSeq atomic_evid_name := {showForLogSeq := showForNaturalLanguage}.
-
-Instance : ShowForNaturalLanguage actor_name := { 
-  showForNaturalLanguage n := 
-    match n with
-      | _a1_ => "actor 1"
-      | _a2_ => "actor 2"
-      | _a3_ => "actor 3"
-      | _a4_ => "actor 4"
-      | _aQ_ => "unknown actor"
-      | _retailer_ => "retailer"
-      | _vineyard_ => "vineyard"
-      | _winery_ => "winery"
-      | _P_ => "Penelope"
-      | _Q_ => "Quintin"
-      | _applicant_ => "applicant"
-      | _certifier_ => "certifier"
-    end
-  }.
-Instance : ShowForLogSeq actor_name := {showForLogSeq := showForNaturalLanguage}.
-
-Instance : ShowForNaturalLanguage claim_name := { 
-  showForNaturalLanguage n := 
-    match n with
-      | _c_ => "claim c"
-      | _c1_ => "claim 1"
-      | _c2_ => "claim 2"
-      | _c3_ => "claim 3"
-      | _c4_ => "claim 4"
-      | _c5_ => "claim 5"
-      | _cQ_ => "unknown claim"
-      | _healthy_ => "healthy"
-      | _nonToxic_ => "non-toxic"
-      | _organic_ => "organic"
-      | _ingredients_valid_ => "ingredients-valid"
-      | _ingredients_valid_approved_ => "ingredients-valid-approved"
-      | _recipe_valid_ => "recipe-valid"      
-      | _percentage_ingredients_valid_ => "percentage-ingredients-valid"
-      | _breakdown_of_formulations_valid_ => "breakdown-of-formulations-valid"
-      | _successful_market_compliance_assessment_ => "successful-market-compliance-assessment"
-    end
-  }.
-Instance : ShowForLogSeq claim_name := {showForLogSeq := showForNaturalLanguage}.
-
-Instance : ShowForNaturalLanguage trust_relation_name := { 
-  showForNaturalLanguage n := 
-    match n with
-      | _T_ => "trust relation T"
-      | _U_ => "trust relation U"
-      | _V_ => "trust relation V"
-    end
-  }.
-Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
+|*)
 
 Inductive claim :=
   | AtomicClaim (n : claim_name)
@@ -307,21 +158,6 @@ Inductive function_name :=
   | _w_
   | _b_
 .
-
-Instance : ShowForProofTree function_name := { 
-  showForProofTree n := 
-    match n with
-      | _f_ => "f"
-      | _g_ => "g"
-      | _h_ => "h"
-      | _u_ => "u"
-      | _v_ => "v"
-      | _w_ => "w"
-      | _b_ => "b"
-    end
-  }.
-Instance : ShowForNaturalLanguage function_name := {showForNaturalLanguage := showForProofTree}.
-Instance : ShowForLogSeq function_name := {showForLogSeq := showForProofTree}.
 
 
 Scheme Equality for function_name.
@@ -366,6 +202,13 @@ Infix "\/'" := Or (at level 86, left associativity).
 Notation "_|_" := (Bottom) (at level 1).
 Notation "{{ x , y , .. , z }}" := (Pair .. (Pair x y) .. z).
 
+(*|
+
+Boolean Equality Typeclass
+--------------------------
+
+|*)
+
 Class Beq A : Type :=
   {
     beq : A -> A -> bool
@@ -383,7 +226,15 @@ Instance : Beq judgement := { beq := judgement_beq }.
 Instance : Beq function_name := { beq := function_name_beq }.
 Instance : Beq partialFDef := { beq := partialFDef_beq }.
 
+(*|
+
+Helper functions for lightweight type-checking
+----------------------------------------------
+
+|*)
+
 Open Scope beq_scope.
+
 Definition eqFunction d d' :=
   match d,d' with
   FDef n _ _ _ _,FDef n' _ _ _ _ => (n =? n')
@@ -439,7 +290,18 @@ Fixpoint keepOnlyDuplicates_helper (l : list partialFDef) (seenOnce : list parti
   
 Definition keepOnlyDuplicates l := keepOnlyDuplicates_helper l [] [].
 
+Hint Unfold keepOnlyDuplicates : veracityPrf.
+Hint Unfold keepOnlyDuplicates_helper : veracityPrf.
+Hint Unfold containsMatchingEvidArgument : veracityPrf.
+
 Close Scope string.
+
+(*|
+
+The central inductive definition of valid proof trees
+-----------------------------------------------------
+
+|*)
 
 Inductive proofTreeOf {fDef : (list partialFDef)} {HFDefValid : (keepOnlyDuplicates fDef) ++ (inconsitentTypes fDef) = []} : judgement -> Type :=
 | assume e a c : proofTreeOf (e \by a \in c)
@@ -536,26 +398,200 @@ Inductive proofTreeOf {fDef : (list partialFDef)} {HFDefValid : (keepOnlyDuplica
             proofTreeOf (e2 \by a \in C2)
 .
 
-Definition e := AtomicEvid _e_.
-Definition C := AtomicClaim _c_.
+Record proofTreeOf_wrapped (a : actor) (c : claim) := {
+  _f : list partialFDef;
+  _fDef : _;
+  _e : evid;
+  _p : @proofTreeOf _f _fDef (_e \by a \in c)
+}.
 
-Definition e1 := AtomicEvid _e1_.
-Definition a1 := Actor _a1_.
-Definition c1 := AtomicClaim _c1_.
+(*|
 
-Definition e2 := AtomicEvid _e2_.
-Definition a2 := Actor  _a2_.
-Definition c2 := AtomicClaim _c2_.
+String representations
+----------------------
 
-Definition e3 := AtomicEvid _e3_.
-Definition a3 := Actor _a3_.
-Definition c3 := AtomicClaim _c3_.
-
-Definition e4 := AtomicEvid  _e4_.
-Definition a4 := Actor _a4_ .
-Definition c4 := AtomicClaim _c4_.
-
+|*)
 Open Scope string.
+
+Class ShowForProofTree A : Type :=
+  {
+    showForProofTree : A -> string
+  }.
+Class ShowForNaturalLanguage A : Type :=
+  {
+    showForNaturalLanguage : A -> string
+  }.
+Class ShowForLogSeq A : Type :=
+  {
+    showForLogSeq : A -> string
+  }.
+
+Instance : ShowForProofTree atomic_evid_name := { 
+  showForProofTree n := 
+    match n with
+      | _e_ => "e"
+      | _e1_ => "e_{1}"
+      | _e2_ => "e_{2}"
+      | _e3_ => "e_{3}"
+      | _e4_ => "e_{4}"
+      | _eB_  => "e_{\bot}"
+      | _eQ_ => "e_{?}"
+      | _l_ => "l"
+      | _s_ => "s"
+      | _c_evid_ => "c"
+      | _belief_ => "b"
+      | _testing_ => "t"
+      | _audit_ => "a"
+      | _compile_=> "c"
+      | _review_=> "r"
+      | _assess_ => "a"
+      | _business_procedure_ => "p"
+      | _ingredients_percentage_list_ => "e_{PI}"
+      | _breakdown_of_formulations_list_=> "e_{BF}"
+    end
+  }.
+
+Instance : ShowForProofTree actor_name := { 
+  showForProofTree n := 
+    match n with
+      | _a1_ => "a_{1}"
+      | _a2_ => "a_{2}"
+      | _a3_ => "a_{3}"
+      | _a4_ => "a_{4}"
+      | _aQ_ => "a_{?}"
+      | _retailer_ => "r"
+      | _vineyard_ => "v"
+      | _winery_ => "w"
+      | _P_ => "P"
+      | _Q_ => "Q"
+      | _applicant_ => "A"
+      | _certifier_ => "C"
+    end
+  }.
+
+Instance : ShowForProofTree claim_name := { 
+  showForProofTree n := 
+    match n with
+      | _c_ => "C"
+      | _c1_ => "C_{1}"
+      | _c2_ => "C_{2}"
+      | _c3_ => "C_{3}"
+      | _c4_ => "C_{4}"
+      | _c5_ => "C_{5}"
+      | _cQ_ => "C_{?}"
+      | _healthy_ => "H"
+      | _nonToxic_ => "N"
+      | _organic_ => "O"
+      | _ingredients_valid_ => "\mathit{IV}"
+      | _ingredients_valid_approved_ => "\mathit{IVA}"
+      | _recipe_valid_ => "\mathit{RV}"      
+      | _percentage_ingredients_valid_ => "\mathit{PIV}"
+      | _breakdown_of_formulations_valid_ => "\mathit{BFV}"
+      | _successful_market_compliance_assessment_ => "\mathit{SMCA}"
+    end
+  }.
+
+Instance : ShowForProofTree trust_relation_name := { 
+  showForProofTree n := 
+    match n with
+      | _T_ => "T"
+      | _U_ => "U"
+      | _V_ => "V"
+    end
+  }.
+
+Instance : ShowForNaturalLanguage atomic_evid_name := { 
+  showForNaturalLanguage n := 
+    match n with
+      | _e_ => "atomic evidence e"
+      | _e1_ => "atomic evidence 1"
+      | _e2_ => "atomic evidence 2"
+      | _e3_ => "atomic evidence 3"
+      | _e4_ => "atomic evidence 4"
+      | _eB_ =>  "evidence for bottom"
+      | _eQ_ =>  "unknown evidence"
+      | _l_ => "atomic evidence l"
+      | _s_ => "atomic evidence s"
+      | _c_evid_ => "atomic evidence c"
+      | _belief_ => "belief"
+      | _testing_ => "testing"
+      | _audit_ => "audit"
+      | _compile_=> "compile"
+      | _review_=> "review"
+      | _assess_ => "assess"
+      | _business_procedure_ => "business procedure"
+      | _ingredients_percentage_list_ => "ingredients percentage list"
+      | _breakdown_of_formulations_list_ => "breakdown of formulations list"
+    end
+  }.
+Instance : ShowForLogSeq atomic_evid_name := {showForLogSeq := showForNaturalLanguage}.
+
+Instance : ShowForNaturalLanguage actor_name := { 
+  showForNaturalLanguage n := 
+    match n with
+      | _a1_ => "actor 1"
+      | _a2_ => "actor 2"
+      | _a3_ => "actor 3"
+      | _a4_ => "actor 4"
+      | _aQ_ => "unknown actor"
+      | _retailer_ => "retailer"
+      | _vineyard_ => "vineyard"
+      | _winery_ => "winery"
+      | _P_ => "Penelope"
+      | _Q_ => "Quintin"
+      | _applicant_ => "applicant"
+      | _certifier_ => "certifier"
+    end
+  }.
+Instance : ShowForLogSeq actor_name := {showForLogSeq := showForNaturalLanguage}.
+
+Instance : ShowForNaturalLanguage claim_name := { 
+  showForNaturalLanguage n := 
+    match n with
+      | _c_ => "claim c"
+      | _c1_ => "claim 1"
+      | _c2_ => "claim 2"
+      | _c3_ => "claim 3"
+      | _c4_ => "claim 4"
+      | _c5_ => "claim 5"
+      | _cQ_ => "unknown claim"
+      | _healthy_ => "healthy"
+      | _nonToxic_ => "non-toxic"
+      | _organic_ => "organic"
+      | _ingredients_valid_ => "ingredients-valid"
+      | _ingredients_valid_approved_ => "ingredients-valid-approved"
+      | _recipe_valid_ => "recipe-valid"      
+      | _percentage_ingredients_valid_ => "percentage-ingredients-valid"
+      | _breakdown_of_formulations_valid_ => "breakdown-of-formulations-valid"
+      | _successful_market_compliance_assessment_ => "successful-market-compliance-assessment"
+    end
+  }.
+Instance : ShowForLogSeq claim_name := {showForLogSeq := showForNaturalLanguage}.
+
+Instance : ShowForNaturalLanguage trust_relation_name := { 
+  showForNaturalLanguage n := 
+    match n with
+      | _T_ => "trust relation T"
+      | _U_ => "trust relation U"
+      | _V_ => "trust relation V"
+    end
+  }.
+Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
+
+Instance : ShowForProofTree function_name := { 
+  showForProofTree n := 
+    match n with
+      | _f_ => "f"
+      | _g_ => "g"
+      | _h_ => "h"
+      | _u_ => "u"
+      | _v_ => "v"
+      | _w_ => "w"
+      | _b_ => "b"
+    end
+  }.
+Instance : ShowForNaturalLanguage function_name := {showForNaturalLanguage := showForProofTree}.
+Instance : ShowForLogSeq function_name := {showForLogSeq := showForProofTree}.
 
 Instance : ShowForProofTree evid := {
   showForProofTree :=
@@ -700,8 +736,6 @@ Definition showForProofTree_judgement {fDef HFDef} (Ps : list judgement) (Ts : l
       | [] => showForProofTree j
       | (h :: tl) as Ps => showForProofTree Ps ++ " \vdash_{" ++ showForProofTree Ts ++ "} " ++ (showForProofTree j)
     end.
-
-Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \in c1) (assume e1 a1 c1).
 
 Definition showForNaturalLanguage_judgement {fDef HFDef} (Ps : list judgement) (Ts : list trustRelation) (j : judgement) (p : @proofTreeOf fDef HFDef j) :=
   match Ps with
@@ -1155,23 +1189,6 @@ Fixpoint showListOfProofTrees {fDef HFDef} {j : judgement} (l : list (@proofTree
 " ++ showForProofTree h ++ showListOfProofTrees tl
     end.
 
-
-
-
-
-
-
-Record proofTreeOf_wrapped (a : actor) (c : claim) := {
-  _f : list partialFDef;
-  _fDef : _;
-  _e : evid;
-  _p : @proofTreeOf _f _fDef (_e \by a \in c)
-}.
-
-Hint Unfold keepOnlyDuplicates : veracityPrf.
-Hint Unfold keepOnlyDuplicates_helper : veracityPrf.
-Hint Unfold containsMatchingEvidArgument : veracityPrf.
-
 Instance showForProofTree_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForProofTree (proofTreeOf_wrapped a c) := { showForProofTree p := showForProofTree (_p a c p) }.
 Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped a c) := { showForNaturalLanguage p := showForNaturalLanguage (_p a c p) }.
 Instance showForLogSeq_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForLogSeq (proofTreeOf_wrapped a c) := { showForLogSeq p := showForLogSeq (_p a c p) }.
@@ -1182,6 +1199,33 @@ Ltac validateFDef :=
   try (intros; simpl; autounfold with veracityPrf; simpl; reflexivity);
   try (simpl; reflexivity).
 
+(*|
+
+Examples
+--------
+
+|*)
+
+Definition e := AtomicEvid _e_.
+Definition C := AtomicClaim _c_.
+
+Definition e1 := AtomicEvid _e1_.
+Definition a1 := Actor _a1_.
+Definition c1 := AtomicClaim _c1_.
+
+Definition e2 := AtomicEvid _e2_.
+Definition a2 := Actor  _a2_.
+Definition c2 := AtomicClaim _c2_.
+
+Definition e3 := AtomicEvid _e3_.
+Definition a3 := Actor _a3_.
+Definition c3 := AtomicClaim _c3_.
+
+Definition e4 := AtomicEvid  _e4_.
+Definition a4 := Actor _a4_ .
+Definition c4 := AtomicClaim _c4_.
+
+Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \in c1) (assume e1 a1 c1).
 
 Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
 eexists [FDef _f_ e1 e1 c1 c1] _ _.
@@ -1701,26 +1745,4 @@ Eval compute in showForProofTree exampleFromJosh.
 Eval compute in showForNaturalLanguage exampleFromJosh.
 Eval compute in showForLogSeq exampleFromJosh.
 
-
-Definition problematicExample1 : proofTreeOf_wrapped a1 (Implies c1 c1).
-Proof.
-eexists _ _ _.
-eapply (impl_intro e1 _ _ _ _ _f_ _).
-eapply or_elim2.
-Fail eapply or_intro1. (* .unfold *)
-Fail eapply (assume e1 a1 c1).
-Abort.
-
-Open Scope string_scope.
-
-Definition allProofsAsString := 
-    showForProofTree concreteProofTreeExampleWith2Conjuncts
- ++ showForProofTree concreteProofTreeExampleWith3Conjuncts
- ++ showForProofTree concreteProofTreeExampleTrust
- ++ showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrust
- ++ showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras
- ++ showForProofTree exampleWithProofOf
- ++ showForProofTree usingAll
- ++ showForProofTree exampleFromJosh
-.
 End VeracityLogic.
