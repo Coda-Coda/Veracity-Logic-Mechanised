@@ -196,6 +196,7 @@ Scheme Equality for partialFDef.
 Notation "E \by A \in C" := (Judgement E A C) (at level 2).
 Infix "/\'" := And (at level 81, left associativity).
 Infix "\/'" := Or (at level 86, left associativity). 
+Infix "->'" := Implies (at level 99, right associativity).
 Notation "_|_" := (Bottom) (at level 1).
 Notation "{{ x , y , .. , z }}" := (Pair .. (Pair x y) .. z).
 
@@ -964,7 +965,55 @@ Definition e4 := AtomicEvid  _e4_.
 Definition a4 := Actor _a4_ .
 Definition c4 := AtomicClaim _c4_.
 
+Definition l := AtomicEvid _l_ .
+Definition s := AtomicEvid _s_.
+Definition c := AtomicEvid _c_evid_.
+Definition P := Actor _P_.
+Definition Q := Actor _Q_.
+Definition C1 := AtomicClaim _c1_.
+Definition C2 := AtomicClaim _c2_.
+Definition C3 := AtomicClaim _c3_.
+Definition C4 := AtomicClaim _c4_.
+Definition C5 := AtomicClaim _c5_.
+
+Definition trustT := Trust _T_.
+Definition trustU := Trust _U_.
+Definition trustV := Trust _V_.
+
 Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \in c1) (assume e1 a1 c1).
+
+Definition process_example : proofTreeOf_wrapped a1 (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
+Proof.
+eexists [
+  FDef _h_ l {{l, s, c}} c1 (c1 /\' c2 /\' c3);
+  FDef _g_ s (Lambda _h_ l {{l, s, c}} c1 (c1 /\' c2 /\' c3)) c2 (c1 ->' c1 /\' c2 /\' c3);
+  FDef _f_ c (Lambda _g_ s (Lambda _h_ l {{l, s, c}} c1 (c1 /\' c2 /\' c3)) c2 (c1 ->' c1 /\' c2 /\' c3)) c3 (c2 ->' c1 ->' c1 /\' c2 /\' c3)
+] _ _.
+eapply (impl_intro c _ _ _ _ _f_ _).
+eapply (impl_intro s _ _ _ _ _g_ _).
+eapply (impl_intro l _ _ _ _ _h_ _).
+eapply and_intro.
+eapply and_intro.
+eapply (assume l).
+eapply (assume s).
+eapply (assume c).
+Unshelve.
+all: try reflexivity.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree process_example).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage process_example).
+Eval compute in (showForLogSeq process_example).
 
 Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
 eexists [FDef _f_ e1 e1 c1 c1] _ _.
@@ -1061,21 +1110,6 @@ Eval compute in (showForProofTree and_example).
 
 Eval compute in (showForNaturalLanguage and_example).
 Eval compute in (showForLogSeq and_example).
-
-Definition l := AtomicEvid _l_ .
-Definition s := AtomicEvid _s_.
-Definition c := AtomicEvid _c_evid_.
-Definition P := Actor _P_.
-Definition Q := Actor _Q_.
-Definition C1 := AtomicClaim _c1_.
-Definition C2 := AtomicClaim _c2_.
-Definition C3 := AtomicClaim _c3_.
-Definition C4 := AtomicClaim _c4_.
-Definition C5 := AtomicClaim _c5_.
-
-Definition trustT := Trust _T_.
-Definition trustU := Trust _U_.
-Definition trustV := Trust _V_.
 
 Program Definition concreteProofTreeExampleWith2Conjuncts : 
 @proofTreeOf [] _ ({{l, s}} \by P \in (C1 /\' C2)).
@@ -1266,16 +1300,6 @@ Eval compute in showForProofTree usingAll.
 
 Eval compute in showForNaturalLanguage usingAll.
 Eval compute in showForLogSeq usingAll.
-
-Definition healthy := AtomicClaim _healthy_ .
-Definition nonToxic := AtomicClaim _nonToxic_.
-Definition organic := AtomicClaim _organic_.
-Definition testing := AtomicEvid _testing_.
-Definition audit := AtomicEvid _audit_.
-Definition belief := Lambda _b_  {{testing,audit}} e1 (nonToxic /\' organic) healthy.
-Definition retailer := Actor _retailer_.
-Definition vineyard := Actor _vineyard_.
-Definition winery := Actor _winery_.
 
 End VeracityLogic.
 
