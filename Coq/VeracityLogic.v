@@ -242,7 +242,7 @@ Definition eqTypes d d' :=
   FDef _ _ _ C1 C2,FDef _ _ _ C1' C2' => (C1 =? C1') && (C2 =? C2')
   end.
 
-Fixpoint contains (x : partialFDef) (l : list partialFDef) : bool :=
+Fixpoint contains {A} `{Beq A} (x : A) (l : list A) : bool :=
   match l with
   | [] => false
   | h :: tl => (x =? h) || contains x tl
@@ -528,19 +528,29 @@ Instance : ShowForProofTree function_name := {
 Instance : ShowForNaturalLanguage function_name := {showForNaturalLanguage := showForProofTree}.
 Instance : ShowForLogSeq function_name := {showForLogSeq := showForProofTree}.
 
+
+Definition showForProofTree_atomic_as_variable (n : atomic_evid_name) :=
+    match n with
+      | _l_ => "x"
+      | _s_ => "y"
+      | _c_ => "z"
+      | _ => "x"
+    end.
+
+Fixpoint showForProofTreeEvid (atomicAsVariables : list evid) e :=
+  match e with
+  | AtomicEvid name => if contains (AtomicEvid name) atomicAsVariables then showForProofTree_atomic_as_variable name else showForProofTree name
+  | Pair e1 e2 => "(" ++ (showForProofTreeEvid atomicAsVariables e1) ++ ", "
+                      ++ (showForProofTreeEvid atomicAsVariables e2) ++ ")"
+  | Left e => "i(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
+  | Right e => "j(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
+  | Lambda f e1 e2 _ _ => "\lambda(" ++ showForProofTreeEvid (e1 :: atomicAsVariables) e1 ++ ")(" ++ showForProofTreeEvid (e1 :: atomicAsVariables) e2 ++ ")"
+  | BotEvid => "e_{\bot}"
+  | BotEvidApplied e => "R_{0}(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
+end.
+
 Instance : ShowForProofTree evid := {
-  showForProofTree :=
-  fix showForProofTreeEvid e :=
-      match e with
-      | AtomicEvid name => showForProofTree name
-      | Pair e1 e2 => "(" ++ (showForProofTreeEvid e1) ++ ", "
-                          ++ (showForProofTreeEvid e2) ++ ")"
-      | Left e => "i(" ++ showForProofTreeEvid e ++ ")"
-      | Right e => "j(" ++ showForProofTreeEvid e ++ ")"
-      | Lambda f e1 e2 _ _ => "(\lambda " ++ showForProofTree f ++ ")"
-      | BotEvid => "e_{\bot}"
-      | BotEvidApplied e => "R_{0}(" ++ showForProofTreeEvid e ++ ")"
-    end
+  showForProofTree := showForProofTreeEvid []
 }.
 Instance : ShowForNaturalLanguage evid := { showForNaturalLanguage := showForProofTree }.
 Instance : ShowForLogSeq evid := {showForLogSeq := showForNaturalLanguage}.
