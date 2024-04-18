@@ -73,7 +73,7 @@ Inductive atomic_evid_name :=
   | _eQ_
   | _l_
   | _s_
-  | _c_evid_
+  | _c_
   | _belief_
   | _testing_
   | _audit_
@@ -105,7 +105,6 @@ Inductive actor_name :=
 Scheme Equality for actor_name.
 
 Inductive claim_name :=
-  | _c_
   | _c1_
   | _c2_
   | _c3_
@@ -302,7 +301,7 @@ The central inductive definition of valid proof trees
 |*)
 
 Inductive proofTreeOf {fDef : (list partialFDef)} {HFDefValid : (keepOnlyDuplicates fDef) ++ (inconsitentTypes fDef) = []} : judgement -> Type :=
-| assume e a c : proofTreeOf (e \by a \in c)
+| assume e a c : proofTreeOf ((AtomicEvid e) \by a \in c)
 | and_intro e1 e2 a C1 C2
 
 (L: proofTreeOf (e1 \by a \in C1))
@@ -376,7 +375,7 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _eQ_ => "e_{?}"
       | _l_ => "l"
       | _s_ => "s"
-      | _c_evid_ => "c"
+      | _c_ => "c"
       | _belief_ => "b"
       | _testing_ => "t"
       | _audit_ => "a"
@@ -410,7 +409,6 @@ Instance : ShowForProofTree actor_name := {
 Instance : ShowForProofTree claim_name := { 
   showForProofTree n := 
     match n with
-      | _c_ => "C"
       | _c1_ => "C_{1}"
       | _c2_ => "C_{2}"
       | _c3_ => "C_{3}"
@@ -450,7 +448,7 @@ Instance : ShowForNaturalLanguage atomic_evid_name := {
       | _eQ_ =>  "unknown evidence"
       | _l_ => "atomic evidence l"
       | _s_ => "atomic evidence s"
-      | _c_evid_ => "atomic evidence c"
+      | _c_ => "atomic evidence c"
       | _belief_ => "belief"
       | _testing_ => "testing"
       | _audit_ => "audit"
@@ -486,7 +484,6 @@ Instance : ShowForLogSeq actor_name := {showForLogSeq := showForNaturalLanguage}
 Instance : ShowForNaturalLanguage claim_name := { 
   showForNaturalLanguage n := 
     match n with
-      | _c_ => "claim c"
       | _c1_ => "claim 1"
       | _c2_ => "claim 2"
       | _c3_ => "claim 3"
@@ -718,7 +715,7 @@ end.
 Fixpoint getAllEvidence {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j)
   : list evid :=
 match p with
-| assume e a C => [e]
+| assume e a C => [(AtomicEvid e)]
 | and_intro e1 e2 a C1 C2 L R => getAllEvidence _ L ++ getAllEvidence _ R 
 | or_intro1 e1 a C1 C2 M => getAllEvidence _ M
 | or_intro2 e2 a C1 C2 M => getAllEvidence _ M
@@ -734,7 +731,7 @@ end.
 
 Fixpoint getAssumptions {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j) : list judgement := 
 match p with
-| assume e a C => [e \by a \in C]
+| assume e a C => [(AtomicEvid e) \by a \in C]
 | and_intro e1 e2 a C1 C2 L R => 
     getAssumptions _ L ++ getAssumptions _ R 
 | or_intro1 e1 a C1 C2 M => getAssumptions _ M
@@ -947,7 +944,6 @@ Examples
 |*)
 
 Definition e := AtomicEvid _e_.
-Definition C := AtomicClaim _c_.
 
 Definition e1 := AtomicEvid _e1_.
 Definition a1 := Actor _a1_.
@@ -967,7 +963,7 @@ Definition c4 := AtomicClaim _c4_.
 
 Definition l := AtomicEvid _l_ .
 Definition s := AtomicEvid _s_.
-Definition c := AtomicEvid _c_evid_.
+Definition c := AtomicEvid _c_.
 Definition P := Actor _P_.
 Definition Q := Actor _Q_.
 Definition C1 := AtomicClaim _c1_.
@@ -980,7 +976,7 @@ Definition trustT := Trust _T_.
 Definition trustU := Trust _U_.
 Definition trustV := Trust _V_.
 
-Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \in c1) (assume e1 a1 c1).
+Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \in c1) (assume _e1_ a1 c1).
 
 Definition process_example : proofTreeOf_wrapped a1 (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
@@ -994,9 +990,9 @@ eapply (impl_intro s _ _ _ _ _g_ _).
 eapply (impl_intro l _ _ _ _ _h_ _).
 eapply and_intro.
 eapply and_intro.
-eapply (assume l).
-eapply (assume s).
-eapply (assume c).
+eapply (assume _l_).
+eapply (assume _s_).
+eapply (assume _c_).
 Unshelve.
 all: try reflexivity.
 Defined.
@@ -1018,7 +1014,7 @@ Eval compute in (showForLogSeq process_example).
 Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
 eexists [FDef _f_ e1 e1 c1 c1] _ _.
 eapply (impl_intro e1 _ _ _ _ _f_ _).
-eapply (assume e1).
+eapply (assume _e1_).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1041,7 +1037,7 @@ Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
 eexists [FDef _f_ e1 (Lambda _g_ e1 e1 c1 c1) c1 (Implies c1 c1); FDef _g_ e1 e1 c1 c1] _ _.
 eapply (impl_intro e1 _ _ _ _ _f_ _).
 eapply (impl_intro e1 _ _ _ _ _g_ _).
-eapply (assume e1).
+eapply (assume _e1_).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1067,7 +1063,7 @@ eexists [
 ] _ _.
   eapply (impl_intro e1 _ _ _ _ _f_ _).
   eapply (impl_intro e2 _ _ _ _ _g_ _).
-  eapply (assume e1).
+  eapply (assume _e1_).
   Unshelve.
   all: try reflexivity.
 Defined.
@@ -1091,8 +1087,8 @@ Definition and_example : proofTreeOf_wrapped a1 (Implies c1 (c1 /\' c1)).
 eexists [FDef _f_ e1 {{e1, e1}} c1 (c1 /\' c1)] _ _.
 eapply (impl_intro e1 _ _ _ _ _f_ _ ).
 eapply (and_intro).
-eapply (assume e1).
-eapply (assume e1).
+eapply (assume _e1_).
+eapply (assume _e1_).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1136,9 +1132,9 @@ Program Definition concreteProofTreeExampleWith3Conjuncts :
 @proofTreeOf [] _ ({{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3)).
 apply and_intro.
 apply and_intro.
-apply (assume l).
-apply (assume s).
-apply (assume c).
+apply (assume _l_).
+apply (assume _s_).
+apply (assume _c_).
 Defined.
 
 (*|
@@ -1164,7 +1160,7 @@ Program Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree :
 apply and_intro.
 exact concreteProofTreeExampleWith2Conjuncts.
 Show Proof.
-apply (assume c).
+apply (assume _c_).
 Defined.
 
 
@@ -1183,9 +1179,9 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 
 Program Definition concreteProofTreeExampleTrust : 
-@proofTreeOf [] _ e \by a1 \in (C).
-eapply (trust _ a1 a2 C trustT).
-apply (assume e).
+@proofTreeOf [] _ e \by a1 \in (c1).
+eapply (trust _ a1 a2 c1 trustT).
+apply (assume _e_).
 Defined.
 
 (*|
@@ -1250,7 +1246,7 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAnd
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
 Proof.
 eexists [] _ _.
-apply (assume e a1).
+apply (assume _e_ a1).
 Unshelve.
 reflexivity.
 Defined.
@@ -1277,10 +1273,10 @@ eexists [FDef _f_ e4 e4 C4 C4] _ _.
 eapply (or_intro1 _).
 eapply (or_intro2 _).
 eapply and_intro.
-apply (assume e a1).
+apply (assume _e_ a1).
 eapply (trust _ _ _ _ trustT).
 eapply (impl_intro e4 _ a1 C4 C4 _f_ _).
-apply (assume e4 a1).
+apply (assume _e4_ a1).
 Unshelve.
 Show Proof.
 all: reflexivity.
