@@ -1326,6 +1326,43 @@ Eval compute in (showForProofTree impl_intro_elim2).
 Eval compute in (showForNaturalLanguage impl_intro_elim2).
 Eval compute in (showForLogSeq impl_intro_elim2).
 
+Definition impl_intro_elim3 : proofTreeOf_wrapped a1 (c1 ->' c1).
+eexists _.
+eassert (apply_lambda {{e4,e2}} (Lambda e3 (Lambda e1 e1)) {{e3,e4}} _ _ = Lambda e3 (Lambda e1 e1)).
+reflexivity.
+Unshelve.
+3,4: reflexivity.
+eapply (impl_elim e3 (Lambda e1 e1) e2 a1 C3 (C1 ->' C1)).
+rewrite <- H.
+eapply impl_elim.
+eapply (impl_intro _ _ _ _ _ _).
+eapply (impl_intro _ _ _ _ _ _).
+eapply (impl_intro _ _ _ _ _ _).
+eapply assume.
+eapply and_intro.
+eapply assume.
+eapply assume.
+eapply assume.
+Unshelve.
+all: try reflexivity.
+eapply C2.
+eapply C2.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro_elim3).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage impl_intro_elim3).
+Eval compute in (showForLogSeq impl_intro_elim3).
+
 
 Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
 eexists  _.
