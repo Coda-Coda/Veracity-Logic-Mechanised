@@ -272,7 +272,7 @@ Program Fixpoint substitutions (x a : evid) (HMatching : MatchingFormat x a) (n 
   | Left e,Left e' => substitutions e e' _ n
   | Right e,Right e' => substitutions e e' _ n
   | Lambda x bx,Lambda x' bx' => substitutions bx bx' _ n
-  | _,_ => _
+  | _,_ => except _
   end
 .
 Next Obligation.
@@ -285,7 +285,6 @@ Next Obligation.
 simpl in *. destruct HMatching. assumption.
 Defined.
 Next Obligation.
-exfalso.
 destruct x.
   - destruct a; try (simpl in *; contradiction).
     + eapply H3. split; reflexivity.
