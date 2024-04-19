@@ -1680,6 +1680,31 @@ Eval compute in showForProofTree bot_example.
 Eval compute in showForNaturalLanguage bot_example.
 Eval compute in showForLogSeq bot_example.
 
+Definition bot_example2 : proofTreeOf_wrapped a1 (_|_ ->' (C1 \/' C2 ->' (C3 /\' _|_))).
+Proof.
+eexists _.
+eapply (impl_intro eB _ a1 _ _ _).
+apply bot_elim.
+apply (assume _eB_).
+Unshelve.
+all: reflexivity.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in showForProofTree bot_example2.
+
+(*|
+.. coq::
+|*)
+
+Eval compute in showForNaturalLanguage bot_example2.
+Eval compute in showForLogSeq bot_example2.
+
 End VeracityLogic.
 
 (*|
