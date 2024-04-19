@@ -3992,6 +3992,56 @@ proofTreeOf {{{{l, s}},c}} \<span class="bp">by</span> Q \<span class="kr">in</s
 <span class="s2">&quot;</span>
      : string</blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chk133" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chk133"><span class="kn">Definition</span> <span class="nf">bot_example2</span> : proofTreeOf_wrapped a1 (_|_ -&gt;&#39; (C1 \/&#39; C2 -&gt;&#39; (C3 /\&#39; _|_))).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf_wrapped a1
+  (_|_ -&gt;&#39; C1 \/&#39; C2 -&gt;&#39; C3 /\&#39; _|_)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chk134" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chk134"><span class="kn">Proof</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf_wrapped a1
+  (_|_ -&gt;&#39; C1 \/&#39; C2 -&gt;&#39; C3 /\&#39; _|_)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chk135" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chk135"><span class="nb">eexists</span> _.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf
+  <span class="nl">?Goal</span> \<span class="bp">by</span> a1 \<span class="kr">in</span> (_|_ -&gt;&#39; C1 \/&#39; C2 -&gt;&#39; C3 /\&#39; _|_)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chk136" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chk136"><span class="nb">eapply</span> (impl_intro eB _ a1 _ _ _).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf <span class="nl">?bx</span> \<span class="bp">by</span> a1 \<span class="kr">in</span> (C1 \/&#39; C2 -&gt;&#39; C3 /\&#39; _|_)</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chk137" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chk137"><span class="nb">apply</span> bot_elim.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">proofTreeOf <span class="nl">?bx</span> \<span class="bp">by</span> a1 \<span class="kr">in</span> _|_</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">apply</span> (assume _eB_).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chk138" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chk138"><span class="kn">Unshelve</span>.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">notUsedInInnerLambda eB (AtomicEvid _eB_) = true</div></blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kp">all</span>: <span class="bp">reflexivity</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogic-v-chk139" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chk139"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForProofTree bot_example2.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= <span class="s2">&quot;\begin{prooftree}\AxiomC{$ \bot \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{\bot}^{a_{1}} \in \bot \vdash_{} e_{\bot}^{a_{1}} \in \bot $} \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ e_{\bot}^{a_{1}} \in \bot \vdash_{} e_{\bot}^{a_{1}} \in ((C_{1} \vee C_{2}) \rightarrow (C_{3} \wedge \bot)) $} \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ \lambda(x_{\bot})(x_{\bot})^{a_{1}} \in (\bot \rightarrow ((C_{1} \vee C_{2}) \rightarrow (C_{3} \wedge \bot))) $}\end{prooftree}&quot;</span>
+: string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chk13a" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chk13a"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForNaturalLanguage bot_example2.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
+
+<span class="s2">- (impossible implies ((claim 1 or claim 2) implies (claim 3 and impossible))) is supported by $\lambda(x_{\bot})(x_{\bot})$ which actor 1 uses, because</span>
+<span class="s2">  - Assuming impossible is supported by $e_{\bot}$ which actor 1 uses then ((claim 1 or claim 2) implies (claim 3 and impossible)) is supported by $e_{\bot}$ which actor 1 uses, because</span>
+<span class="s2">    - Assuming impossible is supported by $e_{\bot}$ which actor 1 uses then impossible is supported by $e_{\bot}$ which actor 1 uses, because</span>
+<span class="s2">    - impossible is a veracity claim.</span>
+<span class="s2">    - by assumption.</span>
+<span class="s2">  - by the logical principle of explosion.</span>
+<span class="s2">- by a logical rule for implication.</span>
+
+<span class="s2">&quot;</span>
+     : string</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chk13b" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chk13b"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> showForLogSeq bot_example2.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
+
+<span class="s2">### Veracity proof that (impossible implies ((claim 1 or claim 2) implies (claim 3 and impossible))) is held by actor 1 by the evidence \lambda(x_{\bot})(x_{\bot})</span>
+<span class="s2">  - (impossible implies ((claim 1 or claim 2) implies (claim 3 and impossible))) is held by actor 1 by the evidence $\lambda(x_{\bot})(x_{\bot})$</span>
+<span class="s2">    - Logical rule used: implication introduction</span>
+<span class="s2">      - Sub-proof:</span>
+<span class="s2">        - ((claim 1 or claim 2) implies (claim 3 and impossible)) is held by actor 1 by the evidence $e_{\bot}$</span>
+<span class="s2">          collapsed:: true</span>
+<span class="s2">          - Assumptions made:</span>
+<span class="s2">            collapsed:: true</span>
+<span class="s2">            - impossible is held by actor 1 by the evidence $e_{\bot}$</span>
+<span class="s2">          - Logical rule used: the principle of explosion</span>
+<span class="s2">            - Sub-proof:</span>
+<span class="s2">              - impossible is held by actor 1 by the evidence $e_{\bot}$</span>
+<span class="s2">                collapsed:: true</span>
+<span class="s2">                - Assumptions made:</span>
+<span class="s2">                  collapsed:: true</span>
+<span class="s2">                  - impossible is held by actor 1 by the evidence $e_{\bot}$</span>
+<span class="s2">                - Logical rule used: we assume this</span>
+<span class="s2">  - Atomic evidence is abbreviated as follows:</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">    - e_{\bot} = evidence for bottom</span>
+
+<span class="s2">&quot;</span>
+     : string</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">End</span> <span class="nf">VeracityLogic</span>.</span></span></pre><p><em>The proofs on this page are rendered using MathJax which happens to require at least one explicit math command</em>. Hence: <span class="math">\(x\)</span>.</p>
 </div>
 </div>
