@@ -405,6 +405,18 @@ Inductive proofTreeOf : judgement -> Type :=
                         :
     proofTreeOf ({{e1, e2}} \by a \in (C1 /\' C2))
 
+| and_elim1 e1 e2 a C1 C2
+
+    (M : proofTreeOf ({{e1, e2}} \by a \in (C1 /\' C2)))
+                           :
+             proofTreeOf (e1 \by a \in C1)
+
+| and_elim2 e1 e2 a C1 C2
+
+    (M : proofTreeOf ({{e1, e2}} \by a \in (C1 /\' C2)))
+                          :
+        proofTreeOf (e2 \by a \in C2)
+
 | or_intro1 e1 a C1 C2
 
            (M: proofTreeOf (e1 \by a \in C1))
@@ -416,6 +428,18 @@ Inductive proofTreeOf : judgement -> Type :=
            (M: proofTreeOf (e2 \by a \in C2))
                           :
     proofTreeOf ((Right e2) \by a \in (C1 \/' C2))
+
+    | or_elim1 e1 a C1 C2
+
+    (M: proofTreeOf ((Left e1) \by a \in (C1 \/' C2)))
+                        :
+      proofTreeOf (e1 \by a \in C1)
+
+| or_elim2 e2 a C1 C2
+
+    (M : proofTreeOf ((Right e2) \by a \in (C1 \/' C2)))
+                          :
+        proofTreeOf (e2 \by a \in C2)
 
 | trust e a1 a2 C (name : trustRelation)
 
@@ -437,7 +461,6 @@ Inductive proofTreeOf : judgement -> Type :=
                            (R: proofTreeOf (y \by a \in C1))
                         :
     proofTreeOf ((apply_lambda x bx y H2 H1) \by a \in C2)
-
 .
 
 Record proofTreeOf_wrapped (a : actor) (c : claim) := {
@@ -820,10 +843,13 @@ match p with
 | assume e a C => []
 | and_intro e1 e2 a C1 C2 L R => 
     getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
+| and_elim1 e1 e2 a C1 C2 M => getAllTrustRelationsUsed _ M
+| and_elim2 e1 e2 a C1 C2 M => getAllTrustRelationsUsed _ M
 | or_intro1 e1  a C1 C2 M => getAllTrustRelationsUsed _ M
 | or_intro2 e2 a C1 C2 M => getAllTrustRelationsUsed _ M
-| trust e a1 a2 C name L => 
-    name :: getAllTrustRelationsUsed _ L
+| or_elim1 e1 a C1 C2 M => getAllTrustRelationsUsed _ M
+| or_elim2 e2 a C1 C2 M => getAllTrustRelationsUsed _ M
+| trust e a1 a2 C name L =>     name :: getAllTrustRelationsUsed _ L
 | impl_intro _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
 | impl_elim _ _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
 end.
@@ -833,10 +859,13 @@ Fixpoint getAllEvidence (j : judgement) (p : proofTreeOf j)
 match p with
 | assume e a C => [(AtomicEvid e)]
 | and_intro e1 e2 a C1 C2 L R => getAllEvidence _ L ++ getAllEvidence _ R 
+| and_elim1 e1 e2 a C1 C2 M => getAllEvidence _ M
+| and_elim2 e1 e2 a C1 C2 M => getAllEvidence _ M
 | or_intro1 e1 a C1 C2 M => getAllEvidence _ M
 | or_intro2 e2 a C1 C2 M => getAllEvidence _ M
-| trust e a1 a2 C name L => getAllEvidence _ L
-| impl_intro _ _ _ _ _ _ M => getAllEvidence _ M
+| or_elim1 e1 a C1 C2 M => getAllEvidence _ M
+| or_elim2 e2 a C1 C2 M => getAllEvidence _ M
+| trust e a1 a2 C name L => getAllEvidence _ L| impl_intro _ _ _ _ _ _ M => getAllEvidence _ M
 | impl_elim _ _ _ _ _ _ _ _ _ M => getAllEvidence _ M
 end.
 
@@ -851,8 +880,12 @@ match p with
 | assume e a C => [(AtomicEvid e) \by a \in C]
 | and_intro e1 e2 a C1 C2 L R => 
     getAssumptions _ L ++ getAssumptions _ R 
+| and_elim1 e1 e2 a C1 C2 M => getAssumptions _ M
+| and_elim2 e1 e2 a C1 C2 M => getAssumptions _ M
 | or_intro1 e1 a C1 C2 M => getAssumptions _ M
 | or_intro2 e2 a C1 C2 M => getAssumptions _ M
+| or_elim1 e1 a C1 C2 M => getAssumptions _ M
+| or_elim2 e2 a C1 C2 M => getAssumptions _ M
 | trust e a1 a2 C name L => 
     getAssumptions _ L
 | impl_intro e1 e2 a C1 C2 _ M => filter (fun j => negb (judgement_beq (e1 \by a \in C1) j)) (getAssumptions _ M)
@@ -880,12 +913,28 @@ match p with
  ++ showForProofTree_proofTreeOf_helper _ R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p ++ " $}"
-| or_intro1 e1 a C1 C2 M => showForProofTree_proofTreeOf_helper _ M
+ | and_elim1 e1 e2 a C1 C2 M => showForProofTree_proofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \land^{-1} $} \UnaryInfC{$ "
+ ++ showForProofTree_judgement Ps Ts _ p
+ ++ " $}"
+| and_elim2 e1 e2 a C1 C2 M => showForProofTree_proofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \land^{-2} $} \UnaryInfC{$ "
+ ++ showForProofTree_judgement Ps Ts _ p
+ ++ " $}"
+ | or_intro1 e1 a C1 C2 M => showForProofTree_proofTreeOf_helper _ M
  ++ " \RightLabel{ $ \lor^{+1} $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p
  ++ " $}"
 | or_intro2 e2 a C1 C2 M => showForProofTree_proofTreeOf_helper _ M
  ++ " \RightLabel{ $ \lor^{+2} $} \UnaryInfC{$ "
+ ++ showForProofTree_judgement Ps Ts _ p
+ ++ " $}"
+ | or_elim1 e1 a C1 C2 M => showForProofTree_proofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \lor^{-1} $} \UnaryInfC{$ "
+ ++ showForProofTree_judgement Ps Ts _ p
+ ++ " $}"
+| or_elim2 e2 a C1 C2 M => showForProofTree_proofTreeOf_helper _ M
+ ++ " \RightLabel{ $ \lor^{-2} $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p
  ++ " $}"
  | trust e a1 a2 C name L => 
@@ -924,6 +973,18 @@ indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ R ++ "
 "
 ++ indent ++ "by a logical rule for 'and'."
+| and_elim1 e1 e2 a C1 C2 M =>
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
+" 
+++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ M ++ "
+"
+++ indent ++ "by a logical rule for 'and'."
+| and_elim2 e1 e2 a C1 C2 M => 
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
+" 
+++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ M ++ "
+"
+++ indent ++ "by a logical rule for 'and'."
 | or_intro1 e1 a C1 C2 M =>
 indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 " 
@@ -931,6 +992,18 @@ indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 "
 ++ indent ++ "by a logical rule for 'or'."
 | or_intro2 e2 a C1 C2 M =>
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
+" 
+++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ M ++ "
+"
+++ indent ++ "by a logical rule for 'or'."
+| or_elim1 e1 a C1 C2 M =>
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
+" 
+++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ M ++ "
+"
+++ indent ++ "by a logical rule for 'or'."
+| or_elim2 e2 a C1 C2 M => 
 indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ M ++ "
@@ -972,6 +1045,16 @@ indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
     " ++ indent ++ "- " ++ "Sub-proofs:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ L ++ "
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ R
+| and_elim1 e1 e2 a C1 C2 M =>
+indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: and elimination (1)
+    " ++ indent ++ "- " ++ "Sub-proof:
+" ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ M
+| and_elim2 e1 e2 a C1 C2 M => 
+indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: and elimination (2)
+    " ++ indent ++ "- " ++ "Sub-proof:
+" ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ M
 | or_intro1 e1 a C1 C2 M =>
 indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or introduction (1)
@@ -980,6 +1063,16 @@ indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
 | or_intro2 e2 a C1 C2 M =>
 indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or introduction (2)
+    " ++ indent ++ "- " ++ "Sub-proof:
+" ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ M
+| or_elim1 e1 a C1 C2 M =>
+indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: or elimination (1)
+    " ++ indent ++ "- " ++ "Sub-proof:
+" ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ M
+| or_elim2 e2 a C1 C2 M => 
+indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: or elimination (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ M
 | trust e a1 a2 C name L => 
@@ -1185,6 +1278,36 @@ Eval compute in (showForProofTree impl_intro_elim).
 
 Eval compute in (showForNaturalLanguage impl_intro_elim).
 Eval compute in (showForLogSeq impl_intro_elim).
+
+Definition impl_intro_elim2 : proofTreeOf_wrapped a1 (c1).
+eexists _.
+eapply (impl_elim _ _ {{e1,e2}} a1 (C1 /\' C2) C1).
+eapply (impl_intro {{e3,e4}} _ _ _ _ _).
+eapply (and_elim1 _ _ _ _ C2).
+eapply and_intro.
+eapply (assume _e3_).
+eapply (assume _e4_).
+eapply and_intro.
+eapply (assume).
+eapply (assume).
+Unshelve.
+all: reflexivity.
+Defined.
+    
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro_elim2).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage impl_intro_elim2).
+Eval compute in (showForLogSeq impl_intro_elim2).
+
 
 Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
 eexists  _.
