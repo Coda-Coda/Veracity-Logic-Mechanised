@@ -856,7 +856,7 @@ match p with
 | trust e a1 a2 C name L => 
     getAssumptions _ L
 | impl_intro e1 e2 a C1 C2 _ M => filter (fun j => negb (judgement_beq (e1 \by a \in C1) j)) (getAssumptions _ M)
-| impl_elim _ _ _ _ _ _ _ _ _ M => getAssumptions _ M
+| impl_elim _ _ _ _ _ _ _ _ L R => getAssumptions _ L ++ getAssumptions _ R
 end.
 
 Fixpoint removeDups {A} `{Beq A} (l : list A) : list A :=
