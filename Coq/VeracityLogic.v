@@ -70,6 +70,7 @@ Inductive atomic_evid_name :=
   | _e3_
   | _e4_
   | _eQ_
+  | _eB_
   | _l_
   | _s_
   | _c_
@@ -424,6 +425,13 @@ The central inductive definition of valid proof trees
 
 Inductive proofTreeOf : judgement -> Type :=
 | assume e a c : proofTreeOf ((AtomicEvid e) \by a \in c)
+
+| bot_elim e a C
+
+        (M : proofTreeOf (e \by a \in _|_))
+                           :
+             proofTreeOf (e \by a \in C)
+
 | and_intro e1 e2 a C1 C2
 
 (L: proofTreeOf (e1 \by a \in C1))
@@ -524,6 +532,7 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _e3_ => "e_{3}"
       | _e4_ => "e_{4}"
       | _eQ_ => "e_{?}"
+      | _eB_ => "e_{\bot}"
       | _l_ => "l"
       | _s_ => "s"
       | _c_ => "c"
@@ -596,6 +605,7 @@ Instance : ShowForNaturalLanguage atomic_evid_name := {
       | _e3_ => "atomic evidence 3"
       | _e4_ => "atomic evidence 4"
       | _eQ_ =>  "unknown evidence"
+      | _eB_ =>  "evidence for bottom"
       | _l_ => "atomic evidence l"
       | _s_ => "atomic evidence s"
       | _c_ => "atomic evidence c"
@@ -671,6 +681,7 @@ Definition showForProofTree_atomic_as_variable (n : atomic_evid_name) :=
   | _e3_ => "x_{3}"
   | _e4_ => "x_{4}"
   | _eQ_ => "x_{?}"
+  | _eB_ => "x_{\bot}"
   | _l_ => "x"
   | _s_ => "y"
   | _c_ => "z"
@@ -859,6 +870,7 @@ Fixpoint getAllTrustRelationsUsed (j : judgement) (p : proofTreeOf j)
   : list trustRelation :=
 match p with
 | assume e a C => []
+| bot_elim e a C M => getAllTrustRelationsUsed _ M
 | and_intro e1 e2 a C1 C2 L R => 
     getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
 | and_elim1 e1 e2 a C1 C2 M => getAllTrustRelationsUsed _ M
@@ -876,6 +888,7 @@ Fixpoint getAllEvidence (j : judgement) (p : proofTreeOf j)
   : list evid :=
 match p with
 | assume e a C => [(AtomicEvid e)]
+| bot_elim e a C M => (getAllEvidence _ M)
 | and_intro e1 e2 a C1 C2 L R => getAllEvidence _ L ++ getAllEvidence _ R 
 | and_elim1 e1 e2 a C1 C2 M => getAllEvidence _ M
 | and_elim2 e1 e2 a C1 C2 M => getAllEvidence _ M
@@ -896,6 +909,7 @@ end.
 Fixpoint getAssumptions (j : judgement) (p : proofTreeOf j) : list judgement := 
 match p with
 | assume e a C => [(AtomicEvid e) \by a \in C]
+| bot_elim e a C M => getAssumptions _ M
 | and_intro e1 e2 a C1 C2 L R => 
     getAssumptions _ L ++ getAssumptions _ R 
 | and_elim1 e1 e2 a C1 C2 M => getAssumptions _ M
@@ -926,7 +940,11 @@ match p with
              ++ " \textit{ is a veracity claim} $}"
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
     ++ showForProofTree_judgement Ps Ts _ p ++ " $}"
-| and_intro e1 e2 a C1 C2 L R => 
+| bot_elim e a C M => showForProofTree_proofTreeOf_helper _ M
+    ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
+    ++ showForProofTree_judgement Ps Ts _ p
+    ++ " $}"
+    | and_intro e1 e2 a C1 C2 L R => 
     showForProofTree_proofTreeOf_helper _ L
  ++ showForProofTree_proofTreeOf_helper _ R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
@@ -983,6 +1001,12 @@ indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 ++ indent ++ showForNaturalLanguage C ++ " is a veracity claim." ++ "
 "
 ++ indent ++ "by assumption."
+| bot_elim e a C M =>
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
+" 
+++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ M ++ "
+"
+++ indent ++ "by the logical principle of explosion."
 | and_intro e1 e2 a C1 C2 L R => 
 indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 " 
@@ -1057,6 +1081,11 @@ match p with
 | assume e a C => 
 indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: we assume this"
+| bot_elim e a C M =>
+indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: the principle of explosion
+    " ++ indent ++ "- " ++ "Sub-proof:
+" ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ M
 | and_intro e1 e2 a C1 C2 L R => 
 indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and introduction
@@ -1205,6 +1234,8 @@ Definition e4 := AtomicEvid  _e4_.
 Definition a4 := Actor _a4_ .
 Definition c4 := AtomicClaim _c4_.
 
+Definition eB := AtomicEvid  _eB_.
+
 Definition l := AtomicEvid _l_ .
 Definition s := AtomicEvid _s_.
 Definition c := AtomicEvid _c_.
@@ -1215,6 +1246,7 @@ Definition C2 := AtomicClaim _c2_.
 Definition C3 := AtomicClaim _c3_.
 Definition C4 := AtomicClaim _c4_.
 Definition C5 := AtomicClaim _c5_.
+
 
 Definition trustT := Trust _T_.
 Definition trustU := Trust _U_.
@@ -1593,7 +1625,7 @@ Eval compute in showForProofTree exampleWithProofOf.
 Eval compute in showForNaturalLanguage exampleWithProofOf.
 Eval compute in showForLogSeq exampleWithProofOf.
 
-Definition usingAll : proofTreeOf_wrapped a1 (C1 \/' (C2 /\' (Implies C4 C4)) \/' C3).
+Definition usingMost : proofTreeOf_wrapped a1 (C1 \/' (C2 /\' (Implies C4 C4)) \/' C3).
 Proof.
 eexists _.
 eapply (or_intro1 _).
@@ -1614,14 +1646,39 @@ Defined.
 |*)
 
 
-Eval compute in showForProofTree usingAll.
+Eval compute in showForProofTree usingMost.
 
 (*|
 .. coq::
 |*)
 
-Eval compute in showForNaturalLanguage usingAll.
-Eval compute in showForLogSeq usingAll.
+Eval compute in showForNaturalLanguage usingMost.
+Eval compute in showForLogSeq usingMost.
+
+Definition bot_example : proofTreeOf_wrapped a1 (_|_ ->' (C1 /\' C2)).
+Proof.
+eexists _.
+eapply (impl_intro eB _ a1 _ _ _).
+apply bot_elim.
+apply (assume _eB_).
+Unshelve.
+all: reflexivity.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in showForProofTree bot_example.
+
+(*|
+.. coq::
+|*)
+
+Eval compute in showForNaturalLanguage bot_example.
+Eval compute in showForLogSeq bot_example.
 
 End VeracityLogic.
 
