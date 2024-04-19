@@ -69,7 +69,6 @@ Inductive atomic_evid_name :=
   | _e2_
   | _e3_
   | _e4_
-  | _eB_
   | _eQ_
   | _l_
   | _s_
@@ -162,8 +161,8 @@ Scheme Equality for claim.
 
 Inductive evid :=
   | AtomicEvid (n : atomic_evid_name)
-  | BotEvid
-  | BotEvidApplied (e1 : evid)
+  (* | BotEvid
+  | BotEvidApplied (e1 : evid) *)
   | Pair (e1 e2: evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
@@ -295,12 +294,196 @@ Close Scope string.
 
 (*|
 
+The machinery for applying lambas
+---------------------------------
+
+|*)
+
+Fixpoint MatchingFormat (e1 e2 : evid) :=
+  match e1,e2 with
+  | AtomicEvid _,AtomicEvid _ => True
+  | Pair e1 e2,Pair e1' e2' => MatchingFormat e1 e1' /\ MatchingFormat e2 e2'
+  | Left e,Left e' => MatchingFormat e e'
+  | Right e,Right e' => MatchingFormat e e'
+  | Lambda _ x bx _ _,Lambda _ x' bx' _ _ => MatchingFormat x x' /\ MatchingFormat bx bx'
+  | _,_ => False
+  end.
+
+Fixpoint matchingFormat (e1 e2 : evid) :=
+  match e1,e2 with
+  | AtomicEvid _,AtomicEvid _ => true
+  | Pair e1 e2,Pair e1' e2' => matchingFormat e1 e1' && matchingFormat e2 e2'
+  | Left e,Left e' => matchingFormat e e'
+  | Right e,Right e' => matchingFormat e e'
+  | Lambda _ x bx _ _,Lambda _ x' bx' _ _ => matchingFormat x x' && matchingFormat bx bx'
+  | _,_ => false
+  end.
+
+Lemma matchingFormat_bool_Prop_iff : forall e1 e2, MatchingFormat e1 e2 <-> matchingFormat e1 e2 = true.
+Proof.
+split.
+ - revert e2. induction e1; induction e2; auto.
+   + simpl in *. intros. apply andb_true_intro. destruct H.
+      split.
+      * apply IHe1_1. apply H.
+      * apply IHe1_2. apply H0.
+   + simpl in *. intros. apply IHe1. apply H.
+   + simpl in *. intros. apply IHe1. apply H.
+   + simpl in *. intros. apply andb_true_intro. destruct H.
+      split.
+          * apply IHe1_1. apply H.
+          * apply IHe1_2. apply H0.
+ - revert e2. induction e1; induction e2; simpl in *; (try discriminate); auto.
+    + intros. apply andb_prop in H. destruct H. auto.
+    + intros. apply andb_prop in H. destruct H. auto.
+Qed.
+
+Lemma matchingFormat_bool_to_Prop : forall e1 e2, matchingFormat e1 e2 = true -> MatchingFormat e1 e2.
+Proof.
+apply matchingFormat_bool_Prop_iff.
+Qed.
+
+Lemma matchingFormat_Prop_to_bool : forall e1 e2, MatchingFormat e1 e2 -> matchingFormat e1 e2 = true.
+Proof.
+apply matchingFormat_bool_Prop_iff.
+Qed.
+
+Program Fixpoint substitutions (x a : evid) (HMatching : MatchingFormat x a) (n : atomic_evid_name) : option atomic_evid_name :=
+  match x,a with
+  | AtomicEvid name,AtomicEvid name' => if n =? name then Some name' else None
+  | Pair e1 e2,Pair e1' e2' => match substitutions e1 e1' _ n with
+                               | Some name' => Some name'
+                               | None => substitutions e2 e2' _ n
+                               end
+  | Left e,Left e' => substitutions e e' _ n
+  | Right e,Right e' => substitutions e e' _ n
+  | Lambda _ x bx _ _,Lambda _ x' bx' _ _ => substitutions bx bx' _ n
+  | _,_ => _
+  end
+.
+Next Obligation.
+simpl in *. destruct HMatching. assumption.
+Defined.
+Next Obligation.
+simpl in *. destruct HMatching. assumption.
+Defined.
+Next Obligation.
+simpl in *. destruct HMatching. assumption.
+Defined.
+Next Obligation.
+exfalso.
+destruct x.
+  - destruct a; try (simpl in *; contradiction).
+    + eapply H3. split; reflexivity.
+  - destruct a; try (simpl in *; contradiction).
+    + eapply H. split; reflexivity.
+  - destruct a; try (simpl in *; contradiction).
+    + eapply H0. split; reflexivity.
+  - destruct a; try (simpl in *; contradiction).
+    + eapply H1. split; reflexivity.
+  - destruct a; try (simpl in *; contradiction).
+    + eapply H2. split; reflexivity.
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+Next Obligation.
+repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
+Defined.
+
+Fixpoint notUsedInInnerLambda (x bx : evid) : bool :=
+match bx with
+  | AtomicEvid _ => true
+  | Pair e1 e2 => notUsedInInnerLambda x e1 && notUsedInInnerLambda x e2
+  | Left e => notUsedInInnerLambda x e
+  | Right e => notUsedInInnerLambda x e
+  | Lambda _ x' bx' _ _ => negb (x =? x') && notUsedInInnerLambda x bx'
+end.
+
+Program Fixpoint apply_lambda (x bx a : evid) (H1 : matchingFormat x a = true) (H2 : notUsedInInnerLambda x bx = true) : evid := 
+  let H1' := (matchingFormat_bool_to_Prop x a H1) in
+  match bx with
+  | AtomicEvid name => match substitutions x a H1' name with
+                       | Some name' => AtomicEvid name'
+                       | None => AtomicEvid name
+                       end
+  | Pair e1 e2 => Pair (apply_lambda x e1 a H1 _) (apply_lambda x e2 a H1 _)
+  | Left e => (apply_lambda x e a H1 _)
+  | Right e => (apply_lambda x e a H1 _)
+  | Lambda n x' bx' C1 C2 => Lambda n x' (apply_lambda x bx' a H1 _) C1 C2
+end.
+Next Obligation.
+simpl in H2. apply andb_prop in H2. destruct H2. auto.
+Defined.
+Next Obligation.
+simpl in H2. apply andb_prop in H2. destruct H2. auto.
+Defined.
+Next Obligation.
+simpl in H2. apply andb_prop in H2. destruct H2. auto.
+Defined.
+
+(*|
+
 The central inductive definition of valid proof trees
 -----------------------------------------------------
 
 |*)
 
-Inductive proofTreeOf {fDef : (list partialFDef)} {HFDefValid : (keepOnlyDuplicates fDef) ++ (inconsitentTypes fDef) = []} : judgement -> Type :=
+Inductive proofTreeOf : judgement -> Type :=
 | assume e a c : proofTreeOf ((AtomicEvid e) \by a \in c)
 | and_intro e1 e2 a C1 C2
 
@@ -327,19 +510,26 @@ Inductive proofTreeOf {fDef : (list partialFDef)} {HFDefValid : (keepOnlyDuplica
                           :
             proofTreeOf (e \by a1 \in C)
 
-| impl_intro (e1 : evid) e2 a (C1 : claim) C2 n
-             (H : contains (FDef n e1 e2 C1 C2) fDef = true)
+| impl_intro (x : evid) (bx : evid) a (C1 : claim) C2 n
+                    (H : notUsedInInnerLambda x bx = true)
 
-              (M: proofTreeOf (e2 \by a \in C2))
+              (M: proofTreeOf (bx \by a \in C2))
                               :
-   proofTreeOf ((Lambda n e1 e2 C1 C2) \by a \in (Implies C1 C2))
+   proofTreeOf ((Lambda n x bx C1 C2) \by a \in (Implies C1 C2))
+| impl_elim x bx y a C1 C2 n
+               (H1 : notUsedInInnerLambda x bx = true)                
+                  (H2 : matchingFormat x y = true)
+                
+(L: proofTreeOf ((Lambda n x bx C1 C2) \by a \in (Implies C1 C2)))
+                           (R: proofTreeOf (y \by a \in C1))
+                        :
+    proofTreeOf ((apply_lambda x bx y H2 H1) \by a \in C2)
+
 .
 
 Record proofTreeOf_wrapped (a : actor) (c : claim) := {
-  _f : list partialFDef;
-  _fDef : _;
   _e : evid;
-  _p : @proofTreeOf _f _fDef (_e \by a \in c)
+  _p : proofTreeOf (_e \by a \in c)
 }.
 
 (*|
@@ -371,7 +561,6 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _e2_ => "e_{2}"
       | _e3_ => "e_{3}"
       | _e4_ => "e_{4}"
-      | _eB_  => "e_{\bot}"
       | _eQ_ => "e_{?}"
       | _l_ => "l"
       | _s_ => "s"
@@ -444,7 +633,6 @@ Instance : ShowForNaturalLanguage atomic_evid_name := {
       | _e2_ => "atomic evidence 2"
       | _e3_ => "atomic evidence 3"
       | _e4_ => "atomic evidence 4"
-      | _eB_ =>  "evidence for bottom"
       | _eQ_ =>  "unknown evidence"
       | _l_ => "atomic evidence l"
       | _s_ => "atomic evidence s"
@@ -530,11 +718,25 @@ Instance : ShowForLogSeq function_name := {showForLogSeq := showForProofTree}.
 
 
 Definition showForProofTree_atomic_as_variable (n : atomic_evid_name) :=
-    match n with
-      | _l_ => "x"
-      | _s_ => "y"
-      | _c_ => "z"
-      | _ => "x"
+  match n with
+  | _e_ => "x_{e}"
+  | _e1_ => "x_{1}"
+  | _e2_ => "x_{2}"
+  | _e3_ => "x_{3}"
+  | _e4_ => "x_{4}"
+  | _eQ_ => "x_{?}"
+  | _l_ => "x"
+  | _s_ => "y"
+  | _c_ => "z"
+  | _belief_ => "x_{b}"
+  | _testing_ => "x_{t}"
+  | _audit_ => "x_{a}"
+  | _compile_=> "x_{c}"
+  | _review_=> "x_{r}"
+  | _assess_ => "x_{assess}"
+  | _business_procedure_ => "x_{p}"
+  | _ingredients_percentage_list_ => "x_{PI}"
+  | _breakdown_of_formulations_list_=> "x_{BF}"
     end.
 
 Fixpoint showForProofTreeEvid (atomicAsVariables : list evid) e :=
@@ -545,8 +747,6 @@ Fixpoint showForProofTreeEvid (atomicAsVariables : list evid) e :=
   | Left e => "i(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
   | Right e => "j(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
   | Lambda f e1 e2 _ _ => "\lambda(" ++ showForProofTreeEvid (e1 :: atomicAsVariables) e1 ++ ")(" ++ showForProofTreeEvid (e1 :: atomicAsVariables) e2 ++ ")"
-  | BotEvid => "e_{\bot}"
-  | BotEvidApplied e => "R_{0}(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
 end.
 
 Instance : ShowForProofTree evid := {
@@ -674,19 +874,19 @@ Instance : ShowForLogSeq judgement := {
   end
 }.
 
-Definition showForProofTree_judgement {fDef HFDef} (Ps : list judgement) (Ts : list trustRelation) (j : judgement) (p : @proofTreeOf fDef HFDef j) :=
+Definition showForProofTree_judgement (Ps : list judgement) (Ts : list trustRelation) (j : judgement) (p : proofTreeOf j) :=
     match Ps with
       | [] => showForProofTree j
       | (h :: tl) as Ps => showForProofTree Ps ++ " \vdash_{" ++ showForProofTree Ts ++ "} " ++ (showForProofTree j)
     end.
 
-Definition showForNaturalLanguage_judgement {fDef HFDef} (Ps : list judgement) (Ts : list trustRelation) (j : judgement) (p : @proofTreeOf fDef HFDef j) :=
+Definition showForNaturalLanguage_judgement (Ps : list judgement) (Ts : list trustRelation) (j : judgement) (p : proofTreeOf j) :=
   match Ps with
     | [] => showForNaturalLanguage j
     | (h :: tl) as Ps => "Assuming " ++ showForNaturalLanguage Ps ++ " then " ++ showForNaturalLanguage j
   end.
 
-Definition showForLogSeq_judgement {fDef HFDef} (Ps : list judgement) (Ts : list trustRelation) (indent : string) (j : judgement) (p : @proofTreeOf fDef HFDef j) :=
+Definition showForLogSeq_judgement (Ps : list judgement) (Ts : list trustRelation) (indent : string) (j : judgement) (p : proofTreeOf j) :=
   match Ps,Ts with
         | [],[] => showForLogSeq j
         | (h :: tl),[] => showForLogSeq j ++ "
@@ -709,7 +909,7 @@ Definition showForLogSeq_judgement {fDef HFDef} (Ps : list judgement) (Ts : list
 " ++ showForLogSeq_list ("  " ++ indent) Ts
   end.
 
-Fixpoint getAllTrustRelationsUsed {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j)
+Fixpoint getAllTrustRelationsUsed (j : judgement) (p : proofTreeOf j)
   : list trustRelation :=
 match p with
 | assume e a C => []
@@ -720,9 +920,10 @@ match p with
 | trust e a1 a2 C name L => 
     name :: getAllTrustRelationsUsed _ L
 | impl_intro _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
+| impl_elim _ _ _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
 end.
 
-Fixpoint getAllEvidence {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j)
+Fixpoint getAllEvidence (j : judgement) (p : proofTreeOf j)
   : list evid :=
 match p with
 | assume e a C => [(AtomicEvid e)]
@@ -731,6 +932,7 @@ match p with
 | or_intro2 e2 a C1 C2 M => getAllEvidence _ M
 | trust e a1 a2 C name L => getAllEvidence _ L
 | impl_intro _ _ _ _ _ _ _ M => getAllEvidence _ M
+| impl_elim _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ M
 end.
 
 Definition isAtomicEvidence (e : evid) : bool :=
@@ -739,7 +941,7 @@ match e with
   | _ => false
 end.
 
-Fixpoint getAssumptions {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j) : list judgement := 
+Fixpoint getAssumptions (j : judgement) (p : proofTreeOf j) : list judgement := 
 match p with
 | assume e a C => [(AtomicEvid e) \by a \in C]
 | and_intro e1 e2 a C1 C2 L R => 
@@ -749,9 +951,10 @@ match p with
 | trust e a1 a2 C name L => 
     getAssumptions _ L
 | impl_intro e1 e2 a C1 C2 _ _ M => filter (fun j => negb (judgement_beq (e1 \by a \in C1) j)) (getAssumptions _ M)
+| impl_elim _ _ _ _ _ _ _ _ _ _ M => getAssumptions _ M
 end.
 
-Fixpoint showForProofTree_proofTreeOf_helper {fDef HFDef} (j : judgement) (p : @proofTreeOf fDef HFDef j)
+Fixpoint showForProofTree_proofTreeOf_helper (j : judgement) (p : proofTreeOf j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
@@ -784,9 +987,14 @@ match p with
  ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p
  ++ " $}"
+| impl_elim x bx y a C1 C2 n H1 H2 L R => 
+     showForProofTree_proofTreeOf_helper _ L
+ ++ showForProofTree_proofTreeOf_helper _ R 
+ ++ " \RightLabel{ $ \rightarrow^{-} $} \BinaryInfC{$ "
+ ++ showForProofTree_judgement Ps Ts _ p ++ " $}"
 end.
 
-Fixpoint showForNaturalLanguage_proofTreeOf_helper {fDef HFDef} (indent : string) (j : judgement) (p : @proofTreeOf fDef HFDef j)
+Fixpoint showForNaturalLanguage_proofTreeOf_helper (indent : string) (j : judgement) (p : proofTreeOf j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
@@ -829,9 +1037,17 @@ indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for implication."
+| impl_elim _ _ _ _ _ _  _ _ _ L R => 
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
+" 
+++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ L ++ "
+"
+++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ R ++ "
+"
+++ indent ++ "by a logical rule for implication."
 end.
 
-Fixpoint showForLogSeq_proofTreeOf_helper {fDef HFDef} (indent : string) (j : judgement) (p : @proofTreeOf fDef HFDef j)
+Fixpoint showForLogSeq_proofTreeOf_helper (indent : string) (j : judgement) (p : proofTreeOf j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed j p)) in
 let Ps := (removeDups (getAssumptions j p)) in
@@ -865,6 +1081,12 @@ indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication introduction
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ M
+| impl_elim _ _ _ _ _ _  _ _ _ L R => 
+indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: implication elimination
+    " ++ indent ++ "- " ++ "Sub-proofs:
+" ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ L ++ "
+" ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ R
 end.
 
 Open Scope string.
@@ -885,21 +1107,19 @@ Instance : ShowForProofTree partialFDef := {
     end
 }.
 
-Definition showForProofTree_proofTreeOf fDef HFDef j p
-  := "\begin{prooftree}" ++ @showForProofTree_proofTreeOf_helper fDef HFDef j p
-       ++ "\end{prooftree}" ++ if Nat.eqb (Datatypes.length fDef) 0 then "" else "
-Functions:
-" ++ showForProofTree_list_newline fDef.
-Instance showForProofTree_proofTreeOf_instance fDef HFDef (j : judgement)
-  : ShowForProofTree (proofTreeOf j) := { showForProofTree := @showForProofTree_proofTreeOf fDef HFDef j}.
+Definition showForProofTree_proofTreeOf j p
+  := "\begin{prooftree}" ++ showForProofTree_proofTreeOf_helper j p
+       ++ "\end{prooftree}".
+Instance showForProofTree_proofTreeOf_instance (j : judgement)
+  : ShowForProofTree (proofTreeOf j) := { showForProofTree := showForProofTree_proofTreeOf j}.
 
-Definition showForNaturalLanguage_proofTreeOf {fDef HFDef} j (p : @proofTreeOf fDef HFDef j) := "
+Definition showForNaturalLanguage_proofTreeOf j (p : proofTreeOf j) := "
 
 " ++ showForNaturalLanguage_proofTreeOf_helper "- " j p ++ "
 
 ".
-Instance showForNaturalLanguage_proofTreeOf_instance {fDef HFDef} (j : judgement)
-  : ShowForNaturalLanguage (@proofTreeOf fDef HFDef j) := { showForNaturalLanguage := showForNaturalLanguage_proofTreeOf j}.
+Instance showForNaturalLanguage_proofTreeOf_instance (j : judgement)
+  : ShowForNaturalLanguage (proofTreeOf j) := { showForNaturalLanguage := showForNaturalLanguage_proofTreeOf j}.
 
 Definition printProofTitle j :=
 match j with
@@ -908,7 +1128,7 @@ end.
 
 Instance : ShowForLogSeq string := { showForLogSeq := id}.
 
-Definition showForLogSeq_proofTreeOf {fDef HFDef} j (p : @proofTreeOf fDef HFDef j) := 
+Definition showForLogSeq_proofTreeOf j (p : proofTreeOf j) := 
 let evidenceList := (removeDups (filter isAtomicEvidence (getAllEvidence j p))) in
 let evidenceWithNames := map (fun e => match e with
                                    | AtomicEvid n => showForLogSeq e ++ " = " ++ showForLogSeq n
@@ -923,10 +1143,10 @@ let evidenceWithNames := map (fun e => match e with
 " ++ showForLogSeq_list "    " evidenceWithNames ++ "
 
 ".
-Instance showForLogSeq_proofTreeOf_instance {fDef HFDef} (j : judgement)
-  : ShowForLogSeq (@proofTreeOf fDef HFDef j) := { showForLogSeq := showForLogSeq_proofTreeOf j}.
+Instance showForLogSeq_proofTreeOf_instance (j : judgement)
+  : ShowForLogSeq (proofTreeOf j) := { showForLogSeq := showForLogSeq_proofTreeOf j}.
 
-Fixpoint showListOfProofTrees {fDef HFDef} {j : judgement} (l : list (@proofTreeOf fDef HFDef j)) :=
+Fixpoint showListOfProofTrees {j : judgement} (l : list (proofTreeOf j)) :=
     match l with
       | [] => ""
       | h :: tl => "
@@ -990,11 +1210,7 @@ Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \i
 
 Definition process_example : proofTreeOf_wrapped a1 (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
-eexists [
-  FDef _h_ l {{l, s, c}} c1 (c1 /\' c2 /\' c3);
-  FDef _g_ s (Lambda _h_ l {{l, s, c}} c1 (c1 /\' c2 /\' c3)) c2 (c1 ->' c1 /\' c2 /\' c3);
-  FDef _f_ c (Lambda _g_ s (Lambda _h_ l {{l, s, c}} c1 (c1 /\' c2 /\' c3)) c2 (c1 ->' c1 /\' c2 /\' c3)) c3 (c2 ->' c1 ->' c1 /\' c2 /\' c3)
-] _ _.
+eexists  _.
 eapply (impl_intro c _ _ _ _ _f_ _).
 eapply (impl_intro s _ _ _ _ _g_ _).
 eapply (impl_intro l _ _ _ _ _h_ _).
@@ -1022,7 +1238,7 @@ Eval compute in (showForNaturalLanguage process_example).
 Eval compute in (showForLogSeq process_example).
 
 Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
-eexists [FDef _f_ e1 e1 c1 c1] _ _.
+eexists _.
 eapply (impl_intro e1 _ _ _ _ _f_ _).
 eapply (assume _e1_).
 Unshelve.
@@ -1042,11 +1258,35 @@ Eval compute in (showForProofTree impl_intro1).
 
 Eval compute in (showForNaturalLanguage impl_intro1).
 Eval compute in (showForLogSeq impl_intro1).
-    
-Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
-eexists [FDef _f_ e1 (Lambda _g_ e1 e1 c1 c1) c1 (Implies c1 c1); FDef _g_ e1 e1 c1 c1] _ _.
+
+Definition impl_intro_elim : proofTreeOf_wrapped a1 (c1).
+eexists _.
+eapply (impl_elim e1 _ e2 a1 C1 C1 _f_).
 eapply (impl_intro e1 _ _ _ _ _f_ _).
-eapply (impl_intro e1 _ _ _ _ _g_ _).
+eapply (assume _e1_).
+eapply (assume _e2_).
+Unshelve.
+all: reflexivity.
+Defined.
+    
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro_elim).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage impl_intro_elim).
+Eval compute in (showForLogSeq impl_intro_elim).
+
+Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
+eexists  _.
+eapply (impl_intro e1 _ _ _ _ _f_ _).
+eapply (impl_intro e2 _ _ _ _ _g_ _).
 eapply (assume _e1_).
 Unshelve.
 all: reflexivity.
@@ -1067,10 +1307,7 @@ Eval compute in (showForNaturalLanguage impl_intro2).
 Eval compute in (showForLogSeq impl_intro2).
 
 Definition impl_and : proofTreeOf_wrapped a1 (Implies c1 (Implies c2 c1)).
-eexists [
-  FDef _g_ e2 e1 c2 c1;
-  FDef _f_ e1 (Lambda _g_ e2 e1 c2 c1) c1 (Implies c2 c1)
-] _ _.
+eexists _.
   eapply (impl_intro e1 _ _ _ _ _f_ _).
   eapply (impl_intro e2 _ _ _ _ _g_ _).
   eapply (assume _e1_).
@@ -1094,7 +1331,7 @@ Eval compute in (showForNaturalLanguage impl_and).
 Eval compute in (showForLogSeq impl_and).
 
 Definition and_example : proofTreeOf_wrapped a1 (Implies c1 (c1 /\' c1)).
-eexists [FDef _f_ e1 {{e1, e1}} c1 (c1 /\' c1)] _ _.
+eexists  _.
 eapply (impl_intro e1 _ _ _ _ _f_ _ ).
 eapply (and_intro).
 eapply (assume _e1_).
@@ -1118,7 +1355,7 @@ Eval compute in (showForNaturalLanguage and_example).
 Eval compute in (showForLogSeq and_example).
 
 Program Definition concreteProofTreeExampleWith2Conjuncts : 
-@proofTreeOf [] _ ({{l, s}} \by P \in (C1 /\' C2)).
+proofTreeOf ({{l, s}} \by P \in (C1 /\' C2)).
 apply and_intro.
 apply assume.
 apply assume.
@@ -1139,7 +1376,7 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith2Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith2Conjuncts.
 
 Program Definition concreteProofTreeExampleWith3Conjuncts : 
-@proofTreeOf [] _ ({{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3)).
+proofTreeOf ({{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3)).
 apply and_intro.
 apply and_intro.
 apply (assume _l_).
@@ -1166,7 +1403,7 @@ We can also combine existing trees into new trees, when appropriate. For example
 |*)
 
 Program Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
-@proofTreeOf [] _ {{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3).
+proofTreeOf {{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3).
 apply and_intro.
 exact concreteProofTreeExampleWith2Conjuncts.
 Show Proof.
@@ -1189,7 +1426,7 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 
 Program Definition concreteProofTreeExampleTrust : 
-@proofTreeOf [] _ e \by a1 \in (c1).
+proofTreeOf e \by a1 \in (c1).
 eapply (trust _ a1 a2 c1 trustT).
 apply (assume _e_).
 Defined.
@@ -1209,7 +1446,7 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleTrust).
 Eval compute in showForLogSeq concreteProofTreeExampleTrust.
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
-@proofTreeOf [] _ {{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3).
+proofTreeOf {{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3).
 eapply (trust _ _ _ _ trustU).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
@@ -1229,7 +1466,7 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWi
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrust.
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
-@proofTreeOf [] _ {{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3).
+proofTreeOf {{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3).
 eapply (trust _ Q Q _ trustU).
 eapply (trust _ Q Q _ trustV).
 eapply (trust _ _ _ _ trustU).
@@ -1255,10 +1492,8 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAnd
 
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
 Proof.
-eexists [] _ _.
+eexists _.
 apply (assume _e_ a1).
-Unshelve.
-reflexivity.
 Defined.
 
 (*|
@@ -1279,7 +1514,7 @@ Eval compute in showForLogSeq exampleWithProofOf.
 
 Definition usingAll : proofTreeOf_wrapped a1 (C1 \/' (C2 /\' (Implies C4 C4)) \/' C3).
 Proof.
-eexists [FDef _f_ e4 e4 C4 C4] _ _.
+eexists _.
 eapply (or_intro1 _).
 eapply (or_intro2 _).
 eapply and_intro.
