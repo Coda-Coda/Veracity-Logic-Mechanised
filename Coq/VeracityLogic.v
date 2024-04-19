@@ -703,7 +703,7 @@ Fixpoint showForProofTreeEvid (atomicAsVariables : list evid) e :=
                       ++ (showForProofTreeEvid atomicAsVariables e2) ++ ")"
   | Left e => "i(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
   | Right e => "j(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
-  | Lambda e1 e2 => "\lambda(" ++ showForProofTreeEvid (allAtomicEvidenceContainedBy e1 ++ atomicAsVariables) e1 ++ ")(" ++ showForProofTreeEvid (e1 :: atomicAsVariables) e2 ++ ")"
+  | Lambda e1 e2 => "\lambda(" ++ showForProofTreeEvid (allAtomicEvidenceContainedBy e1 ++ atomicAsVariables) e1 ++ ")(" ++ showForProofTreeEvid (allAtomicEvidenceContainedBy e1 ++ atomicAsVariables) e2 ++ ")"
 end.
 
 Instance : ShowForProofTree evid := {
