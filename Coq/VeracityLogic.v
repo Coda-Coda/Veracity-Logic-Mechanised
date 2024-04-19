@@ -358,13 +358,39 @@ Next Obligation.
 repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
 Defined.
 
+Fixpoint allAtomicEvidenceContainedBy (e : evid) : list evid := 
+  match e with
+  | AtomicEvid e => [AtomicEvid e] 
+  | Pair e1 e2 => allAtomicEvidenceContainedBy e1 ++ allAtomicEvidenceContainedBy e2
+  | Left e => allAtomicEvidenceContainedBy e
+  | Right e => allAtomicEvidenceContainedBy e
+  | Lambda x' bx' => allAtomicEvidenceContainedBy x' ++ allAtomicEvidenceContainedBy bx'
+end.
+
+Fixpoint contains {A} `{Beq A} (x : A) (l : list A) : bool :=
+  match l with
+  | [] => false
+  | h :: tl => (x =? h) || contains x tl
+  end.
+
+Fixpoint shareAtLeastOneElement {A} `{Beq A} (l1 l2 : list A) : bool :=
+  match l1 with
+  | [] => false
+  | h :: tl => contains h l2 || shareAtLeastOneElement tl l2
+  end.
+
+Definition noOverlappingAtomicEvidence e1 e2 : bool :=
+  let l1 := allAtomicEvidenceContainedBy e1 in
+  let l2 := allAtomicEvidenceContainedBy e2 in
+  negb (shareAtLeastOneElement l1 l2).
+
 Fixpoint notUsedInInnerLambda (x bx : evid) : bool :=
 match bx with
   | AtomicEvid _ => true
   | Pair e1 e2 => notUsedInInnerLambda x e1 && notUsedInInnerLambda x e2
   | Left e => notUsedInInnerLambda x e
   | Right e => notUsedInInnerLambda x e
-  | Lambda x' bx' => negb (x =? x') && notUsedInInnerLambda x bx'
+  | Lambda x' bx' => noOverlappingAtomicEvidence x x' && notUsedInInnerLambda x bx'
 end.
 
 Program Fixpoint apply_lambda (x bx a : evid) (H1 : matchingFormat x a = true) (H2 : notUsedInInnerLambda x bx = true) : evid := 
@@ -658,14 +684,6 @@ Definition showForProofTree_atomic_as_variable (n : atomic_evid_name) :=
   | _ingredients_percentage_list_ => "x_{PI}"
   | _breakdown_of_formulations_list_=> "x_{BF}"
     end.
-
-Open Scope beq_scope.
-Fixpoint contains {A} `{Beq A} (x : A) (l : list A) : bool :=
-  match l with
-  | [] => false
-  | h :: tl => (x =? h) || contains x tl
-  end.
-Close Scope beq_scope.
 
 Fixpoint showForProofTreeEvid (atomicAsVariables : list evid) e :=
   match e with
