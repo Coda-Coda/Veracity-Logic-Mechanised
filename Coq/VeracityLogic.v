@@ -1253,7 +1253,7 @@ Definition trustV := Trust _V_.
 
 Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \in c1) (assume _e1_ a1 c1).
 
-Definition process_example : proofTreeOf_wrapped a1 (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
+Definition process_example : proofTreeOf_wrapped P (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
 eexists  _.
 eapply (impl_intro c _ _ _ _ _).
@@ -1265,7 +1265,7 @@ eapply (assume _l_).
 eapply (assume _s_).
 eapply (assume _c_).
 Unshelve.
-all: try reflexivity.
+all: reflexivity.
 Defined.
 
 (*|
