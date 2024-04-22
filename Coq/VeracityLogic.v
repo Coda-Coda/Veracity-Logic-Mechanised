@@ -262,9 +262,6 @@ Proof.
 apply matchingFormat_bool_Prop_iff.
 Qed. *)
 
-Program Fixpoint substitutions (x a : atomic_evid_name) (n : atomic_evid_name) : atomic_evid_name :=
-  if n =? x then a else n.
-
 (* Program Fixpoint substitutions (x a : evid) (HMatching : MatchingFormat x a) (n : atomic_evid_name) : option atomic_evid_name :=
   match x,a with
   | AtomicEvid name,AtomicEvid name' => if n =? name then Some name' else None
@@ -396,9 +393,9 @@ match bx with
   | Lambda x' bx' => (negb (x =? x')) && notUsedInInnerLambda x bx'
 end.
 
-Program Fixpoint apply_lambda (x : atomic_evid_name) (bx : evid) (a : atomic_evid_name) (H2 : notUsedInInnerLambda x bx = true) : evid := 
+Program Fixpoint apply_lambda (x : atomic_evid_name) (bx : evid) (a : evid) (H2 : notUsedInInnerLambda x bx = true) : evid := 
   match bx with
-  | AtomicEvid name => AtomicEvid (substitutions x a name)
+  | AtomicEvid name => if name =? x then a else AtomicEvid name
   | Pair e1 e2 => Pair (apply_lambda x e1 a _) (apply_lambda x e2 a _)
   | Left e => (apply_lambda x e a _)
   | Right e => (apply_lambda x e a _)
@@ -489,7 +486,7 @@ Inductive proofTreeOf : judgement -> Type :=
                (H1 : notUsedInInnerLambda x bx = true)                
                 
 (L: proofTreeOf ((Lambda x bx) \by a \in (Implies C1 C2)))
-                           (R: proofTreeOf ((AtomicEvid y) \by a \in C1))
+                           (R: proofTreeOf (y \by a \in C1))
                         :
     proofTreeOf ((apply_lambda x bx y H1) \by a \in C2)
 .
@@ -1306,7 +1303,7 @@ Eval compute in (showForLogSeq impl_intro1).
 
 Definition impl_intro_elim : proofTreeOf_wrapped a1 (c1).
 eexists _.
-eapply (impl_elim _e1_ _ _e2_ a1 C1 C1).
+eapply (impl_elim _e1_ _ e2 a1 C1 C1).
 eapply (impl_intro _e1_ _ _ _ _ _).
 eapply (assume _e1_).
 eapply (assume _e2_).
@@ -1330,9 +1327,9 @@ Eval compute in (showForLogSeq impl_intro_elim).
 
 Definition impl_intro_elim2 : proofTreeOf_wrapped a1 (c1).
 eexists _.
-Fail eapply (impl_elim _ _ {{e1,e2}} a1 (C1 /\' C2) C1).
-(* eapply (impl_intro {{e3,e4}} _ _ _ _ _).
-eapply (and_elim1 _ _ _ _ C2).
+eapply (impl_elim _ _ {{e1,e2}} a1 (C1 /\' C2) C1).
+Fail eapply (impl_intro {{e3,e4}} _ _ _ _ _).
+(* eapply (and_elim1 _ _ _ _ C2).
 eapply and_intro.
 eapply (assume _e3_).
 eapply (assume _e4_).
@@ -1761,6 +1758,33 @@ Abort.
 (* Eval compute in showForNaturalLanguage abstraction_example1. *)
 (* Eval compute in showForLogSeq abstraction_example1. *)
 
+Definition abstraction_example2 : proofTreeOf_wrapped a1 c1.
+Proof.
+eexists _.
+eapply (impl_elim _ _ _ a1 (C1 /\' C2) C1).
+eapply (impl_intro _e2_ _ _ _ _ _).
+apply (assume _e2_).
+eapply (and_intro).
+apply (assume _e1_).
+apply (assume _e2_).
+Unshelve.
+all: reflexivity.
+Defined.
+ 
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in showForProofTree abstraction_example2.
+
+(*|
+.. coq::
+|*)
+
+Eval compute in showForNaturalLanguage abstraction_example2.
+Eval compute in showForLogSeq abstraction_example2.
 
 
 End VeracityLogic.
