@@ -1255,9 +1255,9 @@ Definition j3 := c \by P \in c3.
 Definition process_example : proofTreeOf_wrapped P (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
 eexists  _ _.
-eapply (impl_intro _c_) with (Ps := [j3]) (Qs:=[]). 1,2,3: shelve.
-eapply (impl_intro _s_) with (Ps := [j2;j3]) (Qs:=[j3]). 1,2,3: shelve.
-eapply (impl_intro _l_) with (Ps := [j1;j2;j3]) (Qs:=[j2;j3]). 1,2,3: shelve.
+eapply (impl_intro _c_) with (Ps := [j3]) (Qs:=[]). 1-3: shelve.
+eapply (impl_intro _s_) with (Ps := [j2;j3]) (Qs:=[j3]). 1-3: shelve.
+eapply (impl_intro _l_) with (Ps := [j1;j2;j3]) (Qs:=[j2;j3]). 1-3: shelve.
 eapply (and_intro _ _ _ _ _ [j1;j2] _ _ _).
 eapply (and_intro _ _ _ _ _ _ _ _ _).
 eapply (assume _l_).
