@@ -1395,6 +1395,32 @@ Eval compute in (showForNaturalLanguage impl_intro_elim3).
 Eval compute in (showForLogSeq impl_intro_elim3).
 
 
+Definition impl_intro_elim4_problematic : proofTreeOf_wrapped a1 (Implies (C1 /\' C2) C1).
+eexists _.
+eapply (impl_intro (Left(Left(e3))) _ _ _ _ _).
+eapply (and_elim1 _ _ _ _ C2).
+eapply and_intro.
+eapply (assume _e3_).
+eapply (assume _e4_).
+Unshelve.
+all: reflexivity.
+Defined.
+    
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro_elim4_problematic).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage impl_intro_elim4_problematic).
+Eval compute in (showForLogSeq impl_intro_elim4_problematic).
+
+
 Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
 eexists  _.
 eapply (impl_intro e1 _ _ _ _ _).
