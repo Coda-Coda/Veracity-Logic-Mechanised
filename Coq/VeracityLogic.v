@@ -153,7 +153,7 @@ Inductive evid :=
   | Pair (e1 e2: evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
-  | Lambda (x bx : evid).
+  | Lambda (x : atomic_evid_name) (bx : evid).
 
 Scheme Equality for evid.
 
@@ -213,7 +213,7 @@ The machinery for applying lambas
 
 Open Scope beq_scope.
 
-Fixpoint MatchingFormat (e1 e2 : evid) :=
+(* Fixpoint MatchingFormat (e1 e2 : evid) :=
   match e1,e2 with
   | AtomicEvid _,AtomicEvid _ => True
   | Pair e1 e2,Pair e1' e2' => MatchingFormat e1 e1' /\ MatchingFormat e2 e2'
@@ -221,9 +221,9 @@ Fixpoint MatchingFormat (e1 e2 : evid) :=
   | Right e,Right e' => MatchingFormat e e'
   | Lambda x bx,Lambda x' bx' => MatchingFormat x x' /\ MatchingFormat bx bx'
   | _,_ => False
-  end.
+  end. *)
 
-Fixpoint matchingFormat (e1 e2 : evid) :=
+(* Fixpoint matchingFormat (e1 e2 : evid) :=
   match e1,e2 with
   | AtomicEvid _,AtomicEvid _ => true
   | Pair e1 e2,Pair e1' e2' => matchingFormat e1 e1' && matchingFormat e2 e2'
@@ -231,9 +231,9 @@ Fixpoint matchingFormat (e1 e2 : evid) :=
   | Right e,Right e' => matchingFormat e e'
   | Lambda x bx, Lambda x' bx' => matchingFormat x x' && matchingFormat bx bx'
   | _,_ => false
-  end.
+  end. *)
 
-Lemma matchingFormat_bool_Prop_iff : forall e1 e2, MatchingFormat e1 e2 <-> matchingFormat e1 e2 = true.
+(* Lemma matchingFormat_bool_Prop_iff : forall e1 e2, MatchingFormat e1 e2 <-> matchingFormat e1 e2 = true.
 Proof.
 split.
  - revert e2. induction e1; induction e2; auto.
@@ -250,19 +250,22 @@ split.
  - revert e2. induction e1; induction e2; simpl in *; (try discriminate); auto.
     + intros. apply andb_prop in H. destruct H. auto.
     + intros. apply andb_prop in H. destruct H. auto.
-Qed.
+Qed. *)
 
-Lemma matchingFormat_bool_to_Prop : forall e1 e2, matchingFormat e1 e2 = true -> MatchingFormat e1 e2.
+(* Lemma matchingFormat_bool_to_Prop : forall e1 e2, matchingFormat e1 e2 = true -> MatchingFormat e1 e2.
 Proof.
 apply matchingFormat_bool_Prop_iff.
-Qed.
+Qed. *)
 
-Lemma matchingFormat_Prop_to_bool : forall e1 e2, MatchingFormat e1 e2 -> matchingFormat e1 e2 = true.
+(* Lemma matchingFormat_Prop_to_bool : forall e1 e2, MatchingFormat e1 e2 -> matchingFormat e1 e2 = true.
 Proof.
 apply matchingFormat_bool_Prop_iff.
-Qed.
+Qed. *)
 
-Program Fixpoint substitutions (x a : evid) (HMatching : MatchingFormat x a) (n : atomic_evid_name) : option atomic_evid_name :=
+Program Fixpoint substitutions (x a : atomic_evid_name) (n : atomic_evid_name) : atomic_evid_name :=
+  if n =? x then a else n.
+
+(* Program Fixpoint substitutions (x a : evid) (HMatching : MatchingFormat x a) (n : atomic_evid_name) : option atomic_evid_name :=
   match x,a with
   | AtomicEvid name,AtomicEvid name' => if n =? name then Some name' else None
   | Pair e1 e2,Pair e1' e2' => match substitutions e1 e1' _ n with
@@ -356,16 +359,16 @@ repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversio
 Defined.
 Next Obligation.
 repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
+Defined. *)
 
-Fixpoint allAtomicEvidenceContainedBy (e : evid) : list evid := 
+(* Fixpoint allAtomicEvidenceContainedBy (e : evid) : list evid := 
   match e with
   | AtomicEvid e => [AtomicEvid e] 
   | Pair e1 e2 => allAtomicEvidenceContainedBy e1 ++ allAtomicEvidenceContainedBy e2
   | Left e => allAtomicEvidenceContainedBy e
   | Right e => allAtomicEvidenceContainedBy e
   | Lambda x' bx' => allAtomicEvidenceContainedBy x' ++ allAtomicEvidenceContainedBy bx'
-end.
+end. *)
 
 Fixpoint contains {A} `{Beq A} (x : A) (l : list A) : bool :=
   match l with
@@ -373,37 +376,33 @@ Fixpoint contains {A} `{Beq A} (x : A) (l : list A) : bool :=
   | h :: tl => (x =? h) || contains x tl
   end.
 
-Fixpoint shareAtLeastOneElement {A} `{Beq A} (l1 l2 : list A) : bool :=
+(* Fixpoint shareAtLeastOneElement {A} `{Beq A} (l1 l2 : list A) : bool :=
   match l1 with
   | [] => false
   | h :: tl => contains h l2 || shareAtLeastOneElement tl l2
-  end.
+  end. *)
 
-Definition noOverlappingAtomicEvidence e1 e2 : bool :=
+(* Definition noOverlappingAtomicEvidence e1 e2 : bool :=
   let l1 := allAtomicEvidenceContainedBy e1 in
   let l2 := allAtomicEvidenceContainedBy e2 in
-  negb (shareAtLeastOneElement l1 l2).
+  negb (shareAtLeastOneElement l1 l2). *)
 
-Fixpoint notUsedInInnerLambda (x bx : evid) : bool :=
+Fixpoint notUsedInInnerLambda (x : atomic_evid_name) (bx : evid) : bool :=
 match bx with
   | AtomicEvid _ => true
   | Pair e1 e2 => notUsedInInnerLambda x e1 && notUsedInInnerLambda x e2
   | Left e => notUsedInInnerLambda x e
   | Right e => notUsedInInnerLambda x e
-  | Lambda x' bx' => noOverlappingAtomicEvidence x x' && notUsedInInnerLambda x bx'
+  | Lambda x' bx' => (negb (x =? x')) && notUsedInInnerLambda x bx'
 end.
 
-Program Fixpoint apply_lambda (x bx a : evid) (H1 : matchingFormat x a = true) (H2 : notUsedInInnerLambda x bx = true) : evid := 
-  let H1' := (matchingFormat_bool_to_Prop x a H1) in
+Program Fixpoint apply_lambda (x : atomic_evid_name) (bx : evid) (a : atomic_evid_name) (H2 : notUsedInInnerLambda x bx = true) : evid := 
   match bx with
-  | AtomicEvid name => match substitutions x a H1' name with
-                       | Some name' => AtomicEvid name'
-                       | None => AtomicEvid name
-                       end
-  | Pair e1 e2 => Pair (apply_lambda x e1 a H1 _) (apply_lambda x e2 a H1 _)
-  | Left e => (apply_lambda x e a H1 _)
-  | Right e => (apply_lambda x e a H1 _)
-  | Lambda x' bx' => Lambda x' (apply_lambda x bx' a H1 _)
+  | AtomicEvid name => AtomicEvid (substitutions x a name)
+  | Pair e1 e2 => Pair (apply_lambda x e1 a _) (apply_lambda x e2 a _)
+  | Left e => (apply_lambda x e a _)
+  | Right e => (apply_lambda x e a _)
+  | Lambda x' bx' => Lambda x' (apply_lambda x bx' a _)
 end.
 Next Obligation.
 simpl in H2. apply andb_prop in H2. destruct H2. auto.
@@ -480,7 +479,7 @@ Inductive proofTreeOf : judgement -> Type :=
                           :
             proofTreeOf (e \by a1 \in C)
 
-| impl_intro (x : evid) (bx : evid) a (C1 : claim) C2
+| impl_intro (x : atomic_evid_name) (bx : evid) a (C1 : claim) C2
                     (H : notUsedInInnerLambda x bx = true)
 
               (M: proofTreeOf (bx \by a \in C2))
@@ -488,12 +487,11 @@ Inductive proofTreeOf : judgement -> Type :=
    proofTreeOf ((Lambda x bx) \by a \in (Implies C1 C2))
 | impl_elim x bx y a C1 C2
                (H1 : notUsedInInnerLambda x bx = true)                
-                  (H2 : matchingFormat x y = true)
                 
 (L: proofTreeOf ((Lambda x bx) \by a \in (Implies C1 C2)))
-                           (R: proofTreeOf (y \by a \in C1))
+                           (R: proofTreeOf ((AtomicEvid y) \by a \in C1))
                         :
-    proofTreeOf ((apply_lambda x bx y H2 H1) \by a \in C2)
+    proofTreeOf ((apply_lambda x bx y H1) \by a \in C2)
 .
 
 Record proofTreeOf_wrapped (a : actor) (c : claim) := {
@@ -695,14 +693,16 @@ Definition showForProofTree_atomic_as_variable (n : atomic_evid_name) :=
   | _breakdown_of_formulations_list_=> "x_{BF}"
     end.
 
-Fixpoint showForProofTreeEvid (atomicAsVariables : list evid) e :=
+Fixpoint showForProofTreeEvid (atomicAsVariables : list atomic_evid_name) e :=
+  let showMaybeAsVariable l n :=
+    if contains n l then showForProofTree_atomic_as_variable n else showForProofTree n in
   match e with
-  | AtomicEvid name => if contains (AtomicEvid name) atomicAsVariables then showForProofTree_atomic_as_variable name else showForProofTree name
+  | AtomicEvid name => showMaybeAsVariable atomicAsVariables name
   | Pair e1 e2 => "(" ++ (showForProofTreeEvid atomicAsVariables e1) ++ ", "
                       ++ (showForProofTreeEvid atomicAsVariables e2) ++ ")"
   | Left e => "i(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
   | Right e => "j(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
-  | Lambda e1 e2 => "\lambda(" ++ showForProofTreeEvid (allAtomicEvidenceContainedBy e1 ++ atomicAsVariables) e1 ++ ")(" ++ showForProofTreeEvid (allAtomicEvidenceContainedBy e1 ++ atomicAsVariables) e2 ++ ")"
+  | Lambda e1 e2 => "\lambda(" ++ showMaybeAsVariable (e1 :: atomicAsVariables) e1 ++ ")(" ++ showForProofTreeEvid (e1 :: atomicAsVariables) e2 ++ ")"
 end.
 
 Instance : ShowForProofTree evid := {
@@ -880,7 +880,7 @@ match p with
 | or_elim2 e2 a C1 C2 M => getAllTrustRelationsUsed _ M
 | trust e a1 a2 C name L =>     name :: getAllTrustRelationsUsed _ L
 | impl_intro _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
-| impl_elim _ _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
+| impl_elim _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ M
 end.
 
 Fixpoint getAllEvidence (j : judgement) (p : proofTreeOf j)
@@ -896,7 +896,7 @@ match p with
 | or_elim1 e1 a C1 C2 M => getAllEvidence _ M
 | or_elim2 e2 a C1 C2 M => getAllEvidence _ M
 | trust e a1 a2 C name L => getAllEvidence _ L| impl_intro _ _ _ _ _ _ M => getAllEvidence _ M
-| impl_elim _ _ _ _ _ _ _ _ _ M => getAllEvidence _ M
+| impl_elim _ _ _ _ _ _ _ _ M => getAllEvidence _ M
 end.
 
 Definition isAtomicEvidence (e : evid) : bool :=
@@ -919,8 +919,8 @@ match p with
 | or_elim2 e2 a C1 C2 M => getAssumptions _ M
 | trust e a1 a2 C name L => 
     getAssumptions _ L
-| impl_intro e1 e2 a C1 C2 _ M => filter (fun j => negb (judgement_beq (e1 \by a \in C1) j)) (getAssumptions _ M)
-| impl_elim _ _ _ _ _ _ _ _ L R => getAssumptions _ L ++ getAssumptions _ R
+| impl_intro e1 e2 a C1 C2 _ M => filter (fun j => negb (judgement_beq ((AtomicEvid e1) \by a \in C1) j)) (getAssumptions _ M)
+| impl_elim _ _ _ _ _ _ _ L R => getAssumptions _ L ++ getAssumptions _ R
 end.
 
 Fixpoint removeDups {A} `{Beq A} (l : list A) : list A :=
@@ -982,7 +982,7 @@ match p with
  ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ps Ts _ p
  ++ " $}"
-| impl_elim x bx y a C1 C2 H1 H2 L R => 
+| impl_elim x bx y a C1 C2 H1 L R => 
      showForProofTree_proofTreeOf_helper _ L
  ++ showForProofTree_proofTreeOf_helper _ R 
  ++ " \RightLabel{ $ \rightarrow^{-} $} \BinaryInfC{$ "
@@ -1062,7 +1062,7 @@ indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ M ++ "
 "
 ++ indent ++ "by a logical rule for implication."
-| impl_elim _ _ _ _ _  _ _ _ L R => 
+| impl_elim _ _ _ _  _ _ _ L R => 
 indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ L ++ "
@@ -1131,7 +1131,7 @@ indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication introduction
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ M
-| impl_elim _ _ _ _ _  _ _ _ L R => 
+| impl_elim _ _ _ _  _ _ _ L R => 
 indent ++ "- " ++ showForLogSeq_judgement Ps Ts ("  " ++ indent) _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication elimination
     " ++ indent ++ "- " ++ "Sub-proofs:
@@ -1256,9 +1256,9 @@ Eval compute in showForProofTree_judgement [(e1 \by a1 \in c1)] [] (e1 \by a1 \i
 Definition process_example : proofTreeOf_wrapped P (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
 eexists  _.
-eapply (impl_intro c _ _ _ _ _).
-eapply (impl_intro s _ _ _ _ _).
-eapply (impl_intro l _ _ _ _ _).
+eapply (impl_intro _c_ _ _ _ _ _).
+eapply (impl_intro _s_ _ _ _ _ _).
+eapply (impl_intro _l_ _ _ _ _ _).
 eapply and_intro.
 eapply and_intro.
 eapply (assume _l_).
@@ -1284,7 +1284,7 @@ Eval compute in (showForLogSeq process_example).
 
 Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
 eexists _.
-eapply (impl_intro e1 _ _ _ _ _).
+eapply (impl_intro _e1_ _ _ _ _ _).
 eapply (assume _e1_).
 Unshelve.
 all: reflexivity.
@@ -1306,8 +1306,8 @@ Eval compute in (showForLogSeq impl_intro1).
 
 Definition impl_intro_elim : proofTreeOf_wrapped a1 (c1).
 eexists _.
-eapply (impl_elim e1 _ e2 a1 C1 C1).
-eapply (impl_intro e1 _ _ _ _ _).
+eapply (impl_elim _e1_ _ _e2_ a1 C1 C1).
+eapply (impl_intro _e1_ _ _ _ _ _).
 eapply (assume _e1_).
 eapply (assume _e2_).
 Unshelve.
@@ -1330,8 +1330,8 @@ Eval compute in (showForLogSeq impl_intro_elim).
 
 Definition impl_intro_elim2 : proofTreeOf_wrapped a1 (c1).
 eexists _.
-eapply (impl_elim _ _ {{e1,e2}} a1 (C1 /\' C2) C1).
-eapply (impl_intro {{e3,e4}} _ _ _ _ _).
+Fail eapply (impl_elim _ _ {{e1,e2}} a1 (C1 /\' C2) C1).
+(* eapply (impl_intro {{e3,e4}} _ _ _ _ _).
 eapply (and_elim1 _ _ _ _ C2).
 eapply and_intro.
 eapply (assume _e3_).
@@ -1341,29 +1341,30 @@ eapply (assume).
 eapply (assume).
 Unshelve.
 all: reflexivity.
-Defined.
+Defined. *)
+Abort.
     
 (*|
 .. coq:: unfold
    :class: coq-math
 |*)
 
-Eval compute in (showForProofTree impl_intro_elim2).
+(* Eval compute in (showForProofTree impl_intro_elim2). *)
 
 (*|
 .. coq::
 |*)
 
-Eval compute in (showForNaturalLanguage impl_intro_elim2).
-Eval compute in (showForLogSeq impl_intro_elim2).
+(* Eval compute in (showForNaturalLanguage impl_intro_elim2).
+Eval compute in (showForLogSeq impl_intro_elim2). *)
 
 Definition impl_intro_elim3 : proofTreeOf_wrapped a1 (c1 ->' c1).
 eexists _.
-eassert (apply_lambda {{e4,e2}} (Lambda e3 (Lambda e1 e1)) {{e3,e4}} _ _ = Lambda e3 (Lambda e1 e1)).
-reflexivity.
+Fail eassert (apply_lambda {{e4,e2}} (Lambda e3 (Lambda e1 e1)) {{e3,e4}} _ _ = Lambda e3 (Lambda e1 e1)).
+(* reflexivity.
 Unshelve.
 3,4: reflexivity.
-eapply (impl_elim e3 (Lambda e1 e1) e2 a1 C3 (C1 ->' C1)).
+eapply (impl_elim _e3_ (Lambda e1 e1) e2 a1 C3 (C1 ->' C1)).
 rewrite <- H.
 eapply impl_elim.
 eapply (impl_intro _ _ _ _ _ _).
@@ -1378,53 +1379,55 @@ Unshelve.
 all: try reflexivity.
 eapply C2.
 eapply C2.
-Defined.
+Defined. *)
+Abort.
 
 (*|
 .. coq:: unfold
    :class: coq-math
 |*)
 
-Eval compute in (showForProofTree impl_intro_elim3).
+(* Eval compute in (showForProofTree impl_intro_elim3). *)
 
 (*|
 .. coq::
 |*)
 
-Eval compute in (showForNaturalLanguage impl_intro_elim3).
-Eval compute in (showForLogSeq impl_intro_elim3).
+(* Eval compute in (showForNaturalLanguage impl_intro_elim3). *)
+(* Eval compute in (showForLogSeq impl_intro_elim3). *)
 
 
 Definition impl_intro_elim4_problematic : proofTreeOf_wrapped a1 (Implies (C1 /\' C2) C1).
 eexists _.
-eapply (impl_intro (Left(Left(e3))) _ _ _ _ _).
-eapply (and_elim1 _ _ _ _ C2).
+Fail eapply (impl_intro (Left(Left(e3))) _ _ _ _ _).
+(* eapply (and_elim1 _ _ _ _ C2).
 eapply and_intro.
 eapply (assume _e3_).
 eapply (assume _e4_).
 Unshelve.
 all: reflexivity.
-Defined.
+Defined. *)
+Abort.
     
 (*|
 .. coq:: unfold
    :class: coq-math
 |*)
 
-Eval compute in (showForProofTree impl_intro_elim4_problematic).
+(* Eval compute in (showForProofTree impl_intro_elim4_problematic). *)
 
 (*|
 .. coq::
 |*)
 
-Eval compute in (showForNaturalLanguage impl_intro_elim4_problematic).
-Eval compute in (showForLogSeq impl_intro_elim4_problematic).
+(* Eval compute in (showForNaturalLanguage impl_intro_elim4_problematic). *)
+(* Eval compute in (showForLogSeq impl_intro_elim4_problematic). *)
 
 
 Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
 eexists  _.
-eapply (impl_intro e1 _ _ _ _ _).
-eapply (impl_intro e2 _ _ _ _ _).
+eapply (impl_intro _e1_ _ _ _ _ _).
+eapply (impl_intro _e2_ _ _ _ _ _).
 eapply (assume _e1_).
 Unshelve.
 all: reflexivity.
@@ -1446,8 +1449,8 @@ Eval compute in (showForLogSeq impl_intro2).
 
 Definition impl_and : proofTreeOf_wrapped a1 (Implies c1 (Implies c2 c1)).
 eexists _.
-  eapply (impl_intro e1 _ _ _ _ _).
-  eapply (impl_intro e2 _ _ _ _ _).
+  eapply (impl_intro _e1_ _ _ _ _ _).
+  eapply (impl_intro _e2_ _ _ _ _ _).
   eapply (assume _e1_).
   Unshelve.
   all: try reflexivity.
@@ -1470,7 +1473,7 @@ Eval compute in (showForLogSeq impl_and).
 
 Definition and_example : proofTreeOf_wrapped a1 (Implies c1 (c1 /\' c1)).
 eexists  _.
-eapply (impl_intro e1 _ _ _ _ _ ).
+eapply (impl_intro _e1_ _ _ _ _ _ ).
 eapply (and_intro).
 eapply (assume _e1_).
 eapply (assume _e1_).
@@ -1658,7 +1661,7 @@ eapply (or_intro2 _).
 eapply and_intro.
 apply (assume _e_ a1).
 eapply (trust _ _ _ _ trustT).
-eapply (impl_intro e4 _ a1 C4 C4 _).
+eapply (impl_intro _e4_ _ a1 C4 C4 _).
 apply (assume _e4_ a1).
 Unshelve.
 Show Proof.
@@ -1683,7 +1686,7 @@ Eval compute in showForLogSeq usingMost.
 Definition bot_example : proofTreeOf_wrapped a1 (_|_ ->' (C1 /\' C2)).
 Proof.
 eexists _.
-eapply (impl_intro eB _ a1 _ _ _).
+eapply (impl_intro _eB_ _ a1 _ _ _).
 apply bot_elim.
 apply (assume _eB_).
 Unshelve.
@@ -1708,7 +1711,7 @@ Eval compute in showForLogSeq bot_example.
 Definition bot_example2 : proofTreeOf_wrapped a1 (_|_ ->' (C1 \/' C2 ->' (C3 /\' _|_))).
 Proof.
 eexists _.
-eapply (impl_intro eB _ a1 _ _ _).
+eapply (impl_intro _eB_ _ a1 _ _ _).
 apply bot_elim.
 apply (assume _eB_).
 Unshelve.
@@ -1734,28 +1737,29 @@ Definition abstraction_example1 : proofTreeOf_wrapped a1 c1.
 Proof.
 eexists _.
 eapply (impl_elim _ _ _ a1 (C1 \/' C2) C1).
-eapply (impl_intro (Left e2) _ _ _ _ _).
-apply (assume _e2_).
+Fail eapply (impl_intro (Left e2) _ _ _ _ _).
+(* apply (assume _e2_).
 eapply (or_intro1).
 apply (assume _e1_).
 Unshelve.
 all: reflexivity.
-Defined.
-
+Defined. *)
+Abort.
+ 
 (*|
 .. coq:: unfold
    :class: coq-math
 |*)
 
 
-Eval compute in showForProofTree abstraction_example1.
+(* Eval compute in showForProofTree abstraction_example1. *)
 
 (*|
 .. coq::
 |*)
 
-Eval compute in showForNaturalLanguage abstraction_example1.
-Eval compute in showForLogSeq abstraction_example1.
+(* Eval compute in showForNaturalLanguage abstraction_example1. *)
+(* Eval compute in showForLogSeq abstraction_example1. *)
 
 
 
