@@ -1704,6 +1704,35 @@ Eval compute in showForProofTree bot_example2.
 Eval compute in showForNaturalLanguage bot_example2.
 Eval compute in showForLogSeq bot_example2.
 
+Definition abstraction_example1 : proofTreeOf_wrapped a1 c1.
+Proof.
+eexists _.
+eapply (impl_elim _ _ _ a1 (C1 \/' C2) C1).
+eapply (impl_intro (Left e2) _ _ _ _ _).
+apply (assume _e2_).
+eapply (or_intro1).
+apply (assume _e1_).
+Unshelve.
+all: reflexivity.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in showForProofTree abstraction_example1.
+
+(*|
+.. coq::
+|*)
+
+Eval compute in showForNaturalLanguage abstraction_example1.
+Eval compute in showForLogSeq abstraction_example1.
+
+
+
 End VeracityLogic.
 
 (*|
