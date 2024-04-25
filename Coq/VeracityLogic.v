@@ -74,6 +74,9 @@ Inductive atomic_evid_name :=
   | _l_
   | _s_
   | _c_
+  | _x_
+  | _y_
+  | _z_
   | _belief_
   | _testing_
   | _audit_
@@ -545,6 +548,9 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _l_ => "l"
       | _s_ => "s"
       | _c_ => "c"
+      | _x_ => "x"
+      | _y_ => "y"
+      | _z_ => "z"
       | _belief_ => "b"
       | _testing_ => "t"
       | _audit_ => "a"
@@ -618,6 +624,9 @@ Instance : ShowForNaturalLanguage atomic_evid_name := {
       | _l_ => "atomic evidence l"
       | _s_ => "atomic evidence s"
       | _c_ => "atomic evidence c"
+      | _x_ => "atomic evidence x"
+      | _y_ => "atomic evidence y"
+      | _z_ => "atomic evidence z"
       | _belief_ => "belief"
       | _testing_ => "testing"
       | _audit_ => "audit"
@@ -682,44 +691,17 @@ Instance : ShowForNaturalLanguage trust_relation_name := {
   }.
 Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
 
-Definition showForProofTree_atomic_as_variable (n : atomic_evid_name) :=
-  match n with
-  | _e_ => "x_{e}"
-  | _e1_ => "x_{1}"
-  | _e2_ => "x_{2}"
-  | _e3_ => "x_{3}"
-  | _e4_ => "x_{4}"
-  | _eQ_ => "x_{?}"
-  | _eB_ => "x_{\bot}"
-  | _l_ => "x"
-  | _s_ => "y"
-  | _c_ => "z"
-  | _belief_ => "x_{b}"
-  | _testing_ => "x_{t}"
-  | _audit_ => "x_{a}"
-  | _compile_=> "x_{c}"
-  | _review_=> "x_{r}"
-  | _assess_ => "x_{assess}"
-  | _business_procedure_ => "x_{p}"
-  | _ingredients_percentage_list_ => "x_{PI}"
-  | _breakdown_of_formulations_list_=> "x_{BF}"
-    end.
-
-Fixpoint showForProofTreeEvid (atomicAsVariables : list atomic_evid_name) e :=
-  let showMaybeAsVariable l n :=
-    if contains n l then showForProofTree_atomic_as_variable n else showForProofTree n in
+Fixpoint showForProofTreeEvid e :=
   match e with
-  | AtomicEvid name => showMaybeAsVariable atomicAsVariables name
-  | Pair e1 e2 => "(" ++ (showForProofTreeEvid atomicAsVariables e1) ++ ", "
-                      ++ (showForProofTreeEvid atomicAsVariables e2) ++ ")"
-  | Left e => "i(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
-  | Right e => "j(" ++ showForProofTreeEvid atomicAsVariables e ++ ")"
-  | Lambda e1 e2 => "\lambda(" ++ showMaybeAsVariable (e1 :: atomicAsVariables) e1 ++ ")(" ++ showForProofTreeEvid (e1 :: atomicAsVariables) e2 ++ ")"
+  | AtomicEvid name => showForProofTree name
+  | Pair e1 e2 => "(" ++ (showForProofTreeEvid e1) ++ ", "
+                      ++ (showForProofTreeEvid e2) ++ ")"
+  | Left e => "i(" ++ showForProofTreeEvid e ++ ")"
+  | Right e => "j(" ++ showForProofTreeEvid e ++ ")"
+  | Lambda e1 e2 => "\lambda(" ++ showForProofTree e1 ++ ")(" ++ showForProofTreeEvid e2 ++ ")"
 end.
 
-Instance : ShowForProofTree evid := {
-  showForProofTree := showForProofTreeEvid []
-}.
+Instance : ShowForProofTree evid := { showForProofTree := showForProofTreeEvid }.
 Instance : ShowForNaturalLanguage evid := { showForNaturalLanguage := showForProofTree }.
 Instance : ShowForLogSeq evid := {showForLogSeq := showForNaturalLanguage}.
 
@@ -1229,9 +1211,9 @@ Definition c4 := AtomicClaim _c4_.
 
 Definition eB := AtomicEvid  _eB_.
 
-Definition l := AtomicEvid _l_ .
-Definition s := AtomicEvid _s_.
-Definition c := AtomicEvid _c_.
+Definition x := AtomicEvid _x_ .
+Definition y := AtomicEvid _y_.
+Definition z := AtomicEvid _z_.
 Definition P := Actor _P_.
 Definition Q := Actor _Q_.
 Definition C1 := AtomicClaim _c1_.
@@ -1247,22 +1229,22 @@ Definition trustV := Trust _V_.
 
 Eval compute in showForProofTree_judgement [] [(e1 \by a1 \in c1)] (e1 \by a1 \in c1) (assume _e1_ a1 c1).
 
-Definition j1 := l \by P \in c1.
-Definition j2 := s \by P \in c2.
-Definition j3 := c \by P \in c3.
+Definition j1 := x \by P \in c1.
+Definition j2 := y \by P \in c2.
+Definition j3 := z \by P \in c3.
 
 
 Definition process_example : proofTreeOf_wrapped P (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
 eexists  _ _.
-eapply impl_intro with (x:=_c_) (Ps := [j3]) (Qs:=[]). 1-3: shelve.
-eapply impl_intro with (x:=_s_) (Ps := [j2;j3]) (Qs:=[j3]). 1-3: shelve.
-eapply impl_intro with (x:=_l_) (Ps := [j1;j2;j3]) (Qs:=[j2;j3]). 1-3: shelve.
+eapply impl_intro with (x:=_z_) (Ps := [j3]) (Qs:=[]). 1-3: shelve.
+eapply impl_intro with (x:=_y_) (Ps := [j2;j3]) (Qs:=[j3]). 1-3: shelve.
+eapply impl_intro with (x:=_x_) (Ps := [j1;j2;j3]) (Qs:=[j2;j3]). 1-3: shelve.
 eapply and_intro with (Ps := [j1;j2]). shelve.
 eapply and_intro. shelve.
-apply assume with (e := _l_).
-apply assume with (e := _s_).
-apply assume with (e := _c_).
+apply assume with (e := _x_).
+apply assume with (e := _y_).
+apply assume with (e := _z_).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1402,6 +1384,10 @@ Eval compute in (showForProofTree and_example).
 
 Eval compute in (showForNaturalLanguage and_example).
 Eval compute in (showForLogSeq and_example).
+
+Definition l := AtomicEvid _l_ .
+Definition s := AtomicEvid _s_.
+Definition c := AtomicEvid _c_.
 
 Program Definition concreteProofTreeExampleWith2Conjuncts : 
 proofTreeOf [l \by P \in c1;s \by P \in c2] ({{l, s}} \by P \in (C1 /\' C2)).
