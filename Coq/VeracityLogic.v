@@ -974,7 +974,7 @@ match p with
 | assume e a C => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
-++ indent ++ showForNaturalLanguage C ++ " is a veracity claim." ++ "
+++ "  " ++ indent ++ showForNaturalLanguage C ++ " is a veracity claim." ++ "
 "
 ++ indent ++ "by assumption."
 | bot_elim e a C _ M =>
