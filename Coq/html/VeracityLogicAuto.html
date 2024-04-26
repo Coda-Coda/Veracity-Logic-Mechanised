@@ -1,0 +1,1030 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" class="alectryon-standalone" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.20.1: https://docutils.sourceforge.io/" />
+<title>Veracity Logic Mechanised in Coq (Automation Version)</title>
+<script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.min.js?config=TeX-AMS_CHTML"></script>
+<link rel="stylesheet" href="alectryon.css" type="text/css" />
+<link rel="stylesheet" href="docutils_basic.css" type="text/css" />
+<link rel="stylesheet" href="pygments.css" type="text/css" />
+<script type="text/javascript" src="alectryon.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/IBM-type/0.5.4/css/ibm-type.min.css" integrity="sha512-sky5cf9Ts6FY1kstGOBHSybfKqdHR41M0Ldb0BjNiv3ifltoQIsg0zIaQ+wwdwgQ0w9vKFW7Js50lxH9vqNSSw==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/firacode/5.2.0/fira_code.min.css" integrity="sha512-MbysAYimH1hH2xYzkkMHB6MqxBqfP0megxsCLknbYqHVwXTCg9IqHbk+ZP/vnhO8UEW6PaXAkKe2vQ+SWACxxA==" crossorigin="anonymous" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<div class="alectryon-root alectryon-centered"><div class="alectryon-banner">Built with <a href="https://github.com/cpitclaudel/alectryon/">Alectryon</a>, running Coq+SerAPI v8.17.0+0.17.0. Bubbles (<span class="alectryon-bubble"></span>) indicate interactive fragments: hover for details, tap to reveal contents. Use <kbd>Ctrl+↑</kbd> <kbd>Ctrl+↓</kbd> to navigate, <kbd>Ctrl+🖱️</kbd> to focus. On Mac, use <kbd>⌘</kbd> instead of <kbd>Ctrl</kbd>.</div><div class="document" id="veracity-logic-mechanised-in-coq-automation-version">
+<h1 class="title">Veracity Logic Mechanised in Coq (Automation Version)</h1>
+
+<!-- The following is required to get MathJax to process the outputs marked with the class coq-math. -->
+<link rel="stylesheet" href="overrides.css">
+
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", () => {
+     // 1. Find all relevant Alectryon tags
+     var spans = document.querySelectorAll(".coq-math > * > * > * > * > * > .s2, .custom-math");
+
+     // 2. Wrap the contents of each in \(\) math delimiters, add mathjax class
+     spans.forEach(function (e) {
+         e.innerText = '\\[' + e.innerText + '\\]';
+         e.classList.add("mathjax_process");
+     });
+
+     // 3. If MathJax has already loaded, force reprocessing
+     window.MathJax && MathJax.typesetPromise(spans);
+  });
+</script>
+
+<style type="text/css"> /* Override MathJax margins */
+    .coq-math .goal-conclusion > *,
+    .coq-math .hyp-body span > *,
+    .coq-math .hyp-type span > * {
+        margin: 0 !important;
+    }
+</style><div class="section" id="imports">
+<h1>Imports</h1>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Require Import</span> List.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Import</span> ListNotations.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Require Import</span> String.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Require Import</span> Coq.Strings.Ascii.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Require Import</span> Bool.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Require Import</span> Program.</span></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Section</span> <span class="nf">VeracityLogic</span>.</span></span></pre></div>
+<div class="section" id="types-for-names">
+<h1>Types for names</h1>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">atomic_evid_name</span> :=
+  | _e_
+  | _e1_
+  | _e2_
+  | _e3_
+  | _e4_
+  | _eB_
+  | _eQ_
+  | _l_
+  | _s_
+  | _c_evid_
+  | _belief_
+  | _testing_
+  | _audit_
+  | _compile_
+  | _review_
+  | _assess_
+  | _ingredients_percentage_list_
+  | _breakdown_of_formulations_list_
+.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">atomic_evid_name</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">actor_name</span> :=
+  | _a1_
+  | _a2_
+  | _a3_
+  | _a4_
+  | _aQ_
+  | _retailer_
+  | _vineyard_
+  | _winery_
+  | _P_
+  | _Q_
+  | _applicant_
+  | _certifier_
+.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">actor_name</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">claim_name</span> :=
+  | _c_
+  | _c1_
+  | _c2_
+  | _c3_
+  | _c4_
+  | _c5_
+  | _cQ_
+  | _healthy_
+  | _nonToxic_
+  | _organic_
+  | _ingredients_valid_
+  | _recipe_valid_
+  | _percentage_ingredients_valid_
+  | _breakdown_of_formulations_valid_
+  | _successful_market_compliance_assessment_
+.</span><span class="alectryon-wsp"> 
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">claim_name</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">trust_relation_name</span> :=
+  | _T_
+  | _U_
+  | _V_
+.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">trust_relation_name</span>.</span></span></pre></div>
+<div class="section" id="types-of-aspects-of-the-veracity-logic">
+<h1>Types of aspects of the veracity logic</h1>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">evid</span> :=
+  | HoleEvid
+  | AtomicEvid (n : atomic_evid_name)
+  | Pair (e1 e2: evid)
+  | Left (e1 : evid)
+  | Right (e1 : evid).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">evid</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">claim</span> :=
+  | AtomicClaim (n : claim_name)
+  | Bottom
+  | And (c1 c2 : claim)
+  | Or  (c1 c2 : claim)
+  | Implies  (c1 c2 : claim).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">claim</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">actor</span> :=
+  | Actor (n : actor_name).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">actor</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">judgementPart</span> :=
+  | JudgementPart (a : actor) (c: claim).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">judgementPart</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Notation</span> <span class="s2">&quot;\by A \in C&quot;</span> := (JudgementPart A C) (<span class="kn">at level</span> <span class="mi">2</span>).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Infix</span> <span class="s2">&quot;/\&#39;&quot;</span> := And (<span class="kn">at level</span> <span class="mi">81</span>, <span class="kn">left associativity</span>).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Infix</span> <span class="s2">&quot;\/&#39;&quot;</span> := Or (<span class="kn">at level</span> <span class="mi">86</span>, <span class="kn">left associativity</span>).</span><span class="alectryon-wsp"> 
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Notation</span> <span class="s2">&quot;_|_&quot;</span> := (Bottom) (<span class="kn">at level</span> <span class="mi">1</span>).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Notation</span> <span class="s2">&quot;{{ x , y , .. , z }}&quot;</span> := (Pair .. (Pair x y) .. z).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">trustRelation</span> :=
+  | Trust (n : trust_relation_name).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">trustRelation</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">judgement</span> :=
+  Judgement (e : evid) (jp : judgementPart).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">judgement</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Class</span> <span class="nf">Beq</span> <span class="nv">A</span> : <span class="kt">Type</span> :=
+  {
+    beq : A -&gt; A -&gt; bool
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicauto-v-chk0" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicauto-v-chk0"><span class="kn">Infix</span> <span class="s2">&quot;=?&quot;</span> := beq : beq_scope.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Declaring a scope implicitly <span class="kr">is</span> deprecated; use <span class="kr">in</span>
+advance an explicit <span class="s2">&quot;Declare Scope beq_scope.&quot;</span>.
+[undeclared-scope,deprecated]</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq atomic_evid_name := { beq := atomic_evid_name_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq actor_name := { beq := actor_name_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq claim_name := { beq := claim_name_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq trust_relation_name := { beq := trust_relation_name_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq evid := { beq := evid_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq claim := { beq := claim_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq actor := { beq := actor_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq judgementPart := { beq := judgementPart_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq trustRelation := { beq := trustRelation_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq judgement := { beq := judgement_beq }.</span></span></pre></div>
+<div class="section" id="the-central-inductive-definition-of-valid-proof-trees">
+<h1>The central inductive definition of valid proof trees</h1>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">proofTreeOf</span> : judgementPart -&gt; <span class="kt">Type</span> :=
+| hole j : proofTreeOf j
+| assume (e : evid) a (c : claim) : proofTreeOf (\<span class="bp">by</span> a \<span class="kr">in</span> c)
+| bot_elim a C
+
+        (M : proofTreeOf (\<span class="bp">by</span> a \<span class="kr">in</span> _|_))
+                           :
+           proofTreeOf ((\<span class="bp">by</span> a \<span class="kr">in</span> C))
+
+| and_intro a C1 C2
+
+(L: proofTreeOf (\<span class="bp">by</span> a \<span class="kr">in</span> C1))
+                           (R: proofTreeOf (\<span class="bp">by</span> a \<span class="kr">in</span> C2))
+                        :
+    proofTreeOf (\<span class="bp">by</span> a \<span class="kr">in</span> (C1 /\&#39; C2))
+
+| or_intro1 a C1 C2
+
+           (M: proofTreeOf (\<span class="bp">by</span> a \<span class="kr">in</span> C1))
+                          :
+    proofTreeOf (\<span class="bp">by</span> a \<span class="kr">in</span> (C1 \/&#39; C2))
+
+| or_intro2 a C1 C2
+
+           (M: proofTreeOf (\<span class="bp">by</span> a \<span class="kr">in</span> C2))
+                          :
+    proofTreeOf (\<span class="bp">by</span> a \<span class="kr">in</span> (C1 \/&#39; C2))
+
+| trust a1 a2 C (name : trustRelation)
+
+(L: proofTreeOf (\<span class="bp">by</span> a2 \<span class="kr">in</span> C))
+                          :
+            proofTreeOf (\<span class="bp">by</span> a1 \<span class="kr">in</span> C)
+.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">computeEvidence</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) : evid := 
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole _ =&gt; HoleEvid
+| assume e a c =&gt; e
+| bot_elim a C M =&gt; computeEvidence _ M
+| and_intro a C1 C2 L R =&gt; {{computeEvidence _ L,computeEvidence _ R}}
+| or_intro1 a C1 C2 M =&gt; Left (computeEvidence _ M)
+| or_intro2 a C1 C2 M =&gt; Right (computeEvidence _ M)
+| trust a1 a2 C name L =&gt; computeEvidence _ L
+<span class="kr">end</span>.</span></span></pre></div>
+<div class="section" id="string-representations">
+<h1>String representations</h1>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> string.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Class</span> <span class="nf">ShowForProofTree</span> <span class="nv">A</span> : <span class="kt">Type</span> :=
+  {
+    showForProofTree : A -&gt; string
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForProofTree atomic_evid_name := { 
+  showForProofTree n := 
+    <span class="kr">match</span> n <span class="kr">with</span>
+      | _e_ =&gt; <span class="s2">&quot;e&quot;</span>
+      | _e1_ =&gt; <span class="s2">&quot;e_{1}&quot;</span>
+      | _e2_ =&gt; <span class="s2">&quot;e_{2}&quot;</span>
+      | _e3_ =&gt; <span class="s2">&quot;e_{3}&quot;</span>
+      | _e4_ =&gt; <span class="s2">&quot;e_{4}&quot;</span>
+      | _eB_  =&gt; <span class="s2">&quot;e_{\bot}&quot;</span>
+      | _eQ_ =&gt; <span class="s2">&quot;e_{?}&quot;</span>
+      | _l_ =&gt; <span class="s2">&quot;l&quot;</span>
+      | _s_ =&gt; <span class="s2">&quot;s&quot;</span>
+      | _c_evid_ =&gt; <span class="s2">&quot;c&quot;</span>
+      | _belief_ =&gt; <span class="s2">&quot;b&quot;</span>
+      | _testing_ =&gt; <span class="s2">&quot;t&quot;</span>
+      | _audit_ =&gt; <span class="s2">&quot;a&quot;</span>
+      | _compile_=&gt; <span class="s2">&quot;c&quot;</span>
+      | _review_=&gt; <span class="s2">&quot;r&quot;</span>
+      | _assess_ =&gt; <span class="s2">&quot;a&quot;</span>
+      | _ingredients_percentage_list_ =&gt; <span class="s2">&quot;e_{PI}&quot;</span>
+      | _breakdown_of_formulations_list_=&gt; <span class="s2">&quot;e_{BF}&quot;</span>
+    <span class="kr">end</span>
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForProofTree actor_name := { 
+  showForProofTree n := 
+    <span class="kr">match</span> n <span class="kr">with</span>
+      | _a1_ =&gt; <span class="s2">&quot;a_{1}&quot;</span>
+      | _a2_ =&gt; <span class="s2">&quot;a_{2}&quot;</span>
+      | _a3_ =&gt; <span class="s2">&quot;a_{3}&quot;</span>
+      | _a4_ =&gt; <span class="s2">&quot;a_{4}&quot;</span>
+      | _aQ_ =&gt; <span class="s2">&quot;a_{?}&quot;</span>
+      | _retailer_ =&gt; <span class="s2">&quot;r&quot;</span>
+      | _vineyard_ =&gt; <span class="s2">&quot;v&quot;</span>
+      | _winery_ =&gt; <span class="s2">&quot;w&quot;</span>
+      | _P_ =&gt; <span class="s2">&quot;P&quot;</span>
+      | _Q_ =&gt; <span class="s2">&quot;Q&quot;</span>
+      | _applicant_ =&gt; <span class="s2">&quot;A&quot;</span>
+      | _certifier_ =&gt; <span class="s2">&quot;C&quot;</span>
+    <span class="kr">end</span>
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForProofTree claim_name := { 
+  showForProofTree n := 
+    <span class="kr">match</span> n <span class="kr">with</span>
+      | _c_ =&gt; <span class="s2">&quot;C&quot;</span>
+      | _c1_ =&gt; <span class="s2">&quot;C_{1}&quot;</span>
+      | _c2_ =&gt; <span class="s2">&quot;C_{2}&quot;</span>
+      | _c3_ =&gt; <span class="s2">&quot;C_{3}&quot;</span>
+      | _c4_ =&gt; <span class="s2">&quot;C_{4}&quot;</span>
+      | _c5_ =&gt; <span class="s2">&quot;C_{5}&quot;</span>
+      | _cQ_ =&gt; <span class="s2">&quot;C_{?}&quot;</span>
+      | _healthy_ =&gt; <span class="s2">&quot;H&quot;</span>
+      | _nonToxic_ =&gt; <span class="s2">&quot;N&quot;</span>
+      | _organic_ =&gt; <span class="s2">&quot;O&quot;</span>
+      | _ingredients_valid_ =&gt; <span class="s2">&quot;IV&quot;</span>
+      | _recipe_valid_ =&gt; <span class="s2">&quot;RV&quot;</span>      
+      | _percentage_ingredients_valid_ =&gt; <span class="s2">&quot;PIV&quot;</span>
+      | _breakdown_of_formulations_valid_ =&gt; <span class="s2">&quot;BFV&quot;</span>
+      | _successful_market_compliance_assessment_ =&gt; <span class="s2">&quot;SMCA&quot;</span>
+    <span class="kr">end</span>
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForProofTree trust_relation_name := { 
+  showForProofTree n := 
+    <span class="kr">match</span> n <span class="kr">with</span>
+      | _T_ =&gt; <span class="s2">&quot;T&quot;</span>
+      | _U_ =&gt; <span class="s2">&quot;U&quot;</span>
+      | _V_ =&gt; <span class="s2">&quot;V&quot;</span>
+    <span class="kr">end</span>
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Class</span> <span class="nf">ShowForNaturalLanguage</span> <span class="nv">A</span> : <span class="kt">Type</span> :=
+  {
+    showForNaturalLanguage : A -&gt; string
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Class</span> <span class="nf">ShowForLogSeq</span> <span class="nv">A</span> : <span class="kt">Type</span> :=
+  {
+    showForLogSeq : A -&gt; string
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForNaturalLanguage atomic_evid_name := { 
+  showForNaturalLanguage n := 
+    <span class="kr">match</span> n <span class="kr">with</span>
+      | _e_ =&gt; <span class="s2">&quot;atomic evidence e&quot;</span>
+      | _e1_ =&gt; <span class="s2">&quot;atomic evidence 1&quot;</span>
+      | _e2_ =&gt; <span class="s2">&quot;atomic evidence 2&quot;</span>
+      | _e3_ =&gt; <span class="s2">&quot;atomic evidence 3&quot;</span>
+      | _e4_ =&gt; <span class="s2">&quot;atomic evidence 4&quot;</span>
+      | _eB_ =&gt;  <span class="s2">&quot;evidence for bottom&quot;</span>
+      | _eQ_ =&gt;  <span class="s2">&quot;unknown evidence&quot;</span>
+      | _l_ =&gt; <span class="s2">&quot;atomic evidence l&quot;</span>
+      | _s_ =&gt; <span class="s2">&quot;atomic evidence s&quot;</span>
+      | _c_evid_ =&gt; <span class="s2">&quot;atomic evidence c&quot;</span>
+      | _belief_ =&gt; <span class="s2">&quot;belief&quot;</span>
+      | _testing_ =&gt; <span class="s2">&quot;testing&quot;</span>
+      | _audit_ =&gt; <span class="s2">&quot;audit&quot;</span>
+      | _compile_=&gt; <span class="s2">&quot;compile&quot;</span>
+      | _review_=&gt; <span class="s2">&quot;review&quot;</span>
+      | _assess_ =&gt; <span class="s2">&quot;assess&quot;</span>
+      | _ingredients_percentage_list_ =&gt; <span class="s2">&quot;ingredients percentage list&quot;</span>
+      | _breakdown_of_formulations_list_ =&gt; <span class="s2">&quot;breakdown of formulations list&quot;</span>
+    <span class="kr">end</span>
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq atomic_evid_name := {showForLogSeq := showForNaturalLanguage}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForNaturalLanguage actor_name := { 
+  showForNaturalLanguage n := 
+    <span class="kr">match</span> n <span class="kr">with</span>
+      | _a1_ =&gt; <span class="s2">&quot;actor 1&quot;</span>
+      | _a2_ =&gt; <span class="s2">&quot;actor 2&quot;</span>
+      | _a3_ =&gt; <span class="s2">&quot;actor 3&quot;</span>
+      | _a4_ =&gt; <span class="s2">&quot;actor 4&quot;</span>
+      | _aQ_ =&gt; <span class="s2">&quot;unknown actor&quot;</span>
+      | _retailer_ =&gt; <span class="s2">&quot;retailer&quot;</span>
+      | _vineyard_ =&gt; <span class="s2">&quot;vineyard&quot;</span>
+      | _winery_ =&gt; <span class="s2">&quot;winery&quot;</span>
+      | _P_ =&gt; <span class="s2">&quot;Penelope&quot;</span>
+      | _Q_ =&gt; <span class="s2">&quot;Quintin&quot;</span>
+      | _applicant_ =&gt; <span class="s2">&quot;applicant&quot;</span>
+      | _certifier_ =&gt; <span class="s2">&quot;certifier&quot;</span>
+    <span class="kr">end</span>
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq actor_name := {showForLogSeq := showForNaturalLanguage}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForNaturalLanguage claim_name := { 
+  showForNaturalLanguage n := 
+    <span class="kr">match</span> n <span class="kr">with</span>
+      | _c_ =&gt; <span class="s2">&quot;claim c&quot;</span>
+      | _c1_ =&gt; <span class="s2">&quot;claim 1&quot;</span>
+      | _c2_ =&gt; <span class="s2">&quot;claim 2&quot;</span>
+      | _c3_ =&gt; <span class="s2">&quot;claim 3&quot;</span>
+      | _c4_ =&gt; <span class="s2">&quot;claim 4&quot;</span>
+      | _c5_ =&gt; <span class="s2">&quot;claim 5&quot;</span>
+      | _cQ_ =&gt; <span class="s2">&quot;unknown claim&quot;</span>
+      | _healthy_ =&gt; <span class="s2">&quot;healthy&quot;</span>
+      | _nonToxic_ =&gt; <span class="s2">&quot;non-toxic&quot;</span>
+      | _organic_ =&gt; <span class="s2">&quot;organic&quot;</span>
+      | _ingredients_valid_ =&gt; <span class="s2">&quot;ingredients-valid&quot;</span>
+      | _recipe_valid_ =&gt; <span class="s2">&quot;recipe-valid&quot;</span>      
+      | _percentage_ingredients_valid_ =&gt; <span class="s2">&quot;percentage-ingredients-valid&quot;</span>
+      | _breakdown_of_formulations_valid_ =&gt; <span class="s2">&quot;breakdown-of-formulations-valid&quot;</span>
+      | _successful_market_compliance_assessment_ =&gt; <span class="s2">&quot;successful-market-compliance-assessment&quot;</span>
+    <span class="kr">end</span>
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq claim_name := {showForLogSeq := showForNaturalLanguage}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForNaturalLanguage trust_relation_name := { 
+  showForNaturalLanguage n := 
+    <span class="kr">match</span> n <span class="kr">with</span>
+      | _T_ =&gt; <span class="s2">&quot;trust relation T&quot;</span>
+      | _U_ =&gt; <span class="s2">&quot;trust relation U&quot;</span>
+      | _V_ =&gt; <span class="s2">&quot;trust relation V&quot;</span>
+    <span class="kr">end</span>
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForProofTree evid := {
+  showForProofTree :=
+  <span class="kr">fix</span> showForProofTreeEvid e :=
+      <span class="kr">match</span> e <span class="kr">with</span>
+      | AtomicEvid name =&gt; showForProofTree name
+      | HoleEvid =&gt; <span class="s2">&quot;\textcolor{red}{e_{?}}&quot;</span>
+      | Pair e1 e2 =&gt; <span class="s2">&quot;(&quot;</span> ++ (showForProofTreeEvid e1) ++ <span class="s2">&quot;, &quot;</span>
+                          ++ (showForProofTreeEvid e2) ++ <span class="s2">&quot;)&quot;</span>
+      | Left e =&gt; <span class="s2">&quot;i(&quot;</span> ++ showForProofTreeEvid e ++ <span class="s2">&quot;)&quot;</span>
+      | Right e =&gt; <span class="s2">&quot;j(&quot;</span> ++ showForProofTreeEvid e ++ <span class="s2">&quot;)&quot;</span>
+    <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForNaturalLanguage evid := { showForNaturalLanguage := showForProofTree }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq evid := {showForLogSeq := showForNaturalLanguage}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForProofTree claim := {
+  showForProofTree :=
+  <span class="kr">fix</span> showForProofTreeClaim c :=
+    <span class="kr">match</span> c <span class="kr">with</span>
+      | AtomicClaim name =&gt; showForProofTree name
+      | Bottom =&gt; <span class="s2">&quot;\bot&quot;</span>
+      | And c1 c2 =&gt; showForProofTreeClaim c1 ++ <span class="s2">&quot; \wedge &quot;</span> ++ showForProofTreeClaim c2
+      | Or c1 c2 =&gt; showForProofTreeClaim c1 ++ <span class="s2">&quot; \vee &quot;</span> ++ showForProofTreeClaim c2
+      | Implies c1 c2 =&gt; showForProofTreeClaim c1 ++ <span class="s2">&quot; \rightarrow &quot;</span> ++ showForProofTreeClaim c2
+    <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForNaturalLanguage claim := {
+  showForNaturalLanguage :=
+  <span class="kr">fix</span> showForNaturalLanguageClaim c :=
+    <span class="kr">match</span> c <span class="kr">with</span>
+      | AtomicClaim name =&gt; showForNaturalLanguage name
+      | Bottom =&gt; <span class="s2">&quot;impossible&quot;</span>
+      | And c1 c2 =&gt; <span class="s2">&quot;(&quot;</span> ++ showForNaturalLanguageClaim c1 ++ <span class="s2">&quot; and &quot;</span> ++ showForNaturalLanguageClaim c2  ++ <span class="s2">&quot;)&quot;</span>
+      | Or c1 c2 =&gt; <span class="s2">&quot;(&quot;</span> ++ showForNaturalLanguageClaim c1 ++ <span class="s2">&quot; or &quot;</span> ++ showForNaturalLanguageClaim c2 ++ <span class="s2">&quot;)&quot;</span>
+      | Implies c1 c2 =&gt; <span class="s2">&quot;(&quot;</span> ++ showForNaturalLanguageClaim c1 ++ <span class="s2">&quot; implies &quot;</span> ++ showForNaturalLanguageClaim c2 ++ <span class="s2">&quot;)&quot;</span>
+    <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq claim := {showForLogSeq := showForNaturalLanguage}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForProofTree actor := {
+  showForProofTree a :=
+  <span class="kr">match</span> a <span class="kr">with</span>
+    | Actor name =&gt; showForProofTree name
+  <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForNaturalLanguage actor := {
+  showForNaturalLanguage a :=
+  <span class="kr">match</span> a <span class="kr">with</span>
+    | Actor name =&gt; showForNaturalLanguage name
+  <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq actor := {
+  showForLogSeq a :=
+  <span class="kr">match</span> a <span class="kr">with</span>
+    | Actor name =&gt; showForLogSeq name
+  <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForProofTree trustRelation := {
+  showForProofTree t :=
+  <span class="kr">match</span> t <span class="kr">with</span>
+    | Trust name =&gt; showForProofTree name
+  <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForNaturalLanguage trustRelation := {
+  showForNaturalLanguage t :=
+  <span class="kr">match</span> t <span class="kr">with</span>
+    | Trust name =&gt; showForNaturalLanguage name
+  <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq trustRelation := {
+  showForLogSeq t :=
+  <span class="kr">match</span> t <span class="kr">with</span>
+    | Trust name =&gt; showForLogSeq name
+  <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showForProofTree_list</span> {<span class="nv">A</span>} `{ShowForProofTree A} (l : list A) :=
+  <span class="kr">match</span> l <span class="kr">with</span>
+    | [] =&gt; <span class="s2">&quot;&quot;</span>
+    | [h] =&gt; showForProofTree h
+    | h1 :: (h2 :: tl) <span class="kr">as</span> tl&#39; =&gt; showForProofTree h1 ++ <span class="s2">&quot;, &quot;</span> ++ showForProofTree_list tl&#39;
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showForProofTree_list_instance</span> (<span class="nv">A</span> : <span class="kt">Type</span>) `(ShowForProofTree A) : ShowForProofTree (list A) := {
+  showForProofTree l := showForProofTree_list l
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicauto-v-chk1" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicauto-v-chk1"><span class="kn">Fixpoint</span> <span class="nf">showForNaturalLanguage_list</span> {<span class="nv">A</span>} `{ShowForNaturalLanguage A} (l : list A) :=
+  <span class="kr">match</span> l <span class="kr">with</span>
+    | [] =&gt; <span class="s2">&quot;no items&quot;</span>
+    | [h] =&gt; showForNaturalLanguage h
+    | [h1;h2] =&gt; showForNaturalLanguage h1 ++ <span class="s2">&quot;, and &quot;</span> ++ showForNaturalLanguage h2
+    | h1 :: (h2 :: tl) <span class="kr">as</span> tl&#39; =&gt; showForNaturalLanguage h1 ++ <span class="s2">&quot;, &quot;</span> ++ showForNaturalLanguage_list tl&#39;
+  <span class="kr">end</span>.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Unused variable tl might be a misspelled <span class="nb">constructor</span>.
+Use _ or _tl to silence this warning.
+[unused-<span class="nb">pattern</span>-matching-variable,<span class="nb">pattern</span>-matching]</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showForNaturalLanguage_list_instance</span> (<span class="nv">A</span> : <span class="kt">Type</span>) `(ShowForNaturalLanguage A) : ShowForNaturalLanguage (list A) := {
+    showForNaturalLanguage l := showForNaturalLanguage_list l
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showForLogSeq_list</span> {<span class="nv">A</span>} `{ShowForLogSeq A} (indent : string) (l : list A) :=
+  <span class="kr">match</span> l <span class="kr">with</span>
+    | [] =&gt; <span class="s2">&quot;&quot;</span>
+    | [h] =&gt; indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq h
+    | h :: tl =&gt; indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq h ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list indent tl
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForProofTree judgement := {
+  showForProofTree j :=
+  <span class="kr">match</span> j <span class="kr">with</span>
+  | Judgement e jp =&gt;
+    <span class="kr">match</span> jp <span class="kr">with</span>
+      | JudgementPart a c =&gt; showForProofTree e ++ <span class="s2">&quot;^{&quot;</span> ++ showForProofTree a ++ <span class="s2">&quot;} \in &quot;</span>
+                                  ++ showForProofTree c
+    <span class="kr">end</span>  
+  <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForNaturalLanguage judgement := {
+  showForNaturalLanguage j :=
+  <span class="kr">match</span> j <span class="kr">with</span>
+  | Judgement e jp =&gt;
+    <span class="kr">match</span> jp <span class="kr">with</span>
+      | JudgementPart a c =&gt; showForNaturalLanguage c ++ <span class="s2">&quot; is supported by $&quot;</span> ++ showForNaturalLanguage e ++ <span class="s2">&quot;$ which &quot;</span> ++ showForNaturalLanguage a ++ <span class="s2">&quot; uses&quot;</span>
+    <span class="kr">end</span>  
+  <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq judgement := {
+  showForLogSeq j :=
+  <span class="kr">match</span> j <span class="kr">with</span>
+  | Judgement e jp =&gt;
+    <span class="kr">match</span> jp <span class="kr">with</span>
+      | JudgementPart a c =&gt; showForLogSeq c ++ <span class="s2">&quot; is held by &quot;</span> ++ showForLogSeq a ++ <span class="s2">&quot; by the evidence $&quot;</span> ++ showForLogSeq e ++ <span class="s2">&quot;$&quot;</span>
+    <span class="kr">end</span>  
+  <span class="kr">end</span>
+}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showForProofTree_judgement</span> (<span class="nv">Ps</span> : list judgement) (<span class="nv">Ts</span> : list trustRelation) (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) :=
+<span class="kr">let</span> <span class="nv">computedEvidence</span> := computeEvidence j p <span class="kr">in</span>
+    <span class="kr">match</span> Ps <span class="kr">with</span>
+      | [] =&gt; showForProofTree (Judgement computedEvidence j)
+      | (h :: tl) <span class="kr">as</span> Ps =&gt; showForProofTree Ps ++ <span class="s2">&quot; \vdash_{&quot;</span> ++ showForProofTree Ts ++ <span class="s2">&quot;} &quot;</span> ++ (showForProofTree (Judgement computedEvidence j))
+    <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showForNaturalLanguage_judgement</span> (<span class="nv">Ps</span> : list judgement) (<span class="nv">Ts</span> : list trustRelation) (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) :=
+  <span class="kr">let</span> <span class="nv">computedEvidence</span> := computeEvidence j p <span class="kr">in</span>
+    <span class="kr">match</span> Ps <span class="kr">with</span>
+      | [] =&gt; showForNaturalLanguage (Judgement computedEvidence j)
+      | (h :: tl) <span class="kr">as</span> Ps =&gt; <span class="s2">&quot;Assuming &quot;</span> ++ showForNaturalLanguage Ps ++ <span class="s2">&quot; then &quot;</span> ++ showForNaturalLanguage (Judgement computedEvidence j)
+    <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showForLogSeq_judgement</span> (<span class="nv">Ps</span> : list judgement) (<span class="nv">Ts</span> : list trustRelation) (<span class="nv">indent</span> : string) (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) :=
+  <span class="kr">let</span> <span class="nv">computedEvidence</span> := computeEvidence j p <span class="kr">in</span>        
+    <span class="kr">match</span> Ps,Ts <span class="kr">with</span>
+        | [],[] =&gt; showForLogSeq (Judgement computedEvidence j)
+        | (h :: tl),[] =&gt; showForLogSeq (Judgement computedEvidence j) ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;collapsed:: true</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Assumptions made:</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;  collapsed:: true</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ps
+        | [],(h :: tl) =&gt; showForLogSeq (Judgement computedEvidence j) ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;collapsed:: true</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Trust relations used:</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;  collapsed:: true</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ts
+        | (h :: tl),(h2::tl2) =&gt; showForLogSeq (Judgement computedEvidence j) ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;collapsed:: true</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Assumptions made:</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;  collapsed:: true</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ps ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Trust relations used:</span>
+<span class="s2">&quot;</span> ++ indent ++ <span class="s2">&quot;  collapsed:: true</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list (<span class="s2">&quot;  &quot;</span> ++ indent) Ts
+      <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">getAllTrustRelationsUsed</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j)
+  : list trustRelation :=
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole _ =&gt; []
+| assume e a C =&gt; []
+| bot_elim a C M =&gt; getAllTrustRelationsUsed _ M
+| and_intro a C1 C2 L R =&gt; 
+    getAllTrustRelationsUsed _ L ++ getAllTrustRelationsUsed _ R 
+| or_intro1 a C1 C2 M =&gt; getAllTrustRelationsUsed _ M
+| or_intro2 a C1 C2 M =&gt; getAllTrustRelationsUsed _ M
+| trust a1 a2 C name L =&gt; 
+    name :: getAllTrustRelationsUsed _ L
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">getAllEvidence</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j)
+  : list evid :=
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole _ =&gt; [HoleEvid]
+| assume e a C =&gt; [e]
+| bot_elim a C M =&gt; (getAllEvidence _ M)
+| and_intro a C1 C2 L R =&gt; 
+    getAllEvidence _ L ++ getAllEvidence _ R 
+| or_intro1 a C1 C2 M =&gt; getAllEvidence _ M
+| or_intro2 a C1 C2 M =&gt; getAllEvidence _ M
+| trust a1 a2 C name L =&gt; getAllEvidence _ L
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">isAtomicEvidence</span> (<span class="nv">e</span> : evid) : bool :=
+<span class="kr">match</span> e <span class="kr">with</span>
+  | AtomicEvid _ =&gt; true
+  | _ =&gt; false
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">getAssumptions</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) : list judgementPart := 
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole _ =&gt; []
+| assume e a C =&gt; [\<span class="bp">by</span> a \<span class="kr">in</span> C]
+| bot_elim a C M =&gt; getAssumptions _ M
+| and_intro a C1 C2 L R =&gt; 
+    getAssumptions _ L ++ getAssumptions _ R 
+| or_intro1 a C1 C2 M =&gt; getAssumptions _ M
+| or_intro2 a C1 C2 M =&gt; getAssumptions _ M
+| trust a1 a2 C name L =&gt; 
+    getAssumptions _ L
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">getAssumptionsWithEvidence</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) : list (judgement) := 
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole j =&gt; [(Judgement HoleEvid j)]
+| assume e a C =&gt; [Judgement e (\<span class="bp">by</span> a \<span class="kr">in</span> C)]
+| bot_elim a C M =&gt; getAssumptionsWithEvidence _ M
+| and_intro a C1 C2 L R =&gt; 
+    getAssumptionsWithEvidence _ L ++ getAssumptionsWithEvidence _ R 
+| or_intro1 a C1 C2 M =&gt; getAssumptionsWithEvidence _ M
+| or_intro2 a C1 C2 M =&gt; getAssumptionsWithEvidence _ M
+| trust a1 a2 C name L =&gt; 
+    getAssumptionsWithEvidence _ L
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Close Scope</span> string.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">removeDups</span> {<span class="nv">A</span>} `{Beq A} (l : list A) : list A :=
+<span class="kr">match</span> l <span class="kr">with</span>
+| [] =&gt; []
+| h :: tl =&gt; <span class="kr">if</span> existsb (beq h) tl <span class="kr">then</span> removeDups tl <span class="kr">else</span> h :: removeDups tl
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> beq_scope.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">proofTreeOf_beq</span> {<span class="nv">j1</span> <span class="nv">j2</span> : judgementPart} (<span class="nv">P1</span> : proofTreeOf j1) (<span class="nv">P2</span> : proofTreeOf j2) : bool :=
+<span class="kr">match</span> P1,P2 <span class="kr">with</span>
+| hole j1,hole j2 =&gt; j1 =? j2
+| assume e a1 C1, assume e2 a2 C2 =&gt; (e =? e2) &amp;&amp; (a1 =? a2) &amp;&amp; (C1 =? C2)
+| bot_elim a1 C1 M1, bot_elim a2 C2 M2 =&gt; (a1 =? a2) &amp;&amp; (C1 =? C2) &amp;&amp; proofTreeOf_beq M1 M2
+| and_intro a C1 C2 L R, and_intro a&#39; C1&#39; C2&#39; L&#39; R&#39; =&gt; (a =? a&#39;) &amp;&amp; (C1 =? C1&#39;) &amp;&amp; (C2 =? C2&#39;) &amp;&amp; proofTreeOf_beq L L&#39; &amp;&amp; proofTreeOf_beq R R&#39;
+| or_intro1 a C1 C2 M, or_intro1 a&#39; C1&#39; C2&#39; M&#39; =&gt; (a =? a&#39;) &amp;&amp; (C1 =? C1&#39;) &amp;&amp; (C2 =? C2&#39;) &amp;&amp; proofTreeOf_beq M M&#39;
+| or_intro2 a C1 C2 M, or_intro2 a&#39; C1&#39; C2&#39; M&#39; =&gt; (a =? a&#39;) &amp;&amp; (C1 =? C1&#39;) &amp;&amp; (C2 =? C2&#39;) &amp;&amp; proofTreeOf_beq M M&#39;
+| trust a1 a2 C T L, trust a1&#39; a2&#39; C&#39; T&#39; L&#39; =&gt; (a1 =? a1&#39;) &amp;&amp; (a2 =? a2&#39;) &amp;&amp; (C =? C&#39;) &amp;&amp; (T =? T&#39;) &amp;&amp; proofTreeOf_beq L L&#39;
+| _,_ =&gt; false
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">beq_proofTreeOf_instance</span> (<span class="nv">j</span> : judgementPart) : Beq (proofTreeOf j) := { beq := proofTreeOf_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Close Scope</span> beq_scope.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> string.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showForProofTree_proofTreeOf_helper</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j)
+  : string :=
+<span class="kr">let</span> <span class="nv">Ts</span> := (removeDups (getAllTrustRelationsUsed j p)) <span class="kr">in</span>
+<span class="kr">let</span> <span class="nv">Ps</span> := (removeDups (getAssumptionsWithEvidence j p)) <span class="kr">in</span>
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole j =&gt; <span class="s2">&quot;\AxiomC{$\textcolor{red}{&quot;</span> ++ (showForProofTree (Judgement HoleEvid j)) ++ <span class="s2">&quot;}$}&quot;</span>
+| assume e a C =&gt; <span class="s2">&quot;\AxiomC{$ &quot;</span> 
+             ++ showForProofTree C 
+             ++ <span class="s2">&quot; \textit{ is a veracity claim} $}&quot;</span>
+    ++ <span class="s2">&quot; \RightLabel{ $ assume $}\UnaryInfC{$ &quot;</span>
+    ++ showForProofTree_judgement Ps Ts _ p ++ <span class="s2">&quot; $}&quot;</span>
+| bot_elim a C M =&gt; showForProofTree_proofTreeOf_helper _ M
+    ++ <span class="s2">&quot; \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ &quot;</span>
+    ++ showForProofTree_judgement Ps Ts _ p
+    ++ <span class="s2">&quot; $}&quot;</span>
+| and_intro a C1 C2 L R =&gt; 
+    showForProofTree_proofTreeOf_helper _ L
+ ++ showForProofTree_proofTreeOf_helper _ R 
+ ++ <span class="s2">&quot; \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ &quot;</span>
+ ++ showForProofTree_judgement Ps Ts _ p ++ <span class="s2">&quot; $}&quot;</span>
+| or_intro1 a C1 C2 M =&gt; showForProofTree_proofTreeOf_helper _ M
+ ++ <span class="s2">&quot; \RightLabel{ $ \lor^{+1} $} \UnaryInfC{$ &quot;</span>
+ ++ showForProofTree_judgement Ps Ts _ p
+ ++ <span class="s2">&quot; $}&quot;</span>
+| or_intro2 a C1 C2 M =&gt; showForProofTree_proofTreeOf_helper _ M
+ ++ <span class="s2">&quot; \RightLabel{ $ \lor^{+2} $} \UnaryInfC{$ &quot;</span>
+ ++ showForProofTree_judgement Ps Ts _ p
+ ++ <span class="s2">&quot; $}&quot;</span>
+| trust a1 a2 C name L =&gt; 
+    showForProofTree_proofTreeOf_helper _ L
+ ++ <span class="s2">&quot; \AxiomC{$&quot;</span> ++ showForProofTree a1 ++ showForProofTree name ++ showForProofTree a2 ++ <span class="s2">&quot;$} &quot;</span>
+ ++ <span class="s2">&quot; \RightLabel{ $ trust\ &quot;</span> ++ showForProofTree name
+ ++ <span class="s2">&quot;$} \BinaryInfC{$ &quot;</span>
+ ++ showForProofTree_judgement Ps Ts _ p ++ <span class="s2">&quot; $}&quot;</span>
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showForNaturalLanguage_proofTreeOf_helper</span> (<span class="nv">indent</span> : string) (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j)
+  : string :=
+<span class="kr">let</span> <span class="nv">Ts</span> := (removeDups (getAllTrustRelationsUsed j p)) <span class="kr">in</span>
+<span class="kr">let</span> <span class="nv">Ps</span> := (removeDups (getAssumptionsWithEvidence j p)) <span class="kr">in</span>
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole p =&gt; indent ++ <span class="s2">&quot;we stopped the proof at this point and assumed it was provable.&quot;</span>
+| assume e a C =&gt; 
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ <span class="s2">&quot;, because</span>
+<span class="s2">&quot;</span> 
+++ indent ++ showForNaturalLanguage C ++ <span class="s2">&quot; is a veracity claim.&quot;</span> ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span>
+++ indent ++ <span class="s2">&quot;by assumption.&quot;</span>
+| bot_elim a C M =&gt;
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ <span class="s2">&quot;, because</span>
+<span class="s2">&quot;</span> 
+++ showForNaturalLanguage_proofTreeOf_helper (<span class="s2">&quot;  &quot;</span> ++ indent) _ M ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span>
+++ indent ++ <span class="s2">&quot;by the logical principle of explosion.&quot;</span>
+| and_intro a C1 C2 L R =&gt; 
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ <span class="s2">&quot;, because</span>
+<span class="s2">&quot;</span> 
+++ showForNaturalLanguage_proofTreeOf_helper (<span class="s2">&quot;  &quot;</span> ++ indent) _ L ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span>
+++ showForNaturalLanguage_proofTreeOf_helper (<span class="s2">&quot;  &quot;</span> ++ indent) _ R ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span>
+++ indent ++ <span class="s2">&quot;by a logical rule for &#39;and&#39;.&quot;</span>
+| or_intro1 a C1 C2 M =&gt;
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ <span class="s2">&quot;, because</span>
+<span class="s2">&quot;</span> 
+++ showForNaturalLanguage_proofTreeOf_helper (<span class="s2">&quot;  &quot;</span> ++ indent) _ M ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span>
+++ indent ++ <span class="s2">&quot;by a logical rule for &#39;or&#39;.&quot;</span>
+| or_intro2 a C1 C2 M =&gt;
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ <span class="s2">&quot;, because</span>
+<span class="s2">&quot;</span> 
+++ showForNaturalLanguage_proofTreeOf_helper (<span class="s2">&quot;  &quot;</span> ++ indent) _ M ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span>
+++ indent ++ <span class="s2">&quot;by a logical rule for &#39;or&#39;.&quot;</span>
+| trust a1 a2 C name L =&gt; 
+indent ++ showForNaturalLanguage_judgement Ps Ts _ p ++ <span class="s2">&quot;, because</span>
+<span class="s2">&quot;</span> 
+++ showForNaturalLanguage_proofTreeOf_helper (<span class="s2">&quot;  &quot;</span> ++ indent) _ L ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span>
+++ indent ++ <span class="s2">&quot;by the trust relation &quot;</span> ++ showForNaturalLanguage name ++ <span class="s2">&quot;.&quot;</span>
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showForLogSeq_proofTreeOf_helper</span> (<span class="nv">indent</span> : string) (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j)
+  : string :=
+<span class="kr">let</span> <span class="nv">Ts</span> := (removeDups (getAllTrustRelationsUsed j p)) <span class="kr">in</span>
+<span class="kr">let</span> <span class="nv">Ps</span> := (removeDups (getAssumptionsWithEvidence j p)) <span class="kr">in</span>
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole p =&gt; indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;We stopped the proof at this point and assumed it was provable.&quot;</span>
+| assume e a C =&gt; 
+indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps Ts (<span class="s2">&quot;  &quot;</span> ++ indent) _ p ++ <span class="s2">&quot;</span>
+<span class="s2">  &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Logical rule used: we assume this&quot;</span>
+| bot_elim a C M =&gt;
+indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps Ts (<span class="s2">&quot;  &quot;</span> ++ indent) _ p ++ <span class="s2">&quot;</span>
+<span class="s2">  &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Logical rule used: the principle of explosion</span>
+<span class="s2">    &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Sub-proof:</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_proofTreeOf_helper (<span class="s2">&quot;      &quot;</span> ++ indent) _ M
+| and_intro a C1 C2 L R =&gt; 
+indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps Ts (<span class="s2">&quot;  &quot;</span> ++ indent) _ p ++ <span class="s2">&quot;</span>
+<span class="s2">  &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Logical rule used: and introduction</span>
+<span class="s2">    &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Sub-proofs:</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_proofTreeOf_helper (<span class="s2">&quot;      &quot;</span> ++ indent) _ L ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_proofTreeOf_helper (<span class="s2">&quot;      &quot;</span> ++ indent) _ R
+| or_intro1 a C1 C2 M =&gt;
+indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps Ts (<span class="s2">&quot;  &quot;</span> ++ indent) _ p ++ <span class="s2">&quot;</span>
+<span class="s2">  &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Logical rule used: or introduction (1)</span>
+<span class="s2">    &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Sub-proof:</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_proofTreeOf_helper (<span class="s2">&quot;      &quot;</span> ++ indent) _ M
+| or_intro2 a C1 C2 M =&gt;
+indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps Ts (<span class="s2">&quot;  &quot;</span> ++ indent) _ p ++ <span class="s2">&quot;</span>
+<span class="s2">  &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Logical rule used: or introduction (2)</span>
+<span class="s2">    &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Sub-proof:</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_proofTreeOf_helper (<span class="s2">&quot;      &quot;</span> ++ indent) _ M
+| trust a1 a2 C name L =&gt; 
+indent ++ <span class="s2">&quot;- &quot;</span> ++ showForLogSeq_judgement Ps Ts (<span class="s2">&quot;  &quot;</span> ++ indent) _ p ++ <span class="s2">&quot;</span>
+<span class="s2">  &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Logical rule used: trust, with relation &quot;</span> ++ showForLogSeq name ++ <span class="s2">&quot;</span>
+<span class="s2">    &quot;</span> ++ indent ++ <span class="s2">&quot;- &quot;</span> ++ <span class="s2">&quot;Sub-proof:</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_proofTreeOf_helper (<span class="s2">&quot;      &quot;</span> ++ indent) _ L
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> string.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showForProofTree_proofTreeOf</span> <span class="nv">j</span> <span class="nv">p</span>
+  := <span class="s2">&quot;\begin{prooftree}&quot;</span> ++ showForProofTree_proofTreeOf_helper j p
+       ++ <span class="s2">&quot;\end{prooftree}&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showForProofTree_proofTreeOf_instance</span> (<span class="nv">j</span> : judgementPart)
+  : ShowForProofTree (proofTreeOf j) := { showForProofTree := showForProofTree_proofTreeOf j}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showForNaturalLanguage_proofTreeOf</span> <span class="nv">j</span> <span class="nv">p</span> := <span class="s2">&quot;</span>
+
+<span class="s2">&quot;</span> ++ showForNaturalLanguage_proofTreeOf_helper <span class="s2">&quot;- &quot;</span> j p ++ <span class="s2">&quot;</span>
+
+<span class="s2">&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showForNaturalLanguage_proofTreeOf_instance</span> (<span class="nv">j</span> : judgementPart)
+  : ShowForNaturalLanguage (proofTreeOf j) := { showForNaturalLanguage := showForNaturalLanguage_proofTreeOf j}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">printProofTitle</span> <span class="nv">j</span> :=
+<span class="kr">match</span> j <span class="kr">with</span>
+| JudgementPart a c =&gt; <span class="s2">&quot;### Veracity proof that &quot;</span> ++ showForLogSeq c ++ <span class="s2">&quot; is held by &quot;</span> ++ showForLogSeq a
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : ShowForLogSeq string := { showForLogSeq := id}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">showForLogSeq_proofTreeOf</span> <span class="nv">j</span> <span class="nv">p</span> := 
+<span class="kr">let</span> <span class="nv">evidenceList</span> := (removeDups (filter isAtomicEvidence (getAllEvidence j p))) <span class="kr">in</span>
+<span class="kr">let</span> <span class="nv">evidenceWithNames</span> := map (<span class="kr">fun</span> <span class="nv">e</span> =&gt; <span class="kr">match</span> e <span class="kr">with</span>
+                                   | AtomicEvid n =&gt; showForLogSeq e ++ <span class="s2">&quot; = &quot;</span> ++ showForLogSeq n
+                                   | _ =&gt; <span class="s2">&quot;&quot;</span>
+                                   <span class="kr">end</span>) evidenceList <span class="kr">in</span>
+<span class="s2">&quot;</span>
+
+<span class="s2">&quot;</span> ++ printProofTitle j ++ <span class="s2">&quot;</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_proofTreeOf_helper <span class="s2">&quot;  &quot;</span> j p ++ <span class="s2">&quot;</span>
+<span class="s2">  - Atomic evidence is abbreviated as follows:</span>
+<span class="s2">    collapsed:: true</span>
+<span class="s2">&quot;</span> ++ showForLogSeq_list <span class="s2">&quot;    &quot;</span> evidenceWithNames ++ <span class="s2">&quot;</span>
+
+<span class="s2">&quot;</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> <span class="nf">showForLogSeq_proofTreeOf_instance</span> (<span class="nv">j</span> : judgementPart)
+  : ShowForLogSeq (proofTreeOf j) := { showForLogSeq := showForLogSeq_proofTreeOf j}.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">showListOfProofTrees</span> {<span class="nv">j</span> : judgementPart} (<span class="nv">l</span> : list (proofTreeOf j)) :=
+    <span class="kr">match</span> l <span class="kr">with</span>
+      | [] =&gt; <span class="s2">&quot;&quot;</span>
+      | h :: tl =&gt; <span class="s2">&quot;</span>
+
+<span class="s2">----------------</span>
+
+<span class="s2">&quot;</span> ++ showForProofTree h ++ showListOfProofTrees tl
+    <span class="kr">end</span>.</span></span></pre></div>
+<div class="section" id="example-actors-evidence-and-claims">
+<h1>Example actors, evidence and claims</h1>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> string.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">e</span> := AtomicEvid _e_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">C</span> := AtomicClaim _c_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">a1</span> := Actor _a1_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">e1</span> := AtomicEvid _e1_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">c1</span> := AtomicClaim _c1_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">a2</span> := Actor  _a2_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">e2</span> := AtomicEvid _e2_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">c2</span> := AtomicClaim _c2_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">a3</span> := Actor _a3_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">e3</span> := AtomicEvid _e3_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">c3</span> := AtomicClaim _c3_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">a4</span> := Actor _a4_ .</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">e4</span> := AtomicEvid  _e4_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">c4</span> := AtomicClaim _c4_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">eB</span> := AtomicEvid _eB_.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">T</span> := Trust _T_.</span></span></pre></div>
+<div class="section" id="proof-automation">
+<h1>Proof Automation</h1>
+<p>The approach taken here is to construct proofs using Coq's functional language, rather than relying on Ltac.
+This will:</p>
+<ul class="simple">
+<li>Perform backwards search.</li>
+<li>Use &quot;hole&quot; to fill in holes in the current proofs search.</li>
+<li>Involve a function which takes a single proof tree (potentially containing holes), and generates a list of proof trees &quot;one level deeper&quot;, potentially including holes.</li>
+<li>Include a depth limit, after which the proof search is halted.</li>
+<li>Include a function to filter out proof trees based on whether they still contain holes, (and in the future other attributes such as whether the resulting weight is above a certain value).</li>
+<li>Involve a function that takes a list of prooftrees and returns a list of prooftrees &quot;one level deeper&quot;, making use of the function which takes a single proof tree as input.</li>
+</ul>
+<pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">toProofTreeWithHole</span> (<span class="nv">a</span> : actor) (<span class="nv">c</span> : claim) := hole (\<span class="bp">by</span> a \<span class="kr">in</span> c).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> beq_scope.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">proofStepExample1</span> (<span class="nv">j</span> : judgementPart) : list (proofTreeOf j) :=
+  <span class="kr">match</span> j <span class="kr">with</span>
+  | JudgementPart a c =&gt; 
+    <span class="sd">(** Assumptions: *)</span>
+    (<span class="kr">if</span> (a =? a1) &amp;&amp; (c =? C) <span class="kr">then</span> [assume e a c] <span class="kr">else</span> [])
+    ++
+    (<span class="kr">if</span> (a =? a2) &amp;&amp; (c =? C) <span class="kr">then</span> [assume e a c] <span class="kr">else</span> [])
+    ++
+    (<span class="kr">if</span> (a =? a1) &amp;&amp; (c =? (C /\&#39; C)) <span class="kr">then</span> [assume e a c] <span class="kr">else</span> [])
+    ++
+    <span class="sd">(** Trust relations: *)</span>
+    (<span class="kr">if</span> (a =? a1) <span class="kr">then</span> [trust a a2 c T (hole _); trust a a3 c T (hole _)] <span class="kr">else</span> [])
+    ++
+    (<span class="kr">if</span> (a =? a2) <span class="kr">then</span> [trust a a3 c T (hole _)] <span class="kr">else</span> [])
+    ++
+    <span class="sd">(** Rules for specific claim patterns: *)</span>
+    <span class="kr">match</span> c <span class="kr">with</span>
+      | And C1 C2 =&gt; [and_intro a C1 C2 (hole _) (hole _)] 
+      | Or C1 C2 =&gt; [or_intro1 a C1 C2 (hole _); or_intro2 a C1 C2 (hole _)]
+      | _ =&gt; []
+      <span class="kr">end</span>
+    ++
+    <span class="sd">(** Rules that can be applied to any claim, use with caution, can cause performance issues. *)</span>
+    [
+      (bot_elim a c (assume eB a _|_))
+    ]
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Close Scope</span> beq_scope.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicauto-v-chk2" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicauto-v-chk2"><span class="kn">Eval</span> <span class="nb">compute</span> <span class="kr">in</span> proofStepExample1 (\<span class="bp">by</span> a1 \<span class="kr">in</span> (C /\&#39; C)).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">= [assume (AtomicEvid _e_) (Actor _a1_)
+     (AtomicClaim _c_ /\&#39; AtomicClaim _c_);
+   trust (Actor _a1_) (Actor _a2_)
+     (AtomicClaim _c_ /\&#39; AtomicClaim _c_)
+     (Trust _T_)
+     (hole
+        \<span class="bp">by</span> Actor _a2_ \<span class="kr">in</span>
+        (AtomicClaim _c_ /\&#39; AtomicClaim _c_));
+   trust (Actor _a1_) (Actor _a3_)
+     (AtomicClaim _c_ /\&#39; AtomicClaim _c_)
+     (Trust _T_)
+     (hole
+        \<span class="bp">by</span> Actor _a3_ \<span class="kr">in</span>
+        (AtomicClaim _c_ /\&#39; AtomicClaim _c_));
+   and_intro (Actor _a1_) (AtomicClaim _c_)
+     (AtomicClaim _c_)
+     (hole \<span class="bp">by</span> Actor _a1_ \<span class="kr">in</span> (AtomicClaim _c_))
+     (hole \<span class="bp">by</span> Actor _a1_ \<span class="kr">in</span> (AtomicClaim _c_));
+   bot_elim (Actor _a1_)
+     (AtomicClaim _c_ /\&#39; AtomicClaim _c_)
+     (assume (AtomicEvid _eB_) (Actor _a1_) _|_)]
+: list (proofTreeOf \<span class="bp">by</span> a1 \<span class="kr">in</span> (C /\&#39; C))</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">oneLevelDeeper</span> (<span class="nv">step</span> : <span class="kr">forall</span> <span class="nv">j</span> : judgementPart, list (proofTreeOf j)) (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) : list (proofTreeOf j) :=
+  <span class="kr">match</span> p <span class="kr">with</span>
+| hole j =&gt; step j
+| assume e a c =&gt; [(assume e a c)]
+| bot_elim a C M =&gt; map (bot_elim a C) (oneLevelDeeper step _ M)
+| and_intro a C1 C2 L R =&gt; map (<span class="kr">fun</span> <span class="nv">L2</span> =&gt; and_intro a C1 C2 L2 R) (oneLevelDeeper step _ L)
+                        ++ map (and_intro a C1 C2 L) (oneLevelDeeper step _ R)
+| or_intro1 a C1 C2 M =&gt; map (or_intro1 a C1 C2) (oneLevelDeeper step _ M)
+| or_intro2 a C1 C2 M =&gt; map (or_intro2 a C1 C2) (oneLevelDeeper step _ M)
+| trust a1 a2 C name L =&gt; map (trust a1 a2 C name) (oneLevelDeeper step _ L)
+<span class="kr">end</span>
+.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">oneLevelDeeperOfList</span> <span class="nv">step</span> <span class="nv">j</span> (<span class="nv">l</span> : list (proofTreeOf j)) : list (proofTreeOf j) :=
+ removeDups (flat_map (oneLevelDeeper step j) l).</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> list_scope.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">noHoles</span> {<span class="nv">j</span> : judgementPart} (<span class="nv">p</span> : proofTreeOf j) : bool :=
+  <span class="kr">match</span> p <span class="kr">with</span>
+| hole j =&gt; false
+| assume e a C =&gt; true
+| bot_elim a C M =&gt; noHoles M
+| and_intro a C1 C2 L R =&gt; noHoles L &amp;&amp; noHoles R
+| or_intro1 a C1 C2 M =&gt; noHoles M
+| or_intro2 a C1 C2 M =&gt; noHoles M
+| trust a1 a2 C name L =&gt; noHoles L
+<span class="kr">end</span>
+.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">proofSearch</span> (<span class="nv">d</span> : nat) <span class="nv">step</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">l</span> : list (proofTreeOf j))  : list (proofTreeOf j) := 
+  <span class="kr">match</span> d <span class="kr">with</span>
+  | <span class="mi">0</span> =&gt; []
+  | S d&#39; =&gt; <span class="kr">let</span> <span class="nv">newL</span> := removeDups (oneLevelDeeperOfList step j l) <span class="kr">in</span> (filter noHoles newL) ++ proofSearch d&#39; step j (filter (<span class="kr">fun</span> <span class="nv">p</span> =&gt; negb (noHoles p)) newL) 
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Open Scope</span> beq_scope.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicauto-v-chk3" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicauto-v-chk3"><span class="kn">Timeout</span> <span class="mi">20</span> <span class="kn">Eval</span> <span class="nb">vm_compute</span> <span class="kr">in</span> 
+  (showListOfProofTrees
+    (removeDups (proofSearch <span class="mi">4</span> proofStepExample1 _  
+        [toProofTreeWithHole a1
+          ((Implies _|_ C))]))).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
+
+<span class="s2">----------------</span>
+
+<span class="s2">\begin{prooftree}\AxiomC{$ \bot \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{\bot}^{a_{1}} \in \bot \vdash_{} e_{\bot}^{a_{1}} \in \bot $} \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ e_{\bot}^{a_{1}} \in \bot \vdash_{} e_{\bot}^{a_{1}} \in \bot \rightarrow C $}\end{prooftree}</span>
+
+<span class="s2">----------------</span>
+
+<span class="s2">\begin{prooftree}\AxiomC{$ \bot \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{\bot}^{a_{2}} \in \bot \vdash_{} e_{\bot}^{a_{2}} \in \bot $} \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ e_{\bot}^{a_{2}} \in \bot \vdash_{} e_{\bot}^{a_{2}} \in \bot \rightarrow C $} \AxiomC{$a_{1}Ta_{2}$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ e_{\bot}^{a_{2}} \in \bot \vdash_{T} e_{\bot}^{a_{1}} \in \bot \rightarrow C $}\end{prooftree}</span>
+
+<span class="s2">----------------</span>
+
+<span class="s2">\begin{prooftree}\AxiomC{$ \bot \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{\bot}^{a_{3}} \in \bot \vdash_{} e_{\bot}^{a_{3}} \in \bot $} \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ e_{\bot}^{a_{3}} \in \bot \vdash_{} e_{\bot}^{a_{3}} \in \bot \rightarrow C $} \AxiomC{$a_{1}Ta_{3}$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ e_{\bot}^{a_{3}} \in \bot \vdash_{T} e_{\bot}^{a_{1}} \in \bot \rightarrow C $}\end{prooftree}</span>
+
+<span class="s2">----------------</span>
+
+<span class="s2">\begin{prooftree}\AxiomC{$ \bot \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e_{\bot}^{a_{3}} \in \bot \vdash_{} e_{\bot}^{a_{3}} \in \bot $} \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ e_{\bot}^{a_{3}} \in \bot \vdash_{} e_{\bot}^{a_{3}} \in \bot \rightarrow C $} \AxiomC{$a_{2}Ta_{3}$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ e_{\bot}^{a_{3}} \in \bot \vdash_{T} e_{\bot}^{a_{2}} \in \bot \rightarrow C $} \AxiomC{$a_{1}Ta_{2}$}  \RightLabel{ $ trust\ T$} \BinaryInfC{$ e_{\bot}^{a_{3}} \in \bot \vdash_{T} e_{\bot}^{a_{1}} \in \bot \rightarrow C $}\end{prooftree}&quot;</span>
+     : string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Definition</span> <span class="nf">proofStepExample2</span> (<span class="nv">j</span> : judgementPart) : list (proofTreeOf j) :=
+  <span class="kr">match</span> j <span class="kr">with</span>
+  | JudgementPart a c =&gt; 
+    <span class="sd">(** Assumptions: *)</span>
+    (<span class="kr">if</span> (a =? a1) &amp;&amp; (c =? C) <span class="kr">then</span> [assume e a c] <span class="kr">else</span> [])
+    ++
+    (<span class="kr">if</span> (a =? a1) &amp;&amp; (c =? (C /\&#39; C)) <span class="kr">then</span> [assume e a c] <span class="kr">else</span> [])
+    ++
+    <span class="sd">(** Rules for specific claim patterns: *)</span>
+    <span class="kr">match</span> c <span class="kr">with</span>
+      | And C1 C2 =&gt; [and_intro a C1 C2 (hole _) (hole _)] 
+      | _ =&gt; []
+      <span class="kr">end</span>
+  <span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Close Scope</span> beq_scope.</span></span></pre><pre class="alectryon-io highlight coq-math"><!-- Generator: Alectryon --><span class="alectryon-sentence"><input checked="checked" class="alectryon-toggle" id="veracitylogicauto-v-chk4" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicauto-v-chk4"><span class="kn">Timeout</span> <span class="mi">20</span> <span class="kn">Eval</span> <span class="nb">vm_compute</span> <span class="kr">in</span> 
+(showListOfProofTrees
+  (removeDups
+    (proofSearch <span class="mi">10</span> proofStepExample2 _
+      [toProofTreeWithHole a1
+         ((C /\&#39; C) /\&#39; (C /\&#39; C))]))).</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">     = <span class="s2">&quot;</span>
+
+<span class="s2">----------------</span>
+
+<span class="s2">\begin{prooftree}\AxiomC{$ C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \vdash_{} e^{a_{1}} \in C $}\AxiomC{$ C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \vdash_{} e^{a_{1}} \in C $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e^{a_{1}} \in C \vdash_{} (e, e)^{a_{1}} \in C \wedge C $}\AxiomC{$ C \wedge C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \wedge C \vdash_{} e^{a_{1}} \in C \wedge C $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e^{a_{1}} \in C, e^{a_{1}} \in C \wedge C \vdash_{} ((e, e), e)^{a_{1}} \in C \wedge C \wedge C \wedge C $}\end{prooftree}</span>
+
+<span class="s2">----------------</span>
+
+<span class="s2">\begin{prooftree}\AxiomC{$ C \wedge C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \wedge C \vdash_{} e^{a_{1}} \in C \wedge C $}\AxiomC{$ C \wedge C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \wedge C \vdash_{} e^{a_{1}} \in C \wedge C $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e^{a_{1}} \in C \wedge C \vdash_{} (e, e)^{a_{1}} \in C \wedge C \wedge C \wedge C $}\end{prooftree}</span>
+
+<span class="s2">----------------</span>
+
+<span class="s2">\begin{prooftree}\AxiomC{$ C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \vdash_{} e^{a_{1}} \in C $}\AxiomC{$ C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \vdash_{} e^{a_{1}} \in C $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e^{a_{1}} \in C \vdash_{} (e, e)^{a_{1}} \in C \wedge C $}\AxiomC{$ C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \vdash_{} e^{a_{1}} \in C $}\AxiomC{$ C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \vdash_{} e^{a_{1}} \in C $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e^{a_{1}} \in C \vdash_{} (e, e)^{a_{1}} \in C \wedge C $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e^{a_{1}} \in C \vdash_{} ((e, e), (e, e))^{a_{1}} \in C \wedge C \wedge C \wedge C $}\end{prooftree}</span>
+
+<span class="s2">----------------</span>
+
+<span class="s2">\begin{prooftree}\AxiomC{$ C \wedge C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \wedge C \vdash_{} e^{a_{1}} \in C \wedge C $}\AxiomC{$ C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \vdash_{} e^{a_{1}} \in C $}\AxiomC{$ C \textit{ is a veracity claim} $} \RightLabel{ $ assume $}\UnaryInfC{$ e^{a_{1}} \in C \vdash_{} e^{a_{1}} \in C $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e^{a_{1}} \in C \vdash_{} (e, e)^{a_{1}} \in C \wedge C $} \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ e^{a_{1}} \in C \wedge C, e^{a_{1}} \in C \vdash_{} (e, (e, e))^{a_{1}} \in C \wedge C \wedge C \wedge C $}\end{prooftree}&quot;</span>
+     : string</blockquote></div></div></small></span></pre><pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">End</span> <span class="nf">VeracityLogic</span>.</span></span></pre><p><em>The proofs on this page are rendered using MathJax which happens to require at least one explicit math command</em>. Hence: <span class="math">\(x\)</span>.</p>
+</div>
+</div>
+</div></body>
+</html>
