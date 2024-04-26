@@ -1,6 +1,6 @@
 (*|
-Veracity Logic Mechanised in Coq V5
-===================================
+Veracity Logic Mechanised in Coq (Automation Version)
+=====================================================
 
 **Note: the commentary is out of date.**
 
