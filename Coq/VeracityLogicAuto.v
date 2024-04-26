@@ -135,7 +135,7 @@ Scheme Equality for trust_relation_name.
 (*|
 
 Types of aspects of the veracity logic
--------------------------------------
+--------------------------------------
 
 |*)
 
