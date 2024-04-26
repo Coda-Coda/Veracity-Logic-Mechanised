@@ -222,10 +222,11 @@ notUsedInInnerLambda x bx&#39; = true</span></span></span><br></div><span class=
 notUsedInInnerLambda x bx&#39; = true</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">notUsedInInnerLambda x bx&#39; = true</div></blockquote></div></div></small><span class="alectryon-wsp"> </span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chkc" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chkc"><span class="nb">destruct</span> H2.</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><div class="goal-hyps"><span><var>x</var><span class="hyp-type"><b>: </b><span>atomic_evid_name</span></span></span><br><span><var>a</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>x'</var><span class="hyp-type"><b>: </b><span>atomic_evid_name</span></span></span><br><span><var>bx'</var><span class="hyp-type"><b>: </b><span>evid</span></span></span><br><span><var>H</var><span class="hyp-type"><b>: </b><span>negb (atomic_evid_name_beq x x&#39;) = true</span></span></span><br><span><var>H0</var><span class="hyp-type"><b>: </b><span>notUsedInInnerLambda x bx&#39; = true</span></span></span><br></div><span class="goal-separator"><hr></span><div class="goal-conclusion">notUsedInInnerLambda x bx&#39; = true</div></blockquote></div></div></small><span class="alectryon-wsp"> </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="nb">auto</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Defined</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chkd" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chkd"><span class="kn">Program Example</span> <span class="nf">apply_example1</span> : apply_lambda _x_
-                                   (Left (AtomicEvid _x_))
-                                   (AtomicEvid _l_) _ 
-                                 = Left (AtomicEvid _l_).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">apply_lambda _x_ (Left (AtomicEvid _x_))
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chkd" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chkd"><span class="kn">Program Example</span> <span class="nf">apply_example1</span> :
+  apply_lambda _x_
+    (Left (AtomicEvid _x_))
+    (AtomicEvid _l_) _ 
+  = Left (AtomicEvid _l_).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">apply_lambda _x_ (Left (AtomicEvid _x_))
   (AtomicEvid _l_)
   ((eq_refl : true = true)
    :
@@ -234,10 +235,11 @@ notUsedInInnerLambda x bx&#39; = true</span></span></span><br></div><span class=
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="bp">reflexivity</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Qed</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chke" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chke"><span class="kn">Program Example</span> <span class="nf">apply_example2</span> : apply_lambda _y_
-                                   (Pair (AtomicEvid _y_) (AtomicEvid _s_))
-                                   (Right (AtomicEvid _l_)) _
-                                 = Pair (Right (AtomicEvid _l_)) (AtomicEvid _s_).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">apply_lambda _y_ {{AtomicEvid _y_, AtomicEvid _s_}}
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogic-v-chke" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogic-v-chke"><span class="kn">Program Example</span> <span class="nf">apply_example2</span> : 
+  apply_lambda _y_
+    (Pair (AtomicEvid _y_) (AtomicEvid _s_))
+    (Right (AtomicEvid _l_)) _
+  = Pair (Right (AtomicEvid _l_)) (AtomicEvid _s_).</label><small class="alectryon-output"><div><div class="alectryon-goals"><blockquote class="alectryon-goal"><span class="goal-separator"><hr></span><div class="goal-conclusion">apply_lambda _y_ {{AtomicEvid _y_, AtomicEvid _s_}}
   (Right (AtomicEvid _l_))
   ((eq_refl : true = true)
    :
