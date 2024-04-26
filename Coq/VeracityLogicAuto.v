@@ -132,6 +132,133 @@ Inductive trust_relation_name :=
 
 Scheme Equality for trust_relation_name.
 
+(*|
+
+Types of aspects of the veracity logic
+-------------------------------------
+
+|*)
+
+Inductive evid :=
+  | HoleEvid
+  | AtomicEvid (n : atomic_evid_name)
+  | Pair (e1 e2: evid)
+  | Left (e1 : evid)
+  | Right (e1 : evid).
+
+Scheme Equality for evid.
+
+Inductive claim :=
+  | AtomicClaim (n : claim_name)
+  | Bottom
+  | And (c1 c2 : claim)
+  | Or  (c1 c2 : claim)
+  | Implies  (c1 c2 : claim).
+
+Scheme Equality for claim.
+
+Inductive actor :=
+  | Actor (n : actor_name).
+
+Scheme Equality for actor.
+
+Inductive judgementPart :=
+  | JudgementPart (a : actor) (c: claim).
+
+Scheme Equality for judgementPart.
+
+Notation "\by A \in C" := (JudgementPart A C) (at level 2).
+Infix "/\'" := And (at level 81, left associativity).
+Infix "\/'" := Or (at level 86, left associativity). 
+Notation "_|_" := (Bottom) (at level 1).
+Notation "{{ x , y , .. , z }}" := (Pair .. (Pair x y) .. z).
+
+Inductive trustRelation :=
+  | Trust (n : trust_relation_name).
+
+Scheme Equality for trustRelation.
+
+Inductive judgement :=
+  Judgement (e : evid) (jp : judgementPart).
+
+Scheme Equality for judgement.
+
+Class Beq A : Type :=
+  {
+    beq : A -> A -> bool
+  }.
+Infix "=?" := beq : beq_scope.
+Instance : Beq atomic_evid_name := { beq := atomic_evid_name_beq }.
+Instance : Beq actor_name := { beq := actor_name_beq }.
+Instance : Beq claim_name := { beq := claim_name_beq }.
+Instance : Beq trust_relation_name := { beq := trust_relation_name_beq }.
+Instance : Beq evid := { beq := evid_beq }.
+Instance : Beq claim := { beq := claim_beq }.
+Instance : Beq actor := { beq := actor_beq }.
+Instance : Beq judgementPart := { beq := judgementPart_beq }.
+Instance : Beq trustRelation := { beq := trustRelation_beq }.
+Instance : Beq judgement := { beq := judgement_beq }.
+
+(*|
+
+The central inductive definition of valid proof trees
+-----------------------------------------------------
+
+|*)
+
+Inductive proofTreeOf : judgementPart -> Type :=
+| hole j : proofTreeOf j
+| assume (e : evid) a (c : claim) : proofTreeOf (\by a \in c)
+| bot_elim a C
+
+        (M : proofTreeOf (\by a \in _|_))
+                           :
+           proofTreeOf ((\by a \in C))
+
+| and_intro a C1 C2
+
+(L: proofTreeOf (\by a \in C1))
+                           (R: proofTreeOf (\by a \in C2))
+                        :
+    proofTreeOf (\by a \in (C1 /\' C2))
+
+| or_intro1 a C1 C2
+
+           (M: proofTreeOf (\by a \in C1))
+                          :
+    proofTreeOf (\by a \in (C1 \/' C2))
+
+| or_intro2 a C1 C2
+
+           (M: proofTreeOf (\by a \in C2))
+                          :
+    proofTreeOf (\by a \in (C1 \/' C2))
+
+| trust a1 a2 C (name : trustRelation)
+
+(L: proofTreeOf (\by a2 \in C))
+                          :
+            proofTreeOf (\by a1 \in C)
+.
+
+Fixpoint computeEvidence (j : judgementPart) (p : proofTreeOf j) : evid := 
+match p with
+| hole _ => HoleEvid
+| assume e a c => e
+| bot_elim a C M => computeEvidence _ M
+| and_intro a C1 C2 L R => {{computeEvidence _ L,computeEvidence _ R}}
+| or_intro1 a C1 C2 M => Left (computeEvidence _ M)
+| or_intro2 a C1 C2 M => Right (computeEvidence _ M)
+| trust a1 a2 C name L => computeEvidence _ L
+end.
+
+(*|
+
+String representations
+----------------------
+
+|*)
+
 Open Scope string.
 
 Class ShowForProofTree A : Type :=
@@ -296,147 +423,6 @@ Instance : ShowForNaturalLanguage trust_relation_name := {
   }.
 Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
 
-(*|
-
-Types of aspects of the veracity logic
--------------------------------------
-
-|*)
-
-Inductive evid :=
-  | HoleEvid
-  | AtomicEvid (n : atomic_evid_name)
-  | Pair (e1 e2: evid)
-  | Left (e1 : evid)
-  | Right (e1 : evid).
-
-Scheme Equality for evid.
-
-Inductive claim :=
-  | AtomicClaim (n : claim_name)
-  | Bottom
-  | And (c1 c2 : claim)
-  | Or  (c1 c2 : claim)
-  | Implies  (c1 c2 : claim).
-
-Scheme Equality for claim.
-
-Inductive actor :=
-  | Actor (n : actor_name).
-
-Scheme Equality for actor.
-
-Inductive judgementPart :=
-  | JudgementPart (a : actor) (c: claim).
-
-Scheme Equality for judgementPart.
-
-Notation "\by A \in C" := (JudgementPart A C) (at level 2).
-Infix "/\'" := And (at level 81, left associativity).
-Infix "\/'" := Or (at level 86, left associativity). 
-Notation "_|_" := (Bottom) (at level 1).
-Notation "{{ x , y , .. , z }}" := (Pair .. (Pair x y) .. z).
-
-Inductive trustRelation :=
-  | Trust (n : trust_relation_name).
-
-Scheme Equality for trustRelation.
-
-Inductive judgement :=
-  Judgement (e : evid) (jp : judgementPart).
-
-Scheme Equality for judgement.
-
-Class Beq A : Type :=
-  {
-    beq : A -> A -> bool
-  }.
-Infix "=?" := beq : beq_scope.
-Instance : Beq atomic_evid_name := { beq := atomic_evid_name_beq }.
-Instance : Beq actor_name := { beq := actor_name_beq }.
-Instance : Beq claim_name := { beq := claim_name_beq }.
-Instance : Beq trust_relation_name := { beq := trust_relation_name_beq }.
-Instance : Beq evid := { beq := evid_beq }.
-Instance : Beq claim := { beq := claim_beq }.
-Instance : Beq actor := { beq := actor_beq }.
-Instance : Beq judgementPart := { beq := judgementPart_beq }.
-Instance : Beq trustRelation := { beq := trustRelation_beq }.
-Instance : Beq judgement := { beq := judgement_beq }.
-
-Inductive proofTreeOf : judgementPart -> Type :=
-| hole j : proofTreeOf j
-| assume (e : evid) a (c : claim) : proofTreeOf (\by a \in c)
-| bot_elim a C
-
-        (M : proofTreeOf (\by a \in _|_))
-                           :
-           proofTreeOf ((\by a \in C))
-
-| and_intro a C1 C2
-
-(L: proofTreeOf (\by a \in C1))
-                           (R: proofTreeOf (\by a \in C2))
-                        :
-    proofTreeOf (\by a \in (C1 /\' C2))
-
-| or_intro1 a C1 C2
-
-           (M: proofTreeOf (\by a \in C1))
-                          :
-    proofTreeOf (\by a \in (C1 \/' C2))
-
-| or_intro2 a C1 C2
-
-           (M: proofTreeOf (\by a \in C2))
-                          :
-    proofTreeOf (\by a \in (C1 \/' C2))
-
-| trust a1 a2 C (name : trustRelation)
-
-(L: proofTreeOf (\by a2 \in C))
-                          :
-            proofTreeOf (\by a1 \in C)
-.
-
-Fixpoint computeEvidence (j : judgementPart) (p : proofTreeOf j) : evid := 
-match p with
-| hole _ => HoleEvid
-| assume e a c => e
-| bot_elim a C M => computeEvidence _ M
-| and_intro a C1 C2 L R => {{computeEvidence _ L,computeEvidence _ R}}
-| or_intro1 a C1 C2 M => Left (computeEvidence _ M)
-| or_intro2 a C1 C2 M => Right (computeEvidence _ M)
-| trust a1 a2 C name L => computeEvidence _ L
-end.
-
-(*|
-
-Example actors, evidence, claims and judgements
------------------------------------------------
-
-|*)
-
-Open Scope string.
-
-Definition e := AtomicEvid _e_.
-Definition C := AtomicClaim _c_.
-
-Definition a1 := Actor _a1_.
-Definition e1 := AtomicEvid _e1_.
-Definition c1 := AtomicClaim _c1_.
-
-Definition a2 := Actor  _a2_.
-Definition e2 := AtomicEvid _e2_.
-Definition c2 := AtomicClaim _c2_.
-
-Definition a3 := Actor _a3_.
-Definition e3 := AtomicEvid _e3_.
-Definition c3 := AtomicClaim _c3_.
-
-Definition a4 := Actor _a4_ .
-Definition e4 := AtomicEvid  _e4_.
-Definition c4 := AtomicClaim _c4_.
-
 Instance : ShowForProofTree evid := {
   showForProofTree :=
   fix showForProofTreeEvid e :=
@@ -587,8 +573,6 @@ let computedEvidence := computeEvidence j p in
       | (h :: tl) as Ps => showForProofTree Ps ++ " \vdash_{" ++ showForProofTree Ts ++ "} " ++ (showForProofTree (Judgement computedEvidence j))
     end.
 
-Eval compute in showForProofTree_judgement [Judgement e (\by a1 \in c1)] [] (\by a1 \in c1) (assume e a1 c1).
-
 Definition showForNaturalLanguage_judgement (Ps : list judgement) (Ts : list trustRelation) (j : judgementPart) (p : proofTreeOf j) :=
   let computedEvidence := computeEvidence j p in
     match Ps with
@@ -639,12 +623,12 @@ Fixpoint getAllEvidence (j : judgementPart) (p : proofTreeOf j)
 match p with
 | hole _ => [HoleEvid]
 | assume e a C => [e]
-| bot_elim a C M => e :: (getAllEvidence _ M)
+| bot_elim a C M => (getAllEvidence _ M)
 | and_intro a C1 C2 L R => 
-    e1 :: e2 :: getAllEvidence _ L ++ getAllEvidence _ R 
-| or_intro1 a C1 C2 M => e1 :: getAllEvidence _ M
-| or_intro2 a C1 C2 M => e2 :: getAllEvidence _ M
-| trust a1 a2 C name L => e ::  getAllEvidence _ L
+    getAllEvidence _ L ++ getAllEvidence _ R 
+| or_intro1 a C1 C2 M => getAllEvidence _ M
+| or_intro2 a C1 C2 M => getAllEvidence _ M
+| trust a1 a2 C name L => getAllEvidence _ L
 end.
 
 Definition isAtomicEvidence (e : evid) : bool :=
@@ -877,6 +861,38 @@ Fixpoint showListOfProofTrees {j : judgementPart} (l : list (proofTreeOf j)) :=
 " ++ showForProofTree h ++ showListOfProofTrees tl
     end.
 
+
+(*|
+
+Example actors, evidence and claims
+-----------------------------------
+
+|*)
+
+Open Scope string.
+
+Definition e := AtomicEvid _e_.
+Definition C := AtomicClaim _c_.
+
+Definition a1 := Actor _a1_.
+Definition e1 := AtomicEvid _e1_.
+Definition c1 := AtomicClaim _c1_.
+
+Definition a2 := Actor  _a2_.
+Definition e2 := AtomicEvid _e2_.
+Definition c2 := AtomicClaim _c2_.
+
+Definition a3 := Actor _a3_.
+Definition e3 := AtomicEvid _e3_.
+Definition c3 := AtomicClaim _c3_.
+
+Definition a4 := Actor _a4_ .
+Definition e4 := AtomicEvid  _e4_.
+Definition c4 := AtomicClaim _c4_.
+
+Definition eB := AtomicEvid _eB_.
+Definition T := Trust _T_.
+
 (* |
 
 Proof Automation
@@ -894,8 +910,6 @@ This will:
 |*)
 
 Definition toProofTreeWithHole (a : actor) (c : claim) := hole (\by a \in c).
-Definition eB := AtomicEvid _eB_.
-Definition T := Trust _T_.
 
 Open Scope beq_scope.
 
