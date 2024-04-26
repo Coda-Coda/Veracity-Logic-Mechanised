@@ -989,7 +989,11 @@ Open Scope beq_scope.
    :class: coq-math
 |*)
 
-Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch 4 proofStepExample1 _  [toProofTreeWithHole a1 ((Implies _|_ C))])))).
+Timeout 20 Eval vm_compute in 
+  (showListOfProofTrees
+    (removeDups (proofSearch 4 proofStepExample1 _  
+        [toProofTreeWithHole a1
+          ((Implies _|_ C))]))).
 
 (*|
 .. coq::
@@ -1017,7 +1021,12 @@ Close Scope beq_scope.
    :class: coq-math
 |*)
 
-Timeout 20 Eval vm_compute in (showListOfProofTrees (( (proofSearch 10 proofStepExample2 _  [toProofTreeWithHole a1 ((C /\' C) /\' (C /\' C))])))).
+Timeout 20 Eval vm_compute in 
+(showListOfProofTrees
+  (removeDups
+    (proofSearch 10 proofStepExample2 _
+      [toProofTreeWithHole a1
+         ((C /\' C) /\' (C /\' C))]))).
 
 (*|
 .. coq::
