@@ -400,8 +400,8 @@ Program Fixpoint apply_lambda (x : atomic_evid_name) (bx : evid) (a : evid) (H2 
   match bx with
   | AtomicEvid name => if name =? x then a else AtomicEvid name
   | Pair e1 e2 => Pair (apply_lambda x e1 a _) (apply_lambda x e2 a _)
-  | Left e => (apply_lambda x e a _)
-  | Right e => (apply_lambda x e a _)
+  | Left e => Left (apply_lambda x e a _)
+  | Right e => Right (apply_lambda x e a _)
   | Lambda x' bx' => Lambda x' (apply_lambda x bx' a _)
 end.
 Next Obligation.
