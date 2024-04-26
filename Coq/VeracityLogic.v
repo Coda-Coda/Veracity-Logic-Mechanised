@@ -216,177 +216,6 @@ The machinery for applying lambas
 
 Open Scope beq_scope.
 
-(* Fixpoint MatchingFormat (e1 e2 : evid) :=
-  match e1,e2 with
-  | AtomicEvid _,AtomicEvid _ => True
-  | Pair e1 e2,Pair e1' e2' => MatchingFormat e1 e1' /\ MatchingFormat e2 e2'
-  | Left e,Left e' => MatchingFormat e e'
-  | Right e,Right e' => MatchingFormat e e'
-  | Lambda x bx,Lambda x' bx' => MatchingFormat x x' /\ MatchingFormat bx bx'
-  | _,_ => False
-  end. *)
-
-(* Fixpoint matchingFormat (e1 e2 : evid) :=
-  match e1,e2 with
-  | AtomicEvid _,AtomicEvid _ => true
-  | Pair e1 e2,Pair e1' e2' => matchingFormat e1 e1' && matchingFormat e2 e2'
-  | Left e,Left e' => matchingFormat e e'
-  | Right e,Right e' => matchingFormat e e'
-  | Lambda x bx, Lambda x' bx' => matchingFormat x x' && matchingFormat bx bx'
-  | _,_ => false
-  end. *)
-
-(* Lemma matchingFormat_bool_Prop_iff : forall e1 e2, MatchingFormat e1 e2 <-> matchingFormat e1 e2 = true.
-Proof.
-split.
- - revert e2. induction e1; induction e2; auto.
-   + simpl in *. intros. apply andb_true_intro. destruct H.
-      split.
-      * apply IHe1_1. apply H.
-      * apply IHe1_2. apply H0.
-   + simpl in *. intros. apply IHe1. apply H.
-   + simpl in *. intros. apply IHe1. apply H.
-   + simpl in *. intros. apply andb_true_intro. destruct H.
-      split.
-          * apply IHe1_1. apply H.
-          * apply IHe1_2. apply H0.
- - revert e2. induction e1; induction e2; simpl in *; (try discriminate); auto.
-    + intros. apply andb_prop in H. destruct H. auto.
-    + intros. apply andb_prop in H. destruct H. auto.
-Qed. *)
-
-(* Lemma matchingFormat_bool_to_Prop : forall e1 e2, matchingFormat e1 e2 = true -> MatchingFormat e1 e2.
-Proof.
-apply matchingFormat_bool_Prop_iff.
-Qed. *)
-
-(* Lemma matchingFormat_Prop_to_bool : forall e1 e2, MatchingFormat e1 e2 -> matchingFormat e1 e2 = true.
-Proof.
-apply matchingFormat_bool_Prop_iff.
-Qed. *)
-
-(* Program Fixpoint substitutions (x a : evid) (HMatching : MatchingFormat x a) (n : atomic_evid_name) : option atomic_evid_name :=
-  match x,a with
-  | AtomicEvid name,AtomicEvid name' => if n =? name then Some name' else None
-  | Pair e1 e2,Pair e1' e2' => match substitutions e1 e1' _ n with
-                               | Some name' => Some name'
-                               | None => substitutions e2 e2' _ n
-                               end
-  | Left e,Left e' => substitutions e e' _ n
-  | Right e,Right e' => substitutions e e' _ n
-  | Lambda x bx,Lambda x' bx' => substitutions bx bx' _ n
-  | _,_ => except _
-  end
-.
-Next Obligation.
-simpl in *. destruct HMatching. assumption.
-Defined.
-Next Obligation.
-simpl in *. destruct HMatching. assumption.
-Defined.
-Next Obligation.
-simpl in *. destruct HMatching. assumption.
-Defined.
-Next Obligation.
-destruct x.
-  - destruct a; try (simpl in *; contradiction).
-    + eapply H3. split; reflexivity.
-  - destruct a; try (simpl in *; contradiction).
-    + eapply H. split; reflexivity.
-  - destruct a; try (simpl in *; contradiction).
-    + eapply H0. split; reflexivity.
-  - destruct a; try (simpl in *; contradiction).
-    + eapply H1. split; reflexivity.
-  - destruct a; try (simpl in *; contradiction).
-    + eapply H2. split; reflexivity.
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined.
-Next Obligation.
-repeat ((try split); (try (intros; unfold not; intros; destruct H; (try inversion H; try inversion H0)))).
-Defined. *)
-
-(* Fixpoint allAtomicEvidenceContainedBy (e : evid) : list evid := 
-  match e with
-  | AtomicEvid e => [AtomicEvid e] 
-  | Pair e1 e2 => allAtomicEvidenceContainedBy e1 ++ allAtomicEvidenceContainedBy e2
-  | Left e => allAtomicEvidenceContainedBy e
-  | Right e => allAtomicEvidenceContainedBy e
-  | Lambda x' bx' => allAtomicEvidenceContainedBy x' ++ allAtomicEvidenceContainedBy bx'
-end. *)
-
-Fixpoint contains {A} `{Beq A} (x : A) (l : list A) : bool :=
-  match l with
-  | [] => false
-  | h :: tl => (x =? h) || contains x tl
-  end.
-
-(* Fixpoint shareAtLeastOneElement {A} `{Beq A} (l1 l2 : list A) : bool :=
-  match l1 with
-  | [] => false
-  | h :: tl => contains h l2 || shareAtLeastOneElement tl l2
-  end. *)
-
-(* Definition noOverlappingAtomicEvidence e1 e2 : bool :=
-  let l1 := allAtomicEvidenceContainedBy e1 in
-  let l2 := allAtomicEvidenceContainedBy e2 in
-  negb (shareAtLeastOneElement l1 l2). *)
-
 Fixpoint notUsedInInnerLambda (x : atomic_evid_name) (bx : evid) : bool :=
 match bx with
   | AtomicEvid _ => true
@@ -427,6 +256,19 @@ Program Example apply_example2 : apply_lambda _y_
                                  = Pair (Right (AtomicEvid _l_)) (AtomicEvid _s_).
 reflexivity.
 Qed.
+
+(*|
+
+The machinery for equality treating lists as sets
+-------------------------------------------------
+
+|*)
+
+Fixpoint contains {A} `{Beq A} (x : A) (l : list A) : bool :=
+  match l with
+  | [] => false
+  | h :: tl => (x =? h) || contains x tl
+  end.
 
 Fixpoint subset {A} `{Beq A} (l1 l2 : list A) : bool :=
   match l1 with
@@ -1327,52 +1169,6 @@ Eval compute in (showForProofTree impl_intro_elim).
 Eval compute in (showForNaturalLanguage impl_intro_elim).
 Eval compute in (showForLogSeq impl_intro_elim).
 
-(* Definition impl_intro2 : proofTreeOf_wrapped a1 (Implies c1 (Implies c1 c1)).
-eexists []  _.
-eapply (impl_intro _e1_ _ _ _ _ _ [] _ _ _).
-eapply (impl_intro _e2_ _ _ _ _ _ [(AtomicEvid _e1_) \by a1 \in c1] _ _ _).
-eapply (assume _e1_).
-Unshelve.
-all: try reflexivity. 
-Defined.
-
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-Eval compute in (showForProofTree impl_intro2).
-
-(*|
-.. coq::
-|*)
-
-Eval compute in (showForNaturalLanguage impl_intro2).
-Eval compute in (showForLogSeq impl_intro2). *)
-
-(* Definition impl_and : proofTreeOf_wrapped a1 (Implies c1 (Implies c2 c1)).
-eexists _.
-  eapply (impl_intro _e1_ _ _ _ _ _).
-  eapply (impl_intro _e2_ _ _ _ _ _).
-  eapply (assume _e1_).
-  Unshelve.
-  all: try reflexivity.
-Defined.
-    
-
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-Eval compute in (showForProofTree impl_and).
-
-(*|
-.. coq::
-|*)
-
-Eval compute in (showForNaturalLanguage impl_and).
-Eval compute in (showForLogSeq impl_and). *)
 
 Definition and_example : proofTreeOf_wrapped a1 (Implies c1 (c1 /\' c1)).
 eexists []  _.
@@ -1610,34 +1406,6 @@ Eval compute in showForProofTree bot_example2.
 Eval compute in showForNaturalLanguage bot_example2.
 Eval compute in showForLogSeq bot_example2.
 
-Definition abstraction_example2 : proofTreeOf_wrapped a1 c1.
-Proof.
-eexists [e2 \by a1 \in c1] _.
-eapply (impl_elim _ _ _ a1 (C1 /\' C2) C1). 1: shelve.
-eapply (impl_intro _e2_ _ _ _ _ _). 1,2,3: shelve.
-apply (assume _e2_).
-eapply (and_intro). 1: shelve.
-apply (assume _e1_).
-apply (assume _e2_).
-Unshelve.
-all: try reflexivity. 1,2,3,5,6:shelve.
-Fail reflexivity.
-Abort.
- 
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-
-(* Eval compute in showForProofTree abstraction_example2. *)
-
-(*|
-.. coq::
-|*)
-
-(* Eval compute in showForNaturalLanguage abstraction_example2. *)
-(* Eval compute in showForLogSeq abstraction_example2. *)
 
 
 End VeracityLogic.
