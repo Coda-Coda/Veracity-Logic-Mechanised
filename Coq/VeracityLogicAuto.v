@@ -893,19 +893,20 @@ Definition c4 := AtomicClaim _c4_.
 Definition eB := AtomicEvid _eB_.
 Definition T := Trust _T_.
 
-(* |
+(*|
 
 Proof Automation
 ----------------
 
 The approach taken here is to construct proofs using Coq's functional language, rather than relying on Ltac.
 This will:
- - Perform backwards search
- - Use "hole" to fill in holes in the current proofs search.
- - Involve a function which takes a single proof tree (potentially containing holes), and generates a list of proof trees "one level deeper", potentially including holes.
- - Include a depth limit, after which the proof search is halted.
- - Include a function to filter out proof trees based on whether they still contain holes, (and in the future other attributes such as whether the resulting weight is above a certain value)
- - Involve a function that takes a list of prooftrees and returns a list of prooftrees "one level deeper", making use of the function which takes a single proof tree as input.
+
+* Perform backwards search.
+* Use "hole" to fill in holes in the current proofs search.
+* Involve a function which takes a single proof tree (potentially containing holes), and generates a list of proof trees "one level deeper", potentially including holes.
+* Include a depth limit, after which the proof search is halted.
+* Include a function to filter out proof trees based on whether they still contain holes, (and in the future other attributes such as whether the resulting weight is above a certain value).
+* Involve a function that takes a list of prooftrees and returns a list of prooftrees "one level deeper", making use of the function which takes a single proof tree as input.
 
 |*)
 
