@@ -229,6 +229,32 @@ advance an explicit <span class="s2">&quot;Declare Scope beq_scope.&quot;</span>
 | or_intro1 a C1 C2 M =&gt; Left (computeEvidence _ M)
 | or_intro2 a C1 C2 M =&gt; Right (computeEvidence _ M)
 | trust a1 a2 C name L =&gt; computeEvidence _ L
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">getAssumptions</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) : list judgementPart := 
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole _ =&gt; []
+| assume e a C =&gt; [\<span class="bp">by</span> a \<span class="kr">in</span> C]
+| bot_elim a C M =&gt; getAssumptions _ M
+| and_intro a C1 C2 L R =&gt; 
+    getAssumptions _ L ++ getAssumptions _ R 
+| or_intro1 a C1 C2 M =&gt; getAssumptions _ M
+| or_intro2 a C1 C2 M =&gt; getAssumptions _ M
+| trust a1 a2 C name L =&gt; 
+    getAssumptions _ L
+<span class="kr">end</span>.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">getAssumptionsWithEvidence</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) : list (judgement) := 
+<span class="kr">match</span> p <span class="kr">with</span>
+| hole j =&gt; [(Judgement HoleEvid j)]
+| assume e a C =&gt; [Judgement e (\<span class="bp">by</span> a \<span class="kr">in</span> C)]
+| bot_elim a C M =&gt; getAssumptionsWithEvidence _ M
+| and_intro a C1 C2 L R =&gt; 
+    getAssumptionsWithEvidence _ L ++ getAssumptionsWithEvidence _ R 
+| or_intro1 a C1 C2 M =&gt; getAssumptionsWithEvidence _ M
+| or_intro2 a C1 C2 M =&gt; getAssumptionsWithEvidence _ M
+| trust a1 a2 C name L =&gt; 
+    getAssumptionsWithEvidence _ L
 <span class="kr">end</span>.</span></span></pre></div>
 <div class="section" id="string-representations">
 <h1>String representations</h1>
@@ -610,32 +636,6 @@ Use _ or _tl to silence this warning.
 <span class="kr">match</span> e <span class="kr">with</span>
   | AtomicEvid _ =&gt; true
   | _ =&gt; false
-<span class="kr">end</span>.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">getAssumptions</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) : list judgementPart := 
-<span class="kr">match</span> p <span class="kr">with</span>
-| hole _ =&gt; []
-| assume e a C =&gt; [\<span class="bp">by</span> a \<span class="kr">in</span> C]
-| bot_elim a C M =&gt; getAssumptions _ M
-| and_intro a C1 C2 L R =&gt; 
-    getAssumptions _ L ++ getAssumptions _ R 
-| or_intro1 a C1 C2 M =&gt; getAssumptions _ M
-| or_intro2 a C1 C2 M =&gt; getAssumptions _ M
-| trust a1 a2 C name L =&gt; 
-    getAssumptions _ L
-<span class="kr">end</span>.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">getAssumptionsWithEvidence</span> (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) : list (judgement) := 
-<span class="kr">match</span> p <span class="kr">with</span>
-| hole j =&gt; [(Judgement HoleEvid j)]
-| assume e a C =&gt; [Judgement e (\<span class="bp">by</span> a \<span class="kr">in</span> C)]
-| bot_elim a C M =&gt; getAssumptionsWithEvidence _ M
-| and_intro a C1 C2 L R =&gt; 
-    getAssumptionsWithEvidence _ L ++ getAssumptionsWithEvidence _ R 
-| or_intro1 a C1 C2 M =&gt; getAssumptionsWithEvidence _ M
-| or_intro2 a C1 C2 M =&gt; getAssumptionsWithEvidence _ M
-| trust a1 a2 C name L =&gt; 
-    getAssumptionsWithEvidence _ L
 <span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Close Scope</span> string.</span><span class="alectryon-wsp">
