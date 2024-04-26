@@ -243,17 +243,19 @@ Next Obligation.
 simpl in H2. apply andb_prop in H2. destruct H2. auto.
 Defined.
 
-Program Example apply_example1 : apply_lambda _x_
-                                   (Left (AtomicEvid _x_))
-                                   (AtomicEvid _l_) _ 
-                                 = Left (AtomicEvid _l_).
+Program Example apply_example1 :
+  apply_lambda _x_
+    (Left (AtomicEvid _x_))
+    (AtomicEvid _l_) _ 
+  = Left (AtomicEvid _l_).
 reflexivity.
 Qed.
 
-Program Example apply_example2 : apply_lambda _y_
-                                   (Pair (AtomicEvid _y_) (AtomicEvid _s_))
-                                   (Right (AtomicEvid _l_)) _
-                                 = Pair (Right (AtomicEvid _l_)) (AtomicEvid _s_).
+Program Example apply_example2 : 
+  apply_lambda _y_
+    (Pair (AtomicEvid _y_) (AtomicEvid _s_))
+    (Right (AtomicEvid _l_)) _
+  = Pair (Right (AtomicEvid _l_)) (AtomicEvid _s_).
 reflexivity.
 Qed.
 
