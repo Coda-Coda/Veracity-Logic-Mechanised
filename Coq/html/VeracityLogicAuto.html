@@ -164,25 +164,7 @@
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">judgement</span> :=
   Judgement (e : evid) (jp : judgementPart).</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">judgement</span>.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Class</span> <span class="nf">Beq</span> <span class="nv">A</span> : <span class="kt">Type</span> :=
-  {
-    beq : A -&gt; A -&gt; bool
-  }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicauto-v-chk0" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicauto-v-chk0"><span class="kn">Infix</span> <span class="s2">&quot;=?&quot;</span> := beq : beq_scope.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Declaring a scope implicitly <span class="kr">is</span> deprecated; use <span class="kr">in</span>
-advance an explicit <span class="s2">&quot;Declare Scope beq_scope.&quot;</span>.
-[undeclared-scope,deprecated]</blockquote></div></div></small><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq atomic_evid_name := { beq := atomic_evid_name_beq }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq actor_name := { beq := actor_name_beq }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq claim_name := { beq := claim_name_beq }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq trust_relation_name := { beq := trust_relation_name_beq }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq evid := { beq := evid_beq }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq claim := { beq := claim_beq }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq actor := { beq := actor_beq }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq judgementPart := { beq := judgementPart_beq }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq trustRelation := { beq := trustRelation_beq }.</span><span class="alectryon-wsp">
-</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq judgement := { beq := judgement_beq }.</span></span></pre></div>
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Scheme Equality for</span> <span class="nf">judgement</span>.</span></span></pre></div>
 <div class="section" id="the-central-inductive-definition-of-valid-proof-trees">
 <h1>The central inductive definition of valid proof trees</h1>
 <pre class="alectryon-io highlight"><!-- Generator: Alectryon --><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Inductive</span> <span class="nf">proofTreeOf</span> : judgementPart -&gt; <span class="kt">Type</span> :=
@@ -502,7 +484,7 @@ advance an explicit <span class="s2">&quot;Declare Scope beq_scope.&quot;</span>
   showForProofTree l := showForProofTree_list l
 }.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicauto-v-chk1" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicauto-v-chk1"><span class="kn">Fixpoint</span> <span class="nf">showForNaturalLanguage_list</span> {<span class="nv">A</span>} `{ShowForNaturalLanguage A} (l : list A) :=
+</span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicauto-v-chk0" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicauto-v-chk0"><span class="kn">Fixpoint</span> <span class="nf">showForNaturalLanguage_list</span> {<span class="nv">A</span>} `{ShowForNaturalLanguage A} (l : list A) :=
   <span class="kr">match</span> l <span class="kr">with</span>
     | [] =&gt; <span class="s2">&quot;no items&quot;</span>
     | [h] =&gt; showForNaturalLanguage h
@@ -626,6 +608,24 @@ Use _ or _tl to silence this warning.
 <span class="kr">end</span>.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Close Scope</span> string.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-wsp">
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Class</span> <span class="nf">Beq</span> <span class="nv">A</span> : <span class="kt">Type</span> :=
+  {
+    beq : A -&gt; A -&gt; bool
+  }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><input class="alectryon-toggle" id="veracitylogicauto-v-chk1" style="display: none" type="checkbox"><label class="alectryon-input" for="veracitylogicauto-v-chk1"><span class="kn">Infix</span> <span class="s2">&quot;=?&quot;</span> := beq : beq_scope.</label><small class="alectryon-output"><div><div class="alectryon-messages"><blockquote class="alectryon-message">Declaring a scope implicitly <span class="kr">is</span> deprecated; use <span class="kr">in</span>
+advance an explicit <span class="s2">&quot;Declare Scope beq_scope.&quot;</span>.
+[undeclared-scope,deprecated]</blockquote></div></div></small><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq atomic_evid_name := { beq := atomic_evid_name_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq actor_name := { beq := actor_name_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq claim_name := { beq := claim_name_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq trust_relation_name := { beq := trust_relation_name_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq evid := { beq := evid_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq claim := { beq := claim_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq actor := { beq := actor_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq judgementPart := { beq := judgementPart_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq trustRelation := { beq := trustRelation_beq }.</span><span class="alectryon-wsp">
+</span></span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Instance</span> : Beq judgement := { beq := judgement_beq }.</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
 </span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">removeDups</span> {<span class="nv">A</span>} `{Beq A} (l : list A) : list A :=
 <span class="kr">match</span> l <span class="kr">with</span>
@@ -916,16 +916,21 @@ This will:</p>
      (assume (AtomicEvid _eB_) (Actor _a1_) _|_)]
 : list (proofTreeOf \<span class="bp">by</span> a1 \<span class="kr">in</span> (C /\&#39; C))</blockquote></div></div></small><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
-</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">oneLevelDeeper</span> (<span class="nv">step</span> : <span class="kr">forall</span> <span class="nv">j</span> : judgementPart, list (proofTreeOf j)) (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j) : list (proofTreeOf j) :=
-  <span class="kr">match</span> p <span class="kr">with</span>
+</span><span class="alectryon-sentence"><span class="alectryon-input"><span class="kn">Fixpoint</span> <span class="nf">oneLevelDeeper</span> (<span class="nv">step</span> : <span class="kr">forall</span> <span class="nv">j</span> : judgementPart, list (proofTreeOf j)) (<span class="nv">j</span> : judgementPart) (<span class="nv">p</span> : proofTreeOf j)
+  : list (proofTreeOf j) :=
+<span class="kr">match</span> p <span class="kr">with</span>
 | hole j =&gt; step j
 | assume e a c =&gt; [(assume e a c)]
 | bot_elim a C M =&gt; map (bot_elim a C) (oneLevelDeeper step _ M)
-| and_intro a C1 C2 L R =&gt; map (<span class="kr">fun</span> <span class="nv">L2</span> =&gt; and_intro a C1 C2 L2 R) (oneLevelDeeper step _ L)
-                        ++ map (and_intro a C1 C2 L) (oneLevelDeeper step _ R)
-| or_intro1 a C1 C2 M =&gt; map (or_intro1 a C1 C2) (oneLevelDeeper step _ M)
-| or_intro2 a C1 C2 M =&gt; map (or_intro2 a C1 C2) (oneLevelDeeper step _ M)
-| trust a1 a2 C name L =&gt; map (trust a1 a2 C name) (oneLevelDeeper step _ L)
+| and_intro a C1 C2 L R =&gt; 
+    map (<span class="kr">fun</span> <span class="nv">L2</span> =&gt; and_intro a C1 C2 L2 R) (oneLevelDeeper step _ L)
+    ++ map (and_intro a C1 C2 L) (oneLevelDeeper step _ R)
+| or_intro1 a C1 C2 M =&gt;
+    map (or_intro1 a C1 C2) (oneLevelDeeper step _ M)
+| or_intro2 a C1 C2 M =&gt;
+    map (or_intro2 a C1 C2) (oneLevelDeeper step _ M)
+| trust a1 a2 C name L =&gt;
+    map (trust a1 a2 C name) (oneLevelDeeper step _ L)
 <span class="kr">end</span>
 .</span><span class="alectryon-wsp">
 </span></span><span class="alectryon-wsp">
