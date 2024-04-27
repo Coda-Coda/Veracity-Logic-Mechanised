@@ -252,19 +252,6 @@ match p with
 | trust a1 a2 C name L => computeEvidence _ L
 end.
 
-Fixpoint getAssumptions (j : judgementPart) (p : proofTreeOf j) : list judgementPart := 
-match p with
-| hole _ => []
-| assume e a C => [\by a \in C]
-| bot_elim a C M => getAssumptions _ M
-| and_intro a C1 C2 L R => 
-    getAssumptions _ L ++ getAssumptions _ R 
-| or_intro1 a C1 C2 M => getAssumptions _ M
-| or_intro2 a C1 C2 M => getAssumptions _ M
-| trust a1 a2 C name L => 
-    getAssumptions _ L
-end.
-
 Fixpoint getAssumptionsWithEvidence (j : judgementPart) (p : proofTreeOf j) : list (judgement) := 
 match p with
 | hole j => [(Judgement HoleEvid j)]
