@@ -183,22 +183,6 @@ Inductive judgement :=
 
 Scheme Equality for judgement.
 
-Class Beq A : Type :=
-  {
-    beq : A -> A -> bool
-  }.
-Infix "=?" := beq : beq_scope.
-Instance : Beq atomic_evid_name := { beq := atomic_evid_name_beq }.
-Instance : Beq actor_name := { beq := actor_name_beq }.
-Instance : Beq claim_name := { beq := claim_name_beq }.
-Instance : Beq trust_relation_name := { beq := trust_relation_name_beq }.
-Instance : Beq evid := { beq := evid_beq }.
-Instance : Beq claim := { beq := claim_beq }.
-Instance : Beq actor := { beq := actor_beq }.
-Instance : Beq judgementPart := { beq := judgementPart_beq }.
-Instance : Beq trustRelation := { beq := trustRelation_beq }.
-Instance : Beq judgement := { beq := judgement_beq }.
-
 (*|
 
 The central inductive definition of valid proof trees
@@ -652,6 +636,22 @@ end.
 
 Close Scope string.
 
+Class Beq A : Type :=
+  {
+    beq : A -> A -> bool
+  }.
+Infix "=?" := beq : beq_scope.
+Instance : Beq atomic_evid_name := { beq := atomic_evid_name_beq }.
+Instance : Beq actor_name := { beq := actor_name_beq }.
+Instance : Beq claim_name := { beq := claim_name_beq }.
+Instance : Beq trust_relation_name := { beq := trust_relation_name_beq }.
+Instance : Beq evid := { beq := evid_beq }.
+Instance : Beq claim := { beq := claim_beq }.
+Instance : Beq actor := { beq := actor_beq }.
+Instance : Beq judgementPart := { beq := judgementPart_beq }.
+Instance : Beq trustRelation := { beq := trustRelation_beq }.
+Instance : Beq judgement := { beq := judgement_beq }.
+
 Fixpoint removeDups {A} `{Beq A} (l : list A) : list A :=
 match l with
 | [] => []
@@ -933,16 +933,21 @@ Close Scope beq_scope.
 
 Eval compute in proofStepExample1 (\by a1 \in (C /\' C)).
 
-Fixpoint oneLevelDeeper (step : forall j : judgementPart, list (proofTreeOf j)) (j : judgementPart) (p : proofTreeOf j) : list (proofTreeOf j) :=
-  match p with
+Fixpoint oneLevelDeeper (step : forall j : judgementPart, list (proofTreeOf j)) (j : judgementPart) (p : proofTreeOf j)
+  : list (proofTreeOf j) :=
+match p with
 | hole j => step j
 | assume e a c => [(assume e a c)]
 | bot_elim a C M => map (bot_elim a C) (oneLevelDeeper step _ M)
-| and_intro a C1 C2 L R => map (fun L2 => and_intro a C1 C2 L2 R) (oneLevelDeeper step _ L)
-                        ++ map (and_intro a C1 C2 L) (oneLevelDeeper step _ R)
-| or_intro1 a C1 C2 M => map (or_intro1 a C1 C2) (oneLevelDeeper step _ M)
-| or_intro2 a C1 C2 M => map (or_intro2 a C1 C2) (oneLevelDeeper step _ M)
-| trust a1 a2 C name L => map (trust a1 a2 C name) (oneLevelDeeper step _ L)
+| and_intro a C1 C2 L R => 
+    map (fun L2 => and_intro a C1 C2 L2 R) (oneLevelDeeper step _ L)
+    ++ map (and_intro a C1 C2 L) (oneLevelDeeper step _ R)
+| or_intro1 a C1 C2 M =>
+    map (or_intro1 a C1 C2) (oneLevelDeeper step _ M)
+| or_intro2 a C1 C2 M =>
+    map (or_intro2 a C1 C2) (oneLevelDeeper step _ M)
+| trust a1 a2 C name L =>
+    map (trust a1 a2 C name) (oneLevelDeeper step _ L)
 end
 .
 
