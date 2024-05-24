@@ -49,6 +49,71 @@ Import ListNotations.
 Require Import String.
 Require Import Bool.
 Require Import Program.
+Require Import QArith.
+
+(*|
+
+Printing Rational Numbers
+-------------------------
+
+The following `writeNat` function and those it depends on are used under the MIT License, they are by @arthuraa on GitHub.
+See: https://github.com/arthuraa/poleiro/blob/master/theories/ReadNat.v
+
+|*)
+
+Require Import Coq.Strings.Ascii.
+
+Open Scope char_scope.
+Open Scope nat_scope.
+
+Definition natToDigit (n : nat) : ascii :=
+  match n with
+    | 0 => "0"
+    | 1 => "1"
+    | 2 => "2"
+    | 3 => "3"
+    | 4 => "4"
+    | 5 => "5"
+    | 6 => "6"
+    | 7 => "7"
+    | 8 => "8"
+    | _ => "9"
+  end.
+
+Require Import Coq.Numbers.Natural.Peano.NPeano.
+Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
+  let acc' := String (natToDigit (n mod 10)) acc in
+  match time with
+    | 0 => acc'
+    | S time' =>
+      match n / 10 with
+        | 0 => acc'
+        | n' => writeNatAux time' n' acc'
+      end
+  end.
+
+Definition writeNat (n : nat) : string :=
+  writeNatAux n n "".
+
+Eval compute in writeNat 42.
+
+Close Scope nat_scope.
+
+Eval compute in Qnum 0.5.
+Eval compute in Qden 0.5.
+Eval compute in Qnum (Qred 0.5).
+Eval compute in Qden (Qred 0.5).
+
+Definition writeQ (x : Q) : string :=
+  let simplified := Qred x in
+  let numerator := Qnum simplified in
+  let denominator := Qden simplified in
+  "\frac{" 
+    ++  (writeNat (Z.to_nat numerator)) 
+    ++ "}{" 
+    ++ (writeNat (Pos.to_nat denominator)) ++ "}".
+
+Eval compute in writeQ 0.35.
 
 (*|
 .. coq:: all
