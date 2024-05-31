@@ -470,12 +470,12 @@ Instance : ShowForProofTree atomic_evid_name := {
   showForProofTree n := 
     match n with
       | _e_ => "e"
-      | _e1_ => "e_{1}"
-      | _e2_ => "e_{2}"
-      | _e3_ => "e_{3}"
-      | _e4_ => "e_{4}"
-      | _eQ_ => "e_{?}"
-      | _eB_ => "e_{\bot}"
+      | _e1_ => "e1"
+      | _e2_ => "e2"
+      | _e3_ => "e3"
+      | _e4_ => "e4"
+      | _eQ_ => "e?"
+      | _eB_ => "e\bot"
       | _l_ => "l"
       | _s_ => "s"
       | _c_ => "c"
@@ -489,8 +489,8 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _review_=> "r"
       | _assess_ => "a"
       | _business_procedure_ => "p"
-      | _ingredients_percentage_list_ => "e_{PI}"
-      | _breakdown_of_formulations_list_=> "e_{BF}"
+      | _ingredients_percentage_list_ => "ePI"
+      | _breakdown_of_formulations_list_=> "eBF"
     end
   }.
 
