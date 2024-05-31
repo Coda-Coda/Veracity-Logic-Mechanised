@@ -827,8 +827,8 @@ match p with
 | or_elim1 e1 a C1 C2 Ps M => getWeight _ _ M
 | or_elim2 e2 a C1 C2 Ps M => getWeight _ _ M
 | trust w e a1 a2 C name Ps L => Qred (w * (getWeight _ _ L))
-| impl_intro _ _ _ _ _ _ _ _ _ _ M => 0
-| impl_elim _ _ _ _ _ _ _ _ _ _ _ L R => 0
+| impl_intro _ _ _ _ _ _ _ _ _ _ M => 0 (* Weights involving implication are not yet mechanised properly. *)
+| impl_elim _ _ _ _ _ _ _ _ _ _ _ L R => 0 (* Weights involving implication are not yet mechanised properly. *)
 end.
 
 Fixpoint getAllEvidence (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
