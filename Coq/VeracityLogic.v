@@ -50,6 +50,7 @@ Require Import String.
 Require Import Bool.
 Require Import Program.
 Require Import QArith.
+Require Import QArith.Qminmax.
 
 (*|
 
@@ -104,14 +105,17 @@ Eval compute in Qden 0.5.
 Eval compute in Qnum (Qred 0.5).
 Eval compute in Qden (Qred 0.5).
 
+Open Scope nat_scope.
 Definition writeQ (x : Q) : string :=
   let simplified := Qred x in
-  let numerator := Qnum simplified in
-  let denominator := Qden simplified in
+  let numerator := Z.to_nat (Qnum simplified) in
+  let denominator := Pos.to_nat (Qden simplified) in
+  if (denominator =? 1) then writeNat numerator else
   "\frac{" 
-    ++  (writeNat (Z.to_nat numerator)) 
+    ++  (writeNat numerator) 
     ++ "}{" 
-    ++ (writeNat (Pos.to_nat denominator)) ++ "}".
+    ++ (writeNat denominator) ++ "}".
+Close Scope nat_scope.
 
 Eval compute in writeQ 0.35.
 
@@ -354,7 +358,7 @@ The central inductive definition of valid proof trees
 |*)
 
 Inductive proofTreeOf : list judgement -> judgement -> Type :=
-| assume e a c : proofTreeOf [((AtomicEvid e) \by a \in c)] ((AtomicEvid e) \by a \in c)
+| assume (w : Q) e a c : proofTreeOf [((AtomicEvid e) \by a \in c)] ((AtomicEvid e) \by a \in c)
 
 | bot_elim e a C Ps
 
@@ -406,7 +410,7 @@ Inductive proofTreeOf : list judgement -> judgement -> Type :=
                           :
         proofTreeOf Ps (e2 \by a \in C2)
 
-| trust e a1 a2 C (name : trustRelation) Ps
+| trust (w : Q) e a1 a2 C (name : trustRelation) Ps
 
 (L: proofTreeOf Ps (e \by a2 \in C))
                           :
@@ -456,6 +460,11 @@ Class ShowForLogSeq A : Type :=
   {
     showForLogSeq : A -> string
   }.
+
+
+Instance : ShowForProofTree Q := {
+  showForProofTree := writeQ
+}.
 
 Instance : ShowForProofTree atomic_evid_name := { 
   showForProofTree n := 
@@ -746,10 +755,15 @@ Instance : ShowForLogSeq judgement := {
   end
 }.
 
-Definition showForProofTree_judgement (Ts : list trustRelation) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) :=
-    match Ps with
-      | [] => showForProofTree j
-      | (h :: tl) as Ps => showForProofTree Ps ++ " \vdash_{" ++ showForProofTree Ts ++ "} " ++ (showForProofTree j)
+Definition showForProofTree_judgement (w : Q) (Ts : list trustRelation) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) :=
+let helper w' j :=
+  match j with
+    | Judgement e a c => showForProofTree e ++ "^{" ++ showForProofTree a ++ "}_{" ++ showForProofTree w ++ "} \in "
+                                  ++ showForProofTree c
+  end in
+match Ps with
+      | [] => helper w j
+      | (h :: tl) as Ps => showForProofTree Ps ++ " \vdash_{" ++ showForProofTree Ts ++ "} " ++ helper w j
     end.
 
 Definition showForNaturalLanguage_judgement (Ts : list trustRelation) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) :=
@@ -784,7 +798,7 @@ Definition showForLogSeq_judgement (Ts : list trustRelation) (indent : string) (
 Fixpoint getAllTrustRelationsUsed (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list trustRelation :=
 match p with
-| assume e a C => []
+| assume w e a C => []
 | bot_elim e a C Ps M => getAllTrustRelationsUsed _ _ M
 | and_intro e1 e2 a C1 C2 Ps Qs Rs H L R => 
     getAllTrustRelationsUsed _ _ L ++ getAllTrustRelationsUsed _ _ R 
@@ -794,15 +808,33 @@ match p with
 | or_intro2 e2 a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
 | or_elim1 e1 a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
 | or_elim2 e2 a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
-| trust e a1 a2 C name Ps L => name :: getAllTrustRelationsUsed _ _ L
+| trust w e a1 a2 C name Ps L => name :: getAllTrustRelationsUsed _ _ L
 | impl_intro _ _ _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ _ M
 | impl_elim _ _ _ _ _ _ _ _ _ _ _ L R => getAllTrustRelationsUsed _ _ L ++ getAllTrustRelationsUsed _ _ R 
+end.
+
+Fixpoint getWeight (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
+  : Q :=
+match p with
+| assume w e a C => w
+| bot_elim e a C Ps M => getWeight _ _ M
+| and_intro e1 e2 a C1 C2 Ps Qs Rs H L R => 
+    Qred (Qmin (getWeight _ _ L) (getWeight _ _ R))
+| and_elim1 e1 e2 a C1 C2 Ps M => getWeight _ _ M
+| and_elim2 e1 e2 a C1 C2 Ps M => getWeight _ _ M
+| or_intro1 e1  a C1 C2 Ps M => getWeight _ _ M
+| or_intro2 e2 a C1 C2 Ps M => getWeight _ _ M
+| or_elim1 e1 a C1 C2 Ps M => getWeight _ _ M
+| or_elim2 e2 a C1 C2 Ps M => getWeight _ _ M
+| trust w e a1 a2 C name Ps L => Qred (w * (getWeight _ _ L))
+| impl_intro _ _ _ _ _ _ _ _ _ _ M => 0
+| impl_elim _ _ _ _ _ _ _ _ _ _ _ L R => 0
 end.
 
 Fixpoint getAllEvidence (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list evid :=
 match p with
-| assume e a C => [(AtomicEvid e)]
+| assume w e a C => [(AtomicEvid e)]
 | bot_elim e a C _ M => (getAllEvidence _ _ M)
 | and_intro e1 e2 a C1 C2 _ _ _ _ L R => getAllEvidence _ _ L ++ getAllEvidence _ _ R 
 | and_elim1 e1 e2 a C1 C2 _ M => getAllEvidence _ _ M
@@ -811,7 +843,7 @@ match p with
 | or_intro2 e2 a C1 C2 _ M => getAllEvidence _ _ M
 | or_elim1 e1 a C1 C2 _ M => getAllEvidence _ _ M
 | or_elim2 e2 a C1 C2 _ M => getAllEvidence _ _ M
-| trust e a1 a2 C name _ L => getAllEvidence _ _ L
+| trust w e a1 a2 C name _ L => getAllEvidence _ _ L
 | impl_intro _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ _ M
 | impl_elim _ _ _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ _ M
 end.
@@ -833,62 +865,63 @@ Fixpoint removeDups {A} `{Beq A} (l : list A) : list A :=
 Fixpoint showForProofTree_proofTreeOf_helper (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
+let wComputed := getWeight Ps j p in
 match p with
-| assume e a C => "\AxiomC{$ " 
+| assume w e a C => "\AxiomC{$ " 
              ++ showForProofTree C 
              ++ " \textit{ is a veracity claim} $}"
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
-    ++ showForProofTree_judgement Ts _ _ p ++ " $}"
+    ++ showForProofTree_judgement wComputed Ts _ _ p ++ " $}"
 | bot_elim e a C _ M => showForProofTree_proofTreeOf_helper _ _ M
     ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
-    ++ showForProofTree_judgement Ts _ _ p
+    ++ showForProofTree_judgement wComputed Ts _ _ p
     ++ " $}"
     | and_intro e1 e2 a C1 C2 _ _ _ _ L R => 
     showForProofTree_proofTreeOf_helper _ _ L
  ++ showForProofTree_proofTreeOf_helper _ _ R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p ++ " $}"
+ ++ showForProofTree_judgement wComputed Ts _ _ p ++ " $}"
  | and_elim1 e1 e2 a C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \land^{-1} $} \UnaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p
+ ++ showForProofTree_judgement wComputed Ts _ _ p
  ++ " $}"
 | and_elim2 e1 e2 a C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \land^{-2} $} \UnaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p
+ ++ showForProofTree_judgement wComputed Ts _ _ p
  ++ " $}"
  | or_intro1 e1 a C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \lor^{+1} $} \UnaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p
+ ++ showForProofTree_judgement wComputed Ts _ _ p
  ++ " $}"
 | or_intro2 e2 a C1 C2_ _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \lor^{+2} $} \UnaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p
+ ++ showForProofTree_judgement wComputed Ts _ _ p
  ++ " $}"
  | or_elim1 e1 a C1 C2_ _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \lor^{-1} $} \UnaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p
+ ++ showForProofTree_judgement wComputed Ts _ _ p
  ++ " $}"
 | or_elim2 e2 a C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \lor^{-2} $} \UnaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p
+ ++ showForProofTree_judgement wComputed Ts _ _ p
  ++ " $}"
- | trust e a1 a2 C name _ L => 
+ | trust w e a1 a2 C name _ L => 
     showForProofTree_proofTreeOf_helper _ _ L
  ++ " \AxiomC{$" ++ showForProofTree a1 ++ showForProofTree name ++ showForProofTree a2 ++ "$} "
  ++ " \RightLabel{ $ trust\ " ++ showForProofTree name
  ++ "$} \BinaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p ++ " $}"
+ ++ showForProofTree_judgement wComputed Ts _ _ p ++ " $}"
 | impl_intro e1 e2 a C1 C2 H _ _ _ _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p
+ ++ showForProofTree_judgement wComputed Ts _ _ p
  ++ " $}"
 | impl_elim x bx y a C1 C2 H1 _ _ _ _ L R => 
      showForProofTree_proofTreeOf_helper _ _ L
  ++ showForProofTree_proofTreeOf_helper _ _ R 
  ++ " \RightLabel{ $ \rightarrow^{-} $} \BinaryInfC{$ "
- ++ showForProofTree_judgement Ts _ _ p ++ " $}"
+ ++ showForProofTree_judgement wComputed Ts _ _ p ++ " $}"
 end.
-
+(*
 Fixpoint showForNaturalLanguage_proofTreeOf_helper (indent : string) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
@@ -1036,6 +1069,7 @@ indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ L ++ "
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ R
 end.
+*)
 
 Open Scope string.
 
@@ -1052,7 +1086,7 @@ Definition showForProofTree_proofTreeOf Ps j p
        ++ "\end{prooftree}".
 Instance showForProofTree_proofTreeOf_instance Ps (j : judgement)
   : ShowForProofTree (proofTreeOf Ps j) := { showForProofTree := showForProofTree_proofTreeOf Ps j}.
-
+(*
 Definition showForNaturalLanguage_proofTreeOf Ps j (p : proofTreeOf Ps j) := "
 
 " ++ showForNaturalLanguage_proofTreeOf_helper "- " Ps j p ++ "
@@ -1085,7 +1119,7 @@ let evidenceWithNames := map (fun e => match e with
 ".
 Instance showForLogSeq_proofTreeOf_instance Ps (j : judgement)
   : ShowForLogSeq (proofTreeOf Ps j) := { showForLogSeq := showForLogSeq_proofTreeOf Ps j}.
-
+*)
 Fixpoint showListOfProofTrees {Ps} {j : judgement} (l : list (proofTreeOf Ps j)) :=
     match l with
       | [] => ""
@@ -1097,8 +1131,8 @@ Fixpoint showListOfProofTrees {Ps} {j : judgement} (l : list (proofTreeOf Ps j))
     end.
 
 Instance showForProofTree_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForProofTree (proofTreeOf_wrapped a c) := { showForProofTree p := showForProofTree (_p a c p) }.
-Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped a c) := { showForNaturalLanguage p := showForNaturalLanguage (_p a c p) }.
-Instance showForLogSeq_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForLogSeq (proofTreeOf_wrapped a c) := { showForLogSeq p := showForLogSeq (_p a c p) }.
+(* Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped a c) := { showForNaturalLanguage p := showForNaturalLanguage (_p a c p) }. *)
+(* Instance showForLogSeq_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForLogSeq (proofTreeOf_wrapped a c) := { showForLogSeq p := showForLogSeq (_p a c p) }. *)
 
 Open Scope beq_scope.
 
@@ -1145,7 +1179,7 @@ Definition trustT := Trust _T_.
 Definition trustU := Trust _U_.
 Definition trustV := Trust _V_.
 
-Eval compute in showForProofTree_judgement [] [(e1 \by a1 \in c1)] (e1 \by a1 \in c1) (assume _e1_ a1 c1).
+Eval compute in showForProofTree_judgement 1 [] [(e1 \by a1 \in c1)] (e1 \by a1 \in c1) (assume 1 _e1_ a1 c1).
 
 Definition j1 := x \by P \in c1.
 Definition j2 := y \by P \in c2.
@@ -1160,9 +1194,9 @@ eapply impl_intro with (x:=_y_) (Ps := [j2;j3]) (Qs:=[j3]). 1-3: shelve.
 eapply impl_intro with (x:=_x_) (Ps := [j1;j2;j3]) (Qs:=[j2;j3]). 1-3: shelve.
 eapply and_intro with (Ps := [j1;j2]). shelve.
 eapply and_intro. shelve.
-apply assume with (e := _x_).
-apply assume with (e := _y_).
-apply assume with (e := _z_).
+apply (assume 1) with (e := _x_).
+apply (assume 1) with (e := _y_).
+apply (assume 1) with (e := _z_).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1184,7 +1218,7 @@ Eval compute in (showForLogSeq process_example).
 Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
 eexists [] _.
 eapply (impl_intro _e1_ _ _ _ _ _ _ _ _ _).
-eapply (assume _e1_).
+eapply (assume 1 _e1_).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1212,8 +1246,8 @@ rewrite <- H.
 
 eapply (impl_elim _e1_ e1 e2 a1 C1 C1 _ _ _ _).
 eapply (impl_intro _e1_ _ _ _ _ _ [] _ _ _).
-eapply (assume _e1_).
-eapply (assume _e2_).
+eapply (assume 1 _e1_).
+eapply (assume 1 _e2_).
 Unshelve.
 all: try reflexivity.
 Defined.
@@ -1237,8 +1271,8 @@ Definition and_example : proofTreeOf_wrapped a1 (Implies c1 (c1 /\' c1)).
 eexists []  _.
 eapply (impl_intro _e1_ _ _ _ _ [e1 \by a1 \in c1] _ _ _ _).
 eapply and_intro with (Ps:= [e1 \by a1 \in c1]) (Qs:= [e1 \by a1 \in c1]). reflexivity.
-eapply (assume _e1_).
-eapply (assume _e1_).
+eapply (assume 1 _e1_).
+eapply (assume 1 _e1_).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1264,8 +1298,8 @@ Definition c := AtomicEvid _c_.
 Program Definition concreteProofTreeExampleWith2Conjuncts : 
 proofTreeOf [l \by P \in c1;s \by P \in c2] ({{l, s}} \by P \in (C1 /\' C2)).
 eapply and_intro with (Ps:= [l \by P \in c1]) (Qs:= [s \by P \in c2]). reflexivity.
-apply assume.
-apply assume.
+apply (assume 1).
+apply (assume 1).
 Defined.
 
 (*|
@@ -1286,9 +1320,9 @@ Program Definition concreteProofTreeExampleWith3Conjuncts :
 proofTreeOf [l \by P \in c1;s \by P \in c2;c \by P \in c3] ({{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3)).
 eapply and_intro with (Ps:= [l \by P \in c1;s \by P \in c2]) (Qs:= [c \by P \in c3]). reflexivity.
 eapply and_intro with (Ps:= [l \by P \in c1]) (Qs:= [s \by P \in c2]). reflexivity.
-apply (assume _l_).
-apply (assume _s_).
-apply (assume _c_).
+apply (assume 1 _l_).
+apply (assume 1 _s_).
+apply (assume 1 _c_).
 Defined.
 
 (*|
@@ -1314,7 +1348,7 @@ proofTreeOf [l \by P \in c1;s \by P \in c2;c \by P \in c3] ({{{{l, s}},c}} \by P
 eapply and_intro with (Ps:= [l \by P \in c1;s \by P \in c2]) (Qs:= [c \by P \in c3]). reflexivity.
 exact concreteProofTreeExampleWith2Conjuncts.
 Show Proof.
-apply (assume _c_).
+apply (assume 1 _c_).
 Defined.
 
 
@@ -1334,8 +1368,8 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 
 Program Definition concreteProofTreeExampleTrust : 
 proofTreeOf [e \by a2 \in (c1)] e \by a1 \in (c1).
-eapply (trust _ a1 a2 c1 trustT).
-apply (assume _e_).
+eapply (trust 1 _ a1 a2 c1 trustT).
+apply (assume 1 _e_).
 Defined.
 
 (*|
@@ -1354,7 +1388,7 @@ Eval compute in showForLogSeq concreteProofTreeExampleTrust.
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
 proofTreeOf [l \by P \in c1;s \by P \in c2;c \by P \in c3] ({{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3)).
-eapply (trust _ _ _ _ trustU).
+eapply (trust 1 _ _ _ _ trustU).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
 
@@ -1374,9 +1408,9 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrust.
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
 proofTreeOf [l \by P \in c1;s \by P \in c2;c \by P \in c3] ({{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3)).
-eapply (trust _ Q Q _ trustU).
-eapply (trust _ Q Q _ trustV).
-eapply (trust _ _ _ _ trustU).
+eapply (trust 1 _ Q Q _ trustU).
+eapply (trust 1 _ Q Q _ trustV).
+eapply (trust 1 _ _ _ _ trustU).
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Show Proof.
 Defined.
@@ -1400,7 +1434,7 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAnd
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
 Proof.
 eexists _ _.
-apply (assume _e_ a1).
+apply (assume 1 _e_ a1).
 Defined.
 
 (*|
@@ -1424,7 +1458,7 @@ Proof.
 eexists [] _.
 eapply (impl_intro _eB_ _ a1) with (Ps := [(AtomicEvid _eB_) \by a1 \in _|_]). 1,2,3: shelve.
 apply bot_elim.
-apply (assume _eB_).
+apply (assume 1 _eB_).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1449,7 +1483,7 @@ Proof.
 eexists [] _.
 eapply (impl_intro _eB_ _ a1) with (Ps := [(AtomicEvid _eB_) \by a1 \in _|_]). 1,2,3: shelve.
 apply bot_elim.
-apply (assume _eB_).
+apply (assume 1 _eB_).
 Unshelve.
 all: reflexivity.
 Defined.
