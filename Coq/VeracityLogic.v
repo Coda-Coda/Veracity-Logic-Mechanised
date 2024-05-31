@@ -1101,10 +1101,6 @@ Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (a : actor) (c : cl
 Instance showForLogSeq_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForLogSeq (proofTreeOf_wrapped a c) := { showForLogSeq p := showForLogSeq (_p a c p) }.
 
 Open Scope beq_scope.
-    
-Ltac validateFDef :=
-  try (intros; simpl; autounfold with veracityPrf; simpl; reflexivity);
-  try (simpl; reflexivity).
 
 (*|
 
