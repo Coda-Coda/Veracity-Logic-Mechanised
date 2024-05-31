@@ -1431,6 +1431,31 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWi
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras. 
 
 
+Program Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtrasUsingWeights : 
+proofTreeOf [l \by P \in c1;s \by P \in c2;c \by P \in c3] ({{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3)).
+eapply (trust 0.5 _ Q Q _ trustU).
+eapply (trust 0.5 _ Q Q _ trustV).
+eapply (trust 0.5 _ _ _ _ trustU).
+apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
+Show Proof.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in (showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrustAndExtrasUsingWeights). 
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWithTrustAndExtrasUsingWeights).
+Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAndExtrasUsingWeights. 
+
+
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
 Proof.
 eexists _ _.
