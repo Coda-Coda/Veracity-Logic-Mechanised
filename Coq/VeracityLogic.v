@@ -170,6 +170,7 @@ Inductive actor_name :=
   | _winery_
   | _P_
   | _Q_
+  | _R_
   | _applicant_
   | _certifier_
 .
@@ -507,6 +508,7 @@ Instance : ShowForProofTree actor_name := {
       | _winery_ => "w"
       | _P_ => "P"
       | _Q_ => "Q"
+      | _R_ => "R"
       | _applicant_ => "A"
       | _certifier_ => "C"
     end
@@ -584,6 +586,7 @@ Instance : ShowForNaturalLanguage actor_name := {
       | _winery_ => "winery"
       | _P_ => "Penelope"
       | _Q_ => "Quintin"
+      | _R_ => "Ryan"
       | _applicant_ => "applicant"
       | _certifier_ => "certifier"
     end
@@ -1168,6 +1171,7 @@ Definition y := AtomicEvid _y_.
 Definition z := AtomicEvid _z_.
 Definition P := Actor _P_.
 Definition Q := Actor _Q_.
+Definition R := Actor _R_.
 Definition C1 := AtomicClaim _c1_.
 Definition C2 := AtomicClaim _c2_.
 Definition C3 := AtomicClaim _c3_.
@@ -1454,6 +1458,77 @@ Eval compute in (showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrus
 
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWithTrustAndExtrasUsingWeights).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAndExtrasUsingWeights. 
+
+
+Program Definition star : 
+proofTreeOf [l \by P \in c1] (l \by Q \in C1).
+eapply (trust 0.5  _ Q P _ trustT).
+eapply (assume 1).
+Show Proof.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in (showForProofTree star). 
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage star).
+Eval compute in showForLogSeq star.
+
+Program Definition star2 : 
+proofTreeOf [l \by P \in c1] (l \by R \in C1).
+eapply (trust 0.5  _ R P _ trustT).
+eapply (assume 1).
+Show Proof.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in (showForProofTree star2). 
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage star2).
+Eval compute in showForLogSeq star2.
+
+
+
+Program Definition chain : 
+proofTreeOf [e \by P \in c1] (e \by R \in C1).
+eapply (trust 0.5 _ R Q _ trustT).
+eapply (trust 0.5 _ Q P _ trustT).
+eapply (assume 1).
+Show Proof.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in (showForProofTree chain). 
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage chain).
+Eval compute in showForLogSeq chain.
+
 
 
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
