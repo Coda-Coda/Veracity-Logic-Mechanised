@@ -796,7 +796,7 @@ match p with
 | or_elim2 e2 a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
 | trust e a1 a2 C name Ps L => name :: getAllTrustRelationsUsed _ _ L
 | impl_intro _ _ _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ _ M
-| impl_elim _ _ _ _ _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ _ M
+| impl_elim _ _ _ _ _ _ _ _ _ _ _ L R => getAllTrustRelationsUsed _ _ L ++ getAllTrustRelationsUsed _ _ R 
 end.
 
 Fixpoint getAllEvidence (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
