@@ -203,7 +203,7 @@ Scheme Equality for claim_name.
 
 Inductive trust_relation_name :=
   | _A_Trust_
-  | _U_Trust_
+  | _B_Trust_
   | _V_Trust_
 .
 
@@ -547,7 +547,7 @@ Instance : ShowForProofTree trust_relation_name := {
   showForProofTree n := 
     match n with
       | _A_Trust_ => "A"
-      | _U_Trust_ => "U"
+      | _B_Trust_ => "B"
       | _V_Trust_ => "V"
     end
   }.
@@ -631,7 +631,7 @@ Instance : ShowForNaturalLanguage trust_relation_name := {
   showForNaturalLanguage n := 
     match n with
       | _A_Trust_ => "trust relation T"
-      | _U_Trust_ => "trust relation U"
+      | _B_Trust_ => "trust relation U"
       | _V_Trust_ => "trust relation V"
     end
   }.
@@ -1196,7 +1196,7 @@ Definition C5 := AtomicClaim _c5_.
 
 
 Definition trustT := Trust _A_Trust_.
-Definition trustU := Trust _U_Trust_.
+Definition trustU := Trust _B_Trust_.
 Definition trustV := Trust _V_Trust_.
 
 Eval compute in showForProofTree_judgement 1 [] [(e1 \by a1 \in c1)] (e1 \by a1 \in c1) (assume 1 _e1_ a1 c1).
@@ -1570,6 +1570,17 @@ eapply (assume 1).
 Show Proof.
 Defined.
 
+Program Definition chainWithAnd : 
+proofTreeOf [e1 \by P \in c1; e2 \by Q \in c2] ({{e1,e2}} \by S \in (C1 /\' C2)).
+eapply and_intro with (Ps := [e1 \by P \in c1]) (Qs := [e2 \by Q \in c2]). reflexivity.
+eapply (trust 0.5 _ S Q _ trustU).
+eapply (trust 0.5 _ Q P _ trustT).
+eapply (assume 1).
+eapply (trust 0.5 _ S Q _ trustU).
+eapply (assume 1).
+Show Proof.
+Defined.
+
 (*|
 .. coq:: unfold
    :class: coq-math
@@ -1577,6 +1588,7 @@ Defined.
 
 
 Eval compute in (showForProofTree chain). 
+Eval compute in (showForProofTree chainWithAnd). 
 
 (*|
 .. coq::
