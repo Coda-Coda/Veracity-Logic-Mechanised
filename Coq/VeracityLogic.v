@@ -171,6 +171,10 @@ Inductive actor_name :=
   | _P_
   | _Q_
   | _R_
+  | _S_
+  | _T_
+  | _U_
+  | _L_
   | _applicant_
   | _certifier_
 .
@@ -198,9 +202,9 @@ Inductive claim_name :=
 Scheme Equality for claim_name.
 
 Inductive trust_relation_name :=
-  | _T_
-  | _U_
-  | _V_
+  | _A_Trust_
+  | _U_Trust_
+  | _V_Trust_
 .
 
 Scheme Equality for trust_relation_name.
@@ -509,6 +513,10 @@ Instance : ShowForProofTree actor_name := {
       | _P_ => "P"
       | _Q_ => "Q"
       | _R_ => "R"
+      | _S_ => "S"
+      | _T_ => "T"
+      | _U_ => "U"
+      | _L_ => "L"
       | _applicant_ => "A"
       | _certifier_ => "C"
     end
@@ -538,9 +546,9 @@ Instance : ShowForProofTree claim_name := {
 Instance : ShowForProofTree trust_relation_name := { 
   showForProofTree n := 
     match n with
-      | _T_ => "T"
-      | _U_ => "U"
-      | _V_ => "V"
+      | _A_Trust_ => "A"
+      | _U_Trust_ => "U"
+      | _V_Trust_ => "V"
     end
   }.
 
@@ -587,6 +595,10 @@ Instance : ShowForNaturalLanguage actor_name := {
       | _P_ => "Penelope"
       | _Q_ => "Quintin"
       | _R_ => "Ryan"
+      | _S_ => "Samantha"
+      | _T_ => "Tom"
+      | _U_ => "Ulysses"
+      | _L_ => "Ledger"
       | _applicant_ => "applicant"
       | _certifier_ => "certifier"
     end
@@ -618,9 +630,9 @@ Instance : ShowForLogSeq claim_name := {showForLogSeq := showForNaturalLanguage}
 Instance : ShowForNaturalLanguage trust_relation_name := { 
   showForNaturalLanguage n := 
     match n with
-      | _T_ => "trust relation T"
-      | _U_ => "trust relation U"
-      | _V_ => "trust relation V"
+      | _A_Trust_ => "trust relation T"
+      | _U_Trust_ => "trust relation U"
+      | _V_Trust_ => "trust relation V"
     end
   }.
 Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
@@ -910,7 +922,7 @@ match p with
  ++ " $}"
  | trust w e a1 a2 C name _ L => 
     showForProofTree_proofTreeOf_helper _ _ L
- ++ " \AxiomC{$" ++ showForProofTree a1 ++ showForProofTree name ++ showForProofTree a2 ++ "$} "
+ ++ " \AxiomC{$" ++ showForProofTree a1 ++ "~trusts~" ++ showForProofTree a2 ++ "$} "
  ++ " \RightLabel{ $ trust\ " ++ showForProofTree name
  ++ "$} \BinaryInfC{$ "
  ++ showForProofTree_judgement wComputed Ts _ _ p ++ " $}"
@@ -1172,6 +1184,10 @@ Definition z := AtomicEvid _z_.
 Definition P := Actor _P_.
 Definition Q := Actor _Q_.
 Definition R := Actor _R_.
+Definition S := Actor _S_.
+Definition T := Actor _T_.
+Definition U := Actor _U_.
+Definition L := Actor _L_.
 Definition C1 := AtomicClaim _c1_.
 Definition C2 := AtomicClaim _c2_.
 Definition C3 := AtomicClaim _c3_.
@@ -1179,9 +1195,9 @@ Definition C4 := AtomicClaim _c4_.
 Definition C5 := AtomicClaim _c5_.
 
 
-Definition trustT := Trust _T_.
-Definition trustU := Trust _U_.
-Definition trustV := Trust _V_.
+Definition trustT := Trust _A_Trust_.
+Definition trustU := Trust _U_Trust_.
+Definition trustV := Trust _V_Trust_.
 
 Eval compute in showForProofTree_judgement 1 [] [(e1 \by a1 \in c1)] (e1 \by a1 \in c1) (assume 1 _e1_ a1 c1).
 
@@ -1460,9 +1476,44 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWi
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAndExtrasUsingWeights. 
 
 
-Program Definition star : 
-proofTreeOf [l \by P \in c1] (l \by Q \in C1).
-eapply (trust 0.5  _ Q P _ trustT).
+Program Definition starP : 
+proofTreeOf [l \by L \in c1] (l \by P \in C1).
+eapply (trust (1 # 3)  _ P L _ trustT).
+eapply (assume 1).
+Show Proof.
+Defined.
+
+Program Definition starQ : 
+proofTreeOf [l \by L \in c1] (l \by Q \in C1).
+eapply (trust (1 # 3)  _ Q L _ trustT).
+eapply (assume 1).
+Show Proof.
+Defined.
+
+Program Definition starR : 
+proofTreeOf [l \by L \in c1] (l \by R \in C1).
+eapply (trust (1 # 3)  _ R L _ trustT).
+eapply (assume 1).
+Show Proof.
+Defined.
+
+Program Definition starS : 
+proofTreeOf [l \by L \in c1] (l \by S \in C1).
+eapply (trust (1 # 3)  _ S L _ trustT).
+eapply (assume 1).
+Show Proof.
+Defined.
+
+Program Definition starT : 
+proofTreeOf [l \by L \in c1] (l \by T \in C1).
+eapply (trust (1 # 3)  _ T L _ trustT).
+eapply (assume 1).
+Show Proof.
+Defined.
+
+Program Definition starU : 
+proofTreeOf [l \by L \in c1] (l \by U \in C1).
+eapply (trust (1 # 3)  _ U L _ trustT).
 eapply (assume 1).
 Show Proof.
 Defined.
@@ -1473,14 +1524,16 @@ Defined.
 |*)
 
 
-Eval compute in (showForProofTree star). 
+Eval compute in (showForProofTree starP).
+Eval compute in (showForProofTree starQ).
+Eval compute in (showForProofTree starR).
+Eval compute in (showForProofTree starS).
+Eval compute in (showForProofTree starT).
+Eval compute in (showForProofTree starU).
 
 (*|
 .. coq::
 |*)
-
-Eval compute in (showForNaturalLanguage star).
-Eval compute in showForLogSeq star.
 
 Program Definition star2 : 
 proofTreeOf [l \by P \in c1] (l \by R \in C1).
@@ -1507,7 +1560,10 @@ Eval compute in showForLogSeq star2.
 
 
 Program Definition chain : 
-proofTreeOf [e \by P \in c1] (e \by R \in C1).
+proofTreeOf [e \by P \in c1] (e \by U \in C1).
+eapply (trust 0.5 _ U T _ trustT).
+eapply (trust 0.5 _ T S _ trustT).
+eapply (trust 0.5 _ S R _ trustT).
 eapply (trust 0.5 _ R Q _ trustT).
 eapply (trust 0.5 _ Q P _ trustT).
 eapply (assume 1).
