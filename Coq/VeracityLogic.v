@@ -1063,7 +1063,7 @@ Instance showForNaturalLanguage_proofTreeOf_instance Ps (j : judgement)
 
 Definition printProofTitle j :=
 match j with
-| Judgement e a c => "### Veracity proof that " ++ showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence " ++ showForLogSeq e
+| Judgement e a c => "### Veracity proof that " ++ showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence $" ++ showForLogSeq e ++ "$"
 end.
 
 Instance : ShowForLogSeq string := { showForLogSeq := id}.
