@@ -471,6 +471,10 @@ Instance : ShowForProofTree Q := {
   showForProofTree := writeQ
 }.
 
+Instance : ShowForLogSeq Q := {
+  showForLogSeq := writeQ
+}.
+
 Instance : ShowForProofTree atomic_evid_name := { 
   showForProofTree n := 
     match n with
@@ -593,7 +597,7 @@ Instance : ShowForNaturalLanguage actor_name := {
       | _vineyard_ => "vineyard"
       | _winery_ => "winery"
       | _P_ => "Penelope"
-      | _Q_ => "Quintin"
+      | _Q_ => "Quentin"
       | _R_ => "Ryan"
       | _S_ => "Samantha"
       | _T_ => "Tom"
@@ -770,6 +774,11 @@ Instance : ShowForLogSeq judgement := {
   end
 }.
 
+Definition ShowForLogSeq_judgement_with_weight (w : Q) j := 
+  match j with
+  | Judgement e a c => showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence $" ++ showForLogSeq e ++ "$" ++ " with weight $" ++ showForLogSeq w ++ "$"
+  end.
+
 Definition showForProofTree_judgement (w : Q) (Ts : list trustRelation) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) :=
 let helper w' j :=
   match j with
@@ -787,20 +796,20 @@ Definition showForNaturalLanguage_judgement (Ts : list trustRelation) (Ps : list
     | (h :: tl) as Ps => "Assuming " ++ showForNaturalLanguage Ps ++ " then " ++ showForNaturalLanguage j
   end.
 
-Definition showForLogSeq_judgement (Ts : list trustRelation) (indent : string) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) :=
+Definition showForLogSeq_judgement (w : Q) (Ts : list trustRelation) (indent : string) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) :=
   match Ps,Ts with
-        | [],[] => showForLogSeq j
-        | (h :: tl),[] => showForLogSeq j ++ "
+        | [],[] => ShowForLogSeq_judgement_with_weight w j
+        | (h :: tl),[] => ShowForLogSeq_judgement_with_weight w j ++ "
 " ++ indent ++ "collapsed:: true
 " ++ indent ++ "- " ++ "Assumptions made:
 " ++ indent ++ "  collapsed:: true
 " ++ showForLogSeq_list ("  " ++ indent) Ps
-        | [],(h :: tl) => showForLogSeq j ++ "
+        | [],(h :: tl) => ShowForLogSeq_judgement_with_weight w j ++ "
 " ++ indent ++ "collapsed:: true
 " ++ indent ++ "- " ++ "Trust relations used:
 " ++ indent ++ "  collapsed:: true
 " ++ showForLogSeq_list ("  " ++ indent) Ts
-        | (h :: tl),(h2::tl2) => showForLogSeq j ++ "
+        | (h :: tl),(h2::tl2) => ShowForLogSeq_judgement_with_weight w j ++ "
 " ++ indent ++ "collapsed:: true
 " ++ indent ++ "- " ++ "Assumptions made:
 " ++ indent ++ "  collapsed:: true
@@ -1018,73 +1027,74 @@ indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 "
 ++ indent ++ "by a logical rule for implication."
 end.
+*)
 
 Fixpoint showForLogSeq_proofTreeOf_helper (indent : string) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
+let wComputed := getWeight Ps j p in
 match p with
-| assume e a C => 
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+| assume w e a C => 
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: we assume this"
 | bot_elim e a C _ M =>
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: the principle of explosion
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
 | and_intro e1 e2 a C1 C2 _ _ _ _ L R => 
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and introduction
     " ++ indent ++ "- " ++ "Sub-proofs:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ L ++ "
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ R
 | and_elim1 e1 e2 a C1 C2 _ M =>
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and elimination (1)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
 | and_elim2 e1 e2 a C1 C2 _ M => 
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and elimination (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
 | or_intro1 e1 a C1 C2 _ M =>
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or introduction (1)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
 | or_intro2 e2 a C1 C2 _ M =>
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or introduction (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
 | or_elim1 e1 a C1 C2 _ M =>
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or elimination (1)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
 | or_elim2 e2 a C1 C2 _ M => 
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or elimination (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
-| trust e a1 a2 C name _ L => 
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+| trust w e a1 a2 C name _ L => 
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: trust, with relation " ++ showForLogSeq name ++ "
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ L
 | impl_intro _ _ _ _ _ _ _ _ _ _ M => 
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication introduction
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
 | impl_elim _ _ _ _  _ _ _ _ _ _ _ L R => 
-indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
+indent ++ "- " ++ showForLogSeq_judgement wComputed Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication elimination
     " ++ indent ++ "- " ++ "Sub-proofs:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ L ++ "
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ R
 end.
-*)
 
 Open Scope string.
 
@@ -1109,15 +1119,16 @@ Definition showForNaturalLanguage_proofTreeOf Ps j (p : proofTreeOf Ps j) := "
 ".
 Instance showForNaturalLanguage_proofTreeOf_instance Ps (j : judgement)
   : ShowForNaturalLanguage (proofTreeOf Ps j) := { showForNaturalLanguage := showForNaturalLanguage_proofTreeOf Ps j}.
-
-Definition printProofTitle j :=
+*)
+Definition printProofTitle w j :=
 match j with
-| Judgement e a c => "### Veracity proof that " ++ showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence " ++ showForLogSeq e
+| Judgement e a c => "### Veracity proof that " ++ showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence $" ++ showForLogSeq e ++ "$ with weight $" ++ writeQ w ++ "$"
 end.
 
 Instance : ShowForLogSeq string := { showForLogSeq := id}.
 
 Definition showForLogSeq_proofTreeOf Ps j (p : proofTreeOf Ps j) := 
+let wComputed := getWeight Ps j p in
 let evidenceList := (removeDups (filter isAtomicEvidence (getAllEvidence Ps j p))) in
 let evidenceWithNames := map (fun e => match e with
                                    | AtomicEvid n => showForLogSeq e ++ " = " ++ showForLogSeq n
@@ -1125,7 +1136,7 @@ let evidenceWithNames := map (fun e => match e with
                                    end) evidenceList in
 "
 
-" ++ printProofTitle j ++ "
+" ++ printProofTitle wComputed j ++ "
 " ++ showForLogSeq_proofTreeOf_helper "  " Ps j p ++ "
   - Atomic evidence is abbreviated as follows:
     collapsed:: true
@@ -1134,7 +1145,7 @@ let evidenceWithNames := map (fun e => match e with
 ".
 Instance showForLogSeq_proofTreeOf_instance Ps (j : judgement)
   : ShowForLogSeq (proofTreeOf Ps j) := { showForLogSeq := showForLogSeq_proofTreeOf Ps j}.
-*)
+
 Fixpoint showListOfProofTrees {Ps} {j : judgement} (l : list (proofTreeOf Ps j)) :=
     match l with
       | [] => ""
@@ -1147,7 +1158,7 @@ Fixpoint showListOfProofTrees {Ps} {j : judgement} (l : list (proofTreeOf Ps j))
 
 Instance showForProofTree_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForProofTree (proofTreeOf_wrapped a c) := { showForProofTree p := showForProofTree (_p a c p) }.
 (* Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped a c) := { showForNaturalLanguage p := showForNaturalLanguage (_p a c p) }. *)
-(* Instance showForLogSeq_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForLogSeq (proofTreeOf_wrapped a c) := { showForLogSeq p := showForLogSeq (_p a c p) }. *)
+Instance showForLogSeq_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForLogSeq (proofTreeOf_wrapped a c) := { showForLogSeq p := showForLogSeq (_p a c p) }.
 
 Open Scope beq_scope.
 
@@ -1535,6 +1546,13 @@ Eval compute in (showForProofTree starU).
 .. coq::
 |*)
 
+Eval compute in (showForLogSeq starP).
+Eval compute in (showForLogSeq starQ).
+Eval compute in (showForLogSeq starR).
+Eval compute in (showForLogSeq starS).
+Eval compute in (showForLogSeq starT).
+Eval compute in (showForLogSeq starU).
+
 Program Definition star2 : 
 proofTreeOf [l \by P \in c1] (l \by R \in C1).
 eapply (trust 0.5  _ R P _ trustT).
@@ -1593,6 +1611,9 @@ Eval compute in (showForProofTree chainWithAnd).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showForLogSeq chain). 
+Eval compute in (showForLogSeq chainWithAnd). 
 
 Eval compute in (showForNaturalLanguage chain).
 Eval compute in showForLogSeq chain.
