@@ -50,6 +50,7 @@ Require Import String.
 Require Import Bool.
 Require Import Program.
 Require Import QArith.
+Require Import QArith.Qminmax.
 
 (*|
 
@@ -221,7 +222,7 @@ Inductive evid :=
   | Pair (e1 e2: evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
-  | Lambda (x : atomic_evid_name) (bx : evid).
+  | Lambda (x : atomic_evid_name) (required_weight : Q) (bx : evid).
 
 Scheme Equality for evid.
 
@@ -237,11 +238,11 @@ Inductive trustRelation :=
 Scheme Equality for trustRelation.
 
 Inductive judgement :=
-  Judgement (e : evid) (a : actor) (c: claim).
+  Judgement (e : evid) (a : actor) (w : Q) (c: claim).
 
 Scheme Equality for judgement.
 
-Notation "E \by A \in C" := (Judgement E A C) (at level 2).
+Notation "E \by A @ W \in C" := (Judgement E A W C) (at level 2).
 Infix "/\'" := And (at level 81, left associativity).
 Infix "\/'" := Or (at level 86, left associativity). 
 Infix "->'" := Implies (at level 99, right associativity).
@@ -287,7 +288,7 @@ match bx with
   | Pair e1 e2 => notUsedInInnerLambda x e1 && notUsedInInnerLambda x e2
   | Left e => notUsedInInnerLambda x e
   | Right e => notUsedInInnerLambda x e
-  | Lambda x' bx' => (negb (x =? x')) && notUsedInInnerLambda x bx'
+  | Lambda x' _ bx' => (negb (x =? x')) && notUsedInInnerLambda x bx'
 end.
 
 Program Fixpoint apply_lambda (x : atomic_evid_name) (bx : evid) (a : evid) (H2 : notUsedInInnerLambda x bx = true) : evid := 
@@ -296,7 +297,7 @@ Program Fixpoint apply_lambda (x : atomic_evid_name) (bx : evid) (a : evid) (H2 
   | Pair e1 e2 => Pair (apply_lambda x e1 a _) (apply_lambda x e2 a _)
   | Left e => Left (apply_lambda x e a _)
   | Right e => Right (apply_lambda x e a _)
-  | Lambda x' bx' => Lambda x' (apply_lambda x bx' a _)
+  | Lambda x' w bx' => Lambda x' w (apply_lambda x bx' a _)
 end.
 Next Obligation.
 simpl in H2. apply andb_prop in H2. destruct H2. auto.
@@ -354,80 +355,82 @@ The central inductive definition of valid proof trees
 |*)
 
 Inductive proofTreeOf : list judgement -> judgement -> Type :=
-| assume e a c : proofTreeOf [((AtomicEvid e) \by a \in c)] ((AtomicEvid e) \by a \in c)
+| assume e a w c : proofTreeOf [((AtomicEvid e) \by a @ w \in c)] ((AtomicEvid e) \by a @ w \in c)
 
-| bot_elim e a C Ps
+| bot_elim e a w C Ps
 
-        (M : proofTreeOf Ps (e \by a \in _|_))
+        (M : proofTreeOf Ps (e \by a @ w \in _|_))
                            :
-             proofTreeOf Ps (e \by a \in C)
+             proofTreeOf Ps (e \by a @ w \in C)
 
-| and_intro e1 e2 a C1 C2 Ps Qs Rs
+| and_intro e1 e2 a w1 w2 w3 C1 C2 Ps Qs Rs
          (H : Ps ++ Qs ==? Rs = true)
+         (HWeights : w3 = Qmin w1 w2)
 
-(L: proofTreeOf Ps (e1 \by a \in C1))
-                           (R: proofTreeOf Qs (e2 \by a \in C2))
+(L: proofTreeOf Ps (e1 \by a @ w1 \in C1))
+                           (R: proofTreeOf Qs (e2 \by a @ w2 \in C2))
                         :
-    proofTreeOf Rs ({{e1, e2}} \by a \in (C1 /\' C2))
+    proofTreeOf Rs ({{e1, e2}} \by a @ w3 \in (C1 /\' C2))
 
-| and_elim1 e1 e2 a C1 C2 Ps
+| and_elim1 e1 e2 a w C1 C2 Ps
 
-    (M : proofTreeOf Ps ({{e1, e2}} \by a \in (C1 /\' C2)))
+    (M : proofTreeOf Ps ({{e1, e2}} \by a @ w \in (C1 /\' C2)))
                            :
-             proofTreeOf Ps (e1 \by a \in C1)
+             proofTreeOf Ps (e1 \by a @ w \in C1)
 
-| and_elim2 e1 e2 a C1 C2 Ps
+| and_elim2 e1 e2 a w C1 C2 Ps
 
-    (M : proofTreeOf Ps ({{e1, e2}} \by a \in (C1 /\' C2)))
+    (M : proofTreeOf Ps ({{e1, e2}} \by a @ w \in (C1 /\' C2)))
                           :
-        proofTreeOf Ps (e2 \by a \in C2)
+        proofTreeOf Ps (e2 \by a @ w \in C2)
 
-| or_intro1 e1 a C1 C2 Ps
+| or_intro1 e1 a w C1 C2 Ps
 
-           (M: proofTreeOf Ps (e1 \by a \in C1))
+           (M: proofTreeOf Ps (e1 \by a @ w \in C1))
                           :
-    proofTreeOf Ps ((Left e1) \by a \in (C1 \/' C2))
+    proofTreeOf Ps ((Left e1) \by a @ w \in (C1 \/' C2))
 
-| or_intro2 e2 a C1 C2 Ps
+| or_intro2 e2 a w C1 C2 Ps
 
-           (M: proofTreeOf Ps (e2 \by a \in C2))
+           (M: proofTreeOf Ps (e2 \by a @ w \in C2))
                           :
-    proofTreeOf Ps ((Right e2) \by a \in (C1 \/' C2))
+    proofTreeOf Ps ((Right e2) \by a @ w \in (C1 \/' C2))
 
-| or_elim1 e1 a C1 C2 Ps
+| or_elim1 e1 a w C1 C2 Ps
 
-    (M: proofTreeOf Ps ((Left e1) \by a \in (C1 \/' C2)))
+    (M: proofTreeOf Ps ((Left e1) \by a @ w \in (C1 \/' C2)))
                         :
-      proofTreeOf Ps (e1 \by a \in C1)
+      proofTreeOf Ps (e1 \by a @ w \in C1)
 
-| or_elim2 e2 a C1 C2 Ps
+| or_elim2 e2 a w C1 C2 Ps
 
-    (M : proofTreeOf Ps ((Right e2) \by a \in (C1 \/' C2)))
+    (M : proofTreeOf Ps ((Right e2) \by a @ w \in (C1 \/' C2)))
                           :
-        proofTreeOf Ps (e2 \by a \in C2)
+        proofTreeOf Ps (e2 \by a @ w \in C2)
 
-| trust e a1 a2 C (name : trustRelation) Ps
+| trust e a1 a2 wTrust w1 w2 C (name : trustRelation) Ps
+                    (HWeights : w2 = w1 * wTrust)
 
-(L: proofTreeOf Ps (e \by a2 \in C))
+(L: proofTreeOf Ps (e \by a2 @ w1 \in C))
                           :
-            proofTreeOf Ps (e \by a1 \in C)
+            proofTreeOf Ps (e \by a1 @ w2 \in C)
 
-| impl_intro (x : atomic_evid_name) (bx : evid) a (C1 : claim) C2 Ps Qs
+| impl_intro (x : atomic_evid_name) (bx : evid) a w1 w2 (C1 : claim) C2 Ps Qs
                     (H1 : notUsedInInnerLambda x bx = true)
-                 (H2 : contains ((AtomicEvid x) \by a \in C1) Ps = true)
-                 (H3 : remove judgement_eq_dec ((AtomicEvid x) \by a \in C1) Ps ==? Qs = true)
+                 (H2 : contains ((AtomicEvid x) \by a @ w1 \in C1) Ps = true)
+                 (H3 : remove judgement_eq_dec ((AtomicEvid x) \by a @ w1 \in C1) Ps ==? Qs = true)
 
-              (M: proofTreeOf Ps (bx \by a \in C2))
+              (M: proofTreeOf Ps (bx \by a @ w2 \in C2))
                               :
-   proofTreeOf Qs ((Lambda x bx) \by a \in (Implies C1 C2))
-| impl_elim x bx y a C1 C2 Ps Qs Rs
+   proofTreeOf Qs ((Lambda x w1 bx) \by a @ w2 \in (Implies C1 C2))
+| impl_elim x bx y a w1 w2 C1 C2 Ps Qs Rs
                     (H1 : Ps ++ Qs ==? Rs = true)
                (H2 : notUsedInInnerLambda x bx = true)                
                 
-(L: proofTreeOf Ps ((Lambda x bx) \by a \in (Implies C1 C2)))
-                           (R: proofTreeOf Qs (y \by a \in C1))
+(L: proofTreeOf Ps ((Lambda x w1 bx) \by a @ w2 \in (Implies C1 C2)))
+                           (R: proofTreeOf Qs (y \by a @ w1 \in C1))
                         :
-    proofTreeOf Rs ((apply_lambda x bx y H2) \by a \in C2)
+    proofTreeOf Rs ((apply_lambda x bx y H2) \by a @ w2 \in C2)
 .
 
 Record proofTreeOf_wrapped (a : actor) (c : claim) := {
