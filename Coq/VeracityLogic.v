@@ -105,15 +105,17 @@ Eval compute in Qden 0.5.
 Eval compute in Qnum (Qred 0.5).
 Eval compute in Qden (Qred 0.5).
 
+Open Scope nat_scope.
 Definition writeQ (x : Q) : string :=
   let simplified := Qred x in
-  let numerator := Qnum simplified in
-  let denominator := Qden simplified in
+  let numerator := Z.to_nat (Qnum simplified) in
+  let denominator := Pos.to_nat (Qden simplified) in
+  if (denominator =? 1) then writeNat numerator else
   "\frac{" 
-    ++  (writeNat (Z.to_nat numerator)) 
+    ++  (writeNat numerator) 
     ++ "}{" 
-    ++ (writeNat (Pos.to_nat denominator)) ++ "}".
-
+    ++ (writeNat denominator) ++ "}".
+Close Scope nat_scope.
 Eval compute in writeQ 0.35.
 
 (*|
