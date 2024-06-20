@@ -905,8 +905,8 @@ match p with
  ++ " $}"
 | trust e a1 a2 wTrust w1 w2 C name _ _ L => 
     showForProofTree_proofTreeOf_helper _ _ L
- ++ " \AxiomC{$" ++ showForProofTree a1 ++ showForProofTree name ++ "_{" ++ showForProofTree wTrust ++ "}" ++ showForProofTree a2 ++ "$} "
- ++ " \RightLabel{ $ trust\ " ++ showForProofTree name
+ ++ " \AxiomC{$" ++ showForProofTree a1 ++ showForProofTree name ++ showForProofTree a2 ++ "$} "
+ ++ " \RightLabel{ $ trust\ " ++ showForProofTree name ++ "\ (" ++ showForProofTree wTrust ++ ")"
  ++ "$} \BinaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p ++ " $}"
 | impl_intro e1 e2 a w1 w2 C1 C2 H _ _ _ _ M => showForProofTree_proofTreeOf_helper _ _ M
