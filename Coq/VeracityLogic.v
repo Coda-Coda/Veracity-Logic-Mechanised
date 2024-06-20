@@ -885,7 +885,7 @@ match p with
 | trust e a1 a2 wTrust w1 w2 C name _ _ L => 
     showForProofTree_proofTreeOf_helper _ _ L
  ++ " \AxiomC{$" ++ showForProofTree a1 ++ showForProofTree name ++ showForProofTree a2 ++ "$} "
- ++ " \RightLabel{ $ trust\ " ++ showForProofTree name
+ ++ " \RightLabel{ $ trust_{" ++ showForProofTree wTrust ++ "}\ " ++ showForProofTree name
  ++ "$} \BinaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p ++ " $}"
 | impl_intro e1 e2 a w1 w2 C1 C2 H _ _ _ _ M => showForProofTree_proofTreeOf_helper _ _ M
@@ -964,7 +964,7 @@ indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ L ++ "
 "
-++ indent ++ "by the trust relation " ++ showForNaturalLanguage name ++ "."
+++ indent ++ "by the trust relation " ++ showForNaturalLanguage name ++ " with weight $" ++ showForNaturalLanguage wTrust ++ "$."
 | impl_intro _ _ _ _ _ _ _ _ _ _ _ _ M => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
@@ -1031,7 +1031,7 @@ indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
 | trust e a1 a2 wTrust w1 w2 C name _ _ L => 
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
-  " ++ indent ++ "- " ++ "Logical rule used: trust, with relation " ++ showForLogSeq name ++ "
+  " ++ indent ++ "- " ++ "Logical rule used: trust, with relation " ++ showForLogSeq name ++ " with weight $" ++ showForLogSeq wTrust ++ "$
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ L
 | impl_intro _ _ _ _ _ _ _ _ _ _ _ _ M => 
