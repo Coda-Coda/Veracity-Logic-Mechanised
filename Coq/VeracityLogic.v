@@ -169,6 +169,11 @@ Inductive actor_name :=
   | _winery_
   | _P_
   | _Q_
+  | _R_
+  | _S_
+  | _T_
+  | _U_
+  | _L_
   | _applicant_
   | _certifier_
 .
@@ -196,9 +201,11 @@ Inductive claim_name :=
 Scheme Equality for claim_name.
 
 Inductive trust_relation_name :=
-  | _T_
-  | _U_
-  | _V_
+  | _A_Trust_
+  | _B_Trust_
+  | _T_Trust_
+  | _U_Trust_
+  | _V_Trust_
 .
 
 Scheme Equality for trust_relation_name.
@@ -508,6 +515,11 @@ Instance : ShowForProofTree actor_name := {
       | _winery_ => "w"
       | _P_ => "P"
       | _Q_ => "Q"
+      | _R_ => "R"
+      | _S_ => "S"
+      | _T_ => "T"
+      | _U_ => "U"
+      | _L_ => "L"
       | _applicant_ => "A"
       | _certifier_ => "C"
     end
@@ -537,9 +549,11 @@ Instance : ShowForProofTree claim_name := {
 Instance : ShowForProofTree trust_relation_name := { 
   showForProofTree n := 
     match n with
-      | _T_ => "T"
-      | _U_ => "U"
-      | _V_ => "V"
+      | _A_Trust_ => "A"
+      | _B_Trust_ => "B"
+      | _T_Trust_ => "T"
+      | _U_Trust_ => "U"
+      | _V_Trust_ => "V"
     end
   }.
 
@@ -584,7 +598,12 @@ Instance : ShowForNaturalLanguage actor_name := {
       | _vineyard_ => "vineyard"
       | _winery_ => "winery"
       | _P_ => "Penelope"
-      | _Q_ => "Quintin"
+      | _Q_ => "Quentin"
+      | _R_ => "Ryan"
+      | _S_ => "Samantha"
+      | _T_ => "Tom"
+      | _U_ => "Ulysses"
+      | _L_ => "Ledger"
       | _applicant_ => "applicant"
       | _certifier_ => "certifier"
     end
@@ -616,9 +635,11 @@ Instance : ShowForLogSeq claim_name := {showForLogSeq := showForNaturalLanguage}
 Instance : ShowForNaturalLanguage trust_relation_name := { 
   showForNaturalLanguage n := 
     match n with
-      | _T_ => "trust relation T"
-      | _U_ => "trust relation U"
-      | _V_ => "trust relation V"
+      | _A_Trust_ => "trust relation A"
+      | _B_Trust_ => "trust relation B"
+      | _T_Trust_ => "trust relation T"
+      | _U_Trust_ => "trust relation U"
+      | _V_Trust_ => "trust relation V"
     end
   }.
 Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
@@ -1144,6 +1165,11 @@ Definition y := AtomicEvid _y_.
 Definition z := AtomicEvid _z_.
 Definition P := Actor _P_.
 Definition Q := Actor _Q_.
+Definition R := Actor _R_.
+Definition S := Actor _S_.
+Definition T := Actor _T_.
+Definition U := Actor _U_.
+Definition L := Actor _L_.
 Definition C1 := AtomicClaim _c1_.
 Definition C2 := AtomicClaim _c2_.
 Definition C3 := AtomicClaim _c3_.
@@ -1151,9 +1177,11 @@ Definition C4 := AtomicClaim _c4_.
 Definition C5 := AtomicClaim _c5_.
 
 
-Definition trustT := Trust _T_.
-Definition trustU := Trust _U_.
-Definition trustV := Trust _V_.
+Definition trustT := Trust _T_Trust_.
+Definition trustU := Trust _U_Trust_.
+Definition trustV := Trust _V_Trust_.
+Definition trustA := Trust _A_Trust_.
+Definition trustB := Trust _B_Trust_.
 
 Eval compute in showForProofTree_judgement [] [(e1 \by a1 @ 1 \in c1)] (e1 \by a1 @ 1 \in c1) (assume _e1_ a1 1 c1).
 
@@ -1480,6 +1508,77 @@ Eval compute in showForNaturalLanguage bot_example2.
 Eval compute in showForLogSeq bot_example2.
 
 
+Program Definition starP : 
+proofTreeOf [l \by L @ 1 \in c1] (l \by P @ (1 # 3) \in C1).
+eapply (trust _ P L (1 # 3) 1 (1 # 3) _ trustT). reflexivity.
+eapply (assume _ _ 1).
+Show Proof.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree starP).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForLogSeq starP).
+
+
+Program Definition chain : 
+proofTreeOf [e \by P @ 1 \in c1] (e \by U @ (1 # 32) \in C1).
+eapply (trust _ U T (1 # 2) (1 # 16) (1 # 32) _ trustA). reflexivity.
+eapply (trust _ T S (1 # 2) (1 # 8) (1 # 16)  _ trustA). reflexivity.
+eapply (trust _ S R (1 # 2) (1 # 4) (1 # 8) _ trustA). reflexivity.
+eapply (trust _ R Q (1 # 2) (1 # 2) (1 # 4) _ trustA). reflexivity.
+eapply (trust _ Q P (1 # 2) 1 (1 # 2) _ trustA). reflexivity.
+eapply (assume _ _ 1).
+Show Proof.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+
+Eval compute in (showForProofTree chain). 
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage chain).
+Eval compute in (showForLogSeq chain).
+
+Program Definition chainWithAnd : 
+proofTreeOf [e1 \by P @ 1 \in c1; e2 \by Q @ 1 \in c2] ({{e1,e2}} \by S @ (1 # 4) \in (C1 /\' C2)).
+eapply and_intro with (Ps := [e1 \by P @ 1 \in c1]) (Qs := [e2 \by Q @ 1 \in c2]) (w1 := 1 # 4) (w2 := 1 # 2). 1-2: reflexivity.
+eapply (trust _ S Q (1 # 2) (1 # 2) (1 # 4) _ trustB). reflexivity.
+eapply (trust _ Q P (1 # 2) 1 (1 # 2) _ trustA). reflexivity.
+eapply (assume _ _ 1).
+eapply (trust _ S Q (1 # 2) 1 (1 # 2) _ trustB). reflexivity.
+eapply (assume _ _ 1).
+Show Proof.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree chainWithAnd). 
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage chainWithAnd). 
+Eval compute in (showForLogSeq chainWithAnd). 
 
 End VeracityLogic.
 
