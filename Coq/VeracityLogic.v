@@ -438,7 +438,8 @@ Inductive proofTreeOf : list judgement -> judgement -> Type :=
 Record proofTreeOf_wrapped (a : actor) (c : claim) := {
   _Ps : list judgement;
   _e : evid;
-  _p : proofTreeOf _Ps (_e \by a \in c)
+  _w : Q;
+  _p : proofTreeOf _Ps (_e \by a @ _w \in c)
 }.
 
 (*|
@@ -461,6 +462,10 @@ Class ShowForLogSeq A : Type :=
   {
     showForLogSeq : A -> string
   }.
+
+Instance : ShowForProofTree Q := { showForProofTree := writeQ }.
+Instance : ShowForNaturalLanguage Q := { showForNaturalLanguage := writeQ }.
+Instance : ShowForLogSeq Q := { showForLogSeq := writeQ }.
 
 Instance : ShowForProofTree atomic_evid_name := { 
   showForProofTree n := 
@@ -625,7 +630,7 @@ Fixpoint showForProofTreeEvid e :=
                       ++ (showForProofTreeEvid e2) ++ ")"
   | Left e => "i(" ++ showForProofTreeEvid e ++ ")"
   | Right e => "j(" ++ showForProofTreeEvid e ++ ")"
-  | Lambda e1 e2 => "\lambda(" ++ showForProofTree e1 ++ ")(" ++ showForProofTreeEvid e2 ++ ")"
+  | Lambda e1 w e2 => "\lambda(" ++ showForProofTree e1 ++ "_{" ++ showForProofTree w ++ "})(" ++ showForProofTreeEvid e2 ++ ")"
 end.
 
 Instance : ShowForProofTree evid := { showForProofTree := showForProofTreeEvid }.
@@ -732,22 +737,22 @@ Fixpoint showForLogSeq_list {A} `{ShowForLogSeq A} (indent : string) (l : list A
 Instance : ShowForProofTree judgement := {
   showForProofTree j :=
   match j with
-  | Judgement e a c => showForProofTree e ++ "^{" ++ showForProofTree a ++ "} \in "
-                                  ++ showForProofTree c
+  | Judgement e a w c => showForProofTree e ++ "^{" ++ showForProofTree a ++ "}_{" 
+                         ++ showForProofTree w ++ "} \in " ++ showForProofTree c
   end
 }.
 
 Instance : ShowForNaturalLanguage judgement := {
   showForNaturalLanguage j :=
   match j with
-  | Judgement e a c => showForNaturalLanguage c ++ " is supported by $" ++ showForNaturalLanguage e ++ "$ which " ++ showForNaturalLanguage a ++ " uses"
+  | Judgement e a w c => showForNaturalLanguage c ++ " is supported by $" ++ showForNaturalLanguage e ++ "$ at weight $" ++ showForNaturalLanguage w ++ "$ which " ++ showForNaturalLanguage a ++ " uses"
   end
 }.
 
 Instance : ShowForLogSeq judgement := {
   showForLogSeq j :=
   match j with
-  | Judgement e a c => showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence $" ++ showForLogSeq e ++ "$"
+  | Judgement e a w c => showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence $" ++ showForLogSeq e ++ "$ at weight $" ++ showForLogSeq w ++ "$"
   end
 }.
 
@@ -789,36 +794,36 @@ Definition showForLogSeq_judgement (Ts : list trustRelation) (indent : string) (
 Fixpoint getAllTrustRelationsUsed (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list trustRelation :=
 match p with
-| assume e a C => []
-| bot_elim e a C Ps M => getAllTrustRelationsUsed _ _ M
-| and_intro e1 e2 a C1 C2 Ps Qs Rs H L R => 
+| assume e a w C => []
+| bot_elim e a w C Ps M => getAllTrustRelationsUsed _ _ M
+| and_intro e1 e2 a w1 w2 w3 C1 C2 Ps Qs Rs H HWeight L R => 
     getAllTrustRelationsUsed _ _ L ++ getAllTrustRelationsUsed _ _ R 
-| and_elim1 e1 e2 a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
-| and_elim2 e1 e2 a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
-| or_intro1 e1  a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
-| or_intro2 e2 a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
-| or_elim1 e1 a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
-| or_elim2 e2 a C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
-| trust e a1 a2 C name Ps L => name :: getAllTrustRelationsUsed _ _ L
-| impl_intro _ _ _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ _ M
-| impl_elim _ _ _ _ _ _ _ _ _ _ _ L R => getAllTrustRelationsUsed _ _ L ++ getAllTrustRelationsUsed _ _ R 
+| and_elim1 e1 e2 a w C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
+| and_elim2 e1 e2 a w C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
+| or_intro1 e1 a w C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
+| or_intro2 e2 a w C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
+| or_elim1 e1 a w C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
+| or_elim2 e2 a w C1 C2 Ps M => getAllTrustRelationsUsed _ _ M
+| trust e a1 a2 wTrust w1 w2 C name Ps HWeight L => name :: getAllTrustRelationsUsed _ _ L
+| impl_intro _ _ _ _ _ _ _ _ _ _ _ _ M => getAllTrustRelationsUsed _ _ M
+| impl_elim _ _ _ _ _ _ _ _ _ _ _ _ _ L R => getAllTrustRelationsUsed _ _ L ++ getAllTrustRelationsUsed _ _ R 
 end.
 
 Fixpoint getAllEvidence (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list evid :=
 match p with
-| assume e a C => [(AtomicEvid e)]
-| bot_elim e a C _ M => (getAllEvidence _ _ M)
-| and_intro e1 e2 a C1 C2 _ _ _ _ L R => getAllEvidence _ _ L ++ getAllEvidence _ _ R 
-| and_elim1 e1 e2 a C1 C2 _ M => getAllEvidence _ _ M
-| and_elim2 e1 e2 a C1 C2 _ M => getAllEvidence _ _ M
-| or_intro1 e1 a C1 C2 _ M => getAllEvidence _ _ M
-| or_intro2 e2 a C1 C2 _ M => getAllEvidence _ _ M
-| or_elim1 e1 a C1 C2 _ M => getAllEvidence _ _ M
-| or_elim2 e2 a C1 C2 _ M => getAllEvidence _ _ M
-| trust e a1 a2 C name _ L => getAllEvidence _ _ L
-| impl_intro _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ _ M
-| impl_elim _ _ _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ _ M
+| assume e a w C => [(AtomicEvid e)]
+| bot_elim e a w C _ M => (getAllEvidence _ _ M)
+| and_intro e1 e2 a w1 w2 w3 C1 C2 Ps Qs Rs H HWeight L R => getAllEvidence _ _ L ++ getAllEvidence _ _ R 
+| and_elim1 e1 e2 a w C1 C2 _ M => getAllEvidence _ _ M
+| and_elim2 e1 e2 a w C1 C2 _ M => getAllEvidence _ _ M
+| or_intro1 e1 a w C1 C2 _ M => getAllEvidence _ _ M
+| or_intro2 e2 a w C1 C2 _ M => getAllEvidence _ _ M
+| or_elim1 e1 a w C1 C2 _ M => getAllEvidence _ _ M
+| or_elim2 e2 a w C1 C2 _ M => getAllEvidence _ _ M
+| trust e a1 a2 wTrust w1 w2 C name _ _ L => getAllEvidence _ _ L
+| impl_intro _ _ _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ _ M
+| impl_elim _ _ _ _ _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ _ M
 end.
 
 Definition isAtomicEvidence (e : evid) : bool :=
@@ -839,55 +844,55 @@ Fixpoint showForProofTree_proofTreeOf_helper (Ps : list judgement) (j : judgemen
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
 match p with
-| assume e a C => "\AxiomC{$ " 
+| assume e a w C => "\AxiomC{$ " 
              ++ showForProofTree C 
              ++ " \textit{ is a veracity claim} $}"
     ++ " \RightLabel{ $ assume $}\UnaryInfC{$ "
     ++ showForProofTree_judgement Ts _ _ p ++ " $}"
-| bot_elim e a C _ M => showForProofTree_proofTreeOf_helper _ _ M
+| bot_elim e a w C _ M => showForProofTree_proofTreeOf_helper _ _ M
     ++ " \RightLabel{ $ \bot^{-} $} \UnaryInfC{$ "
     ++ showForProofTree_judgement Ts _ _ p
     ++ " $}"
-    | and_intro e1 e2 a C1 C2 _ _ _ _ L R => 
+| and_intro e1 e2 a w1 w2 w3 C1 C2 _ _ _ _ _ L R => 
     showForProofTree_proofTreeOf_helper _ _ L
  ++ showForProofTree_proofTreeOf_helper _ _ R 
  ++ " \RightLabel{ $ \wedge^{+} $} \BinaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p ++ " $}"
- | and_elim1 e1 e2 a C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
+| and_elim1 e1 e2 a w C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \land^{-1} $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p
  ++ " $}"
-| and_elim2 e1 e2 a C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
+| and_elim2 e1 e2 a w C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \land^{-2} $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p
  ++ " $}"
- | or_intro1 e1 a C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
+| or_intro1 e1 a w C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \lor^{+1} $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p
  ++ " $}"
-| or_intro2 e2 a C1 C2_ _ M => showForProofTree_proofTreeOf_helper _ _ M
+| or_intro2 e2 a w C1 C2_ _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \lor^{+2} $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p
  ++ " $}"
- | or_elim1 e1 a C1 C2_ _ M => showForProofTree_proofTreeOf_helper _ _ M
+| or_elim1 e1 a w C1 C2_ _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \lor^{-1} $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p
  ++ " $}"
-| or_elim2 e2 a C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
+| or_elim2 e2 a w C1 C2 _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \lor^{-2} $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p
  ++ " $}"
- | trust e a1 a2 C name _ L => 
+| trust e a1 a2 wTrust w1 w2 C name _ _ L => 
     showForProofTree_proofTreeOf_helper _ _ L
  ++ " \AxiomC{$" ++ showForProofTree a1 ++ showForProofTree name ++ showForProofTree a2 ++ "$} "
  ++ " \RightLabel{ $ trust\ " ++ showForProofTree name
  ++ "$} \BinaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p ++ " $}"
-| impl_intro e1 e2 a C1 C2 H _ _ _ _ M => showForProofTree_proofTreeOf_helper _ _ M
+| impl_intro e1 e2 a w1 w2 C1 C2 H _ _ _ _ M => showForProofTree_proofTreeOf_helper _ _ M
  ++ " \RightLabel{ $ \rightarrow^+ $} \UnaryInfC{$ "
  ++ showForProofTree_judgement Ts _ _ p
  ++ " $}"
-| impl_elim x bx y a C1 C2 H1 _ _ _ _ L R => 
+| impl_elim x bx y a w1 w2 C1 C2 H1 _ _ _ _ L R => 
      showForProofTree_proofTreeOf_helper _ _ L
  ++ showForProofTree_proofTreeOf_helper _ _ R 
  ++ " \RightLabel{ $ \rightarrow^{-} $} \BinaryInfC{$ "
@@ -898,19 +903,19 @@ Fixpoint showForNaturalLanguage_proofTreeOf_helper (indent : string) (Ps : list 
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
 match p with
-| assume e a C => 
+| assume e a w C => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ "  " ++ indent ++ showForNaturalLanguage C ++ " is a veracity claim." ++ "
 "
 ++ indent ++ "by assumption."
-| bot_elim e a C _ M =>
+| bot_elim e a w C _ M =>
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ M ++ "
 "
 ++ indent ++ "by the logical principle of explosion."
-| and_intro e1 e2 a C1 C2 _ _ _ _ L R => 
+| and_intro e1 e2 a w1 w2 w3 C1 C2 _ _ _ _ _ L R => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ L ++ "
@@ -918,55 +923,55 @@ indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ R ++ "
 "
 ++ indent ++ "by a logical rule for 'and'."
-| and_elim1 e1 e2 a C1 C2 _ M =>
+| and_elim1 e1 e2 a w C1 C2 _ M =>
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'and'."
-| and_elim2 e1 e2 a C1 C2 _ M => 
+| and_elim2 e1 e2 a w C1 C2 _ M => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'and'."
-| or_intro1 e1 a C1 C2 _ M =>
+| or_intro1 e1 a w C1 C2 _ M =>
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
-| or_intro2 e2 a C1 C2 _ M =>
+| or_intro2 e2 a w C1 C2 _ M =>
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
-| or_elim1 e1 a C1 C2 _ M =>
+| or_elim1 e1 a w C1 C2 _ M =>
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
-| or_elim2 e2 a C1 C2 _ M => 
+| or_elim2 e2 a w C1 C2 _ M => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ M ++ "
 "
 ++ indent ++ "by a logical rule for 'or'."
-| trust e a1 a2 C name _ L => 
+| trust e a1 a2 wTrust w1 w2 C name _ _ L => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ L ++ "
 "
 ++ indent ++ "by the trust relation " ++ showForNaturalLanguage name ++ "."
-| impl_intro _ _ _ _ _ _ _ _ _ _ M => 
+| impl_intro _ _ _ _ _ _ _ _ _ _ _ _ M => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ M ++ "
 "
 ++ indent ++ "by a logical rule for implication."
-| impl_elim _ _ _ _  _ _ _ _ _ _ _ L R => 
+| impl_elim _ _ _ _ _ _  _ _ _ _ _ _ _ L R => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ L ++ "
@@ -980,61 +985,61 @@ Fixpoint showForLogSeq_proofTreeOf_helper (indent : string) (Ps : list judgement
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
 match p with
-| assume e a C => 
+| assume e a w C => 
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: we assume this"
-| bot_elim e a C _ M =>
+| bot_elim e a w C _ M =>
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: the principle of explosion
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
-| and_intro e1 e2 a C1 C2 _ _ _ _ L R => 
+| and_intro e1 e2 a w1 w2 w3 C1 C2 _ _ _ _ _ L R => 
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and introduction
     " ++ indent ++ "- " ++ "Sub-proofs:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ L ++ "
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ R
-| and_elim1 e1 e2 a C1 C2 _ M =>
+| and_elim1 e1 e2 a w C1 C2 _ M =>
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and elimination (1)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
-| and_elim2 e1 e2 a C1 C2 _ M => 
+| and_elim2 e1 e2 a w C1 C2 _ M => 
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: and elimination (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
-| or_intro1 e1 a C1 C2 _ M =>
+| or_intro1 e1 a w C1 C2 _ M =>
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or introduction (1)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
-| or_intro2 e2 a C1 C2 _ M =>
+| or_intro2 e2 a w C1 C2 _ M =>
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or introduction (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
-| or_elim1 e1 a C1 C2 _ M =>
+| or_elim1 e1 a w C1 C2 _ M =>
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or elimination (1)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
-| or_elim2 e2 a C1 C2 _ M => 
+| or_elim2 e2 a w C1 C2 _ M => 
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: or elimination (2)
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
-| trust e a1 a2 C name _ L => 
+| trust e a1 a2 wTrust w1 w2 C name _ _ L => 
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: trust, with relation " ++ showForLogSeq name ++ "
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ L
-| impl_intro _ _ _ _ _ _ _ _ _ _ M => 
+| impl_intro _ _ _ _ _ _ _ _ _ _ _ _ M => 
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication introduction
     " ++ indent ++ "- " ++ "Sub-proof:
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ M
-| impl_elim _ _ _ _  _ _ _ _ _ _ _ L R => 
+| impl_elim _ _ _ _ _ _  _ _ _ _ _ _ _ L R => 
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: implication elimination
     " ++ indent ++ "- " ++ "Sub-proofs:
@@ -1068,7 +1073,7 @@ Instance showForNaturalLanguage_proofTreeOf_instance Ps (j : judgement)
 
 Definition printProofTitle j :=
 match j with
-| Judgement e a c => "### Veracity proof that " ++ showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence $" ++ showForLogSeq e ++ "$"
+| Judgement e a w c => "### Veracity proof that " ++ showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence $" ++ showForLogSeq e ++ "$ at weight $" ++ showForLogSeq w ++ "$"
 end.
 
 Instance : ShowForLogSeq string := { showForLogSeq := id}.
@@ -1150,24 +1155,24 @@ Definition trustT := Trust _T_.
 Definition trustU := Trust _U_.
 Definition trustV := Trust _V_.
 
-Eval compute in showForProofTree_judgement [] [(e1 \by a1 \in c1)] (e1 \by a1 \in c1) (assume _e1_ a1 c1).
+Eval compute in showForProofTree_judgement [] [(e1 \by a1 @ 1 \in c1)] (e1 \by a1 @ 1 \in c1) (assume _e1_ a1 1 c1).
 
-Definition j1 := x \by P \in c1.
-Definition j2 := y \by P \in c2.
-Definition j3 := z \by P \in c3.
+Definition j1 := x \by P @ 1 \in c1.
+Definition j2 := y \by P @ 1 \in c2.
+Definition j3 := z \by P @ 1 \in c3.
 
 
 Definition process_example : proofTreeOf_wrapped P (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
-eexists  _ _.
-eapply impl_intro with (x:=_z_) (Ps := [j3]) (Qs:=[]). 1-3: shelve.
-eapply impl_intro with (x:=_y_) (Ps := [j2;j3]) (Qs:=[j3]). 1-3: shelve.
-eapply impl_intro with (x:=_x_) (Ps := [j1;j2;j3]) (Qs:=[j2;j3]). 1-3: shelve.
-eapply and_intro with (Ps := [j1;j2]). shelve.
-eapply and_intro. shelve.
-apply assume with (e := _x_).
-apply assume with (e := _y_).
-apply assume with (e := _z_).
+eexists  _ _ _.
+eapply impl_intro with (x:=_z_) (Ps := [j3]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_y_) (Ps := [j2;j3]) (Qs:=[j3]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_x_) (Ps := [j1;j2;j3]) (Qs:=[j2;j3]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (Ps := [j1;j2]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply assume with (e := _x_) (w := 1).
+apply assume with (e := _y_) (w := 1).
+apply assume with (e := _z_) (w := 1).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1187,9 +1192,9 @@ Eval compute in (showForNaturalLanguage process_example).
 Eval compute in (showForLogSeq process_example).
 
 Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
-eexists [] _.
-eapply (impl_intro _e1_ _ _ _ _ _ _ _ _ _).
-eapply (assume _e1_).
+eexists [] _ _.
+eapply (impl_intro _e1_ _ _ 1 1 _ _ _ _ _ _ _).
+eapply (assume _e1_ _ 1).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1209,16 +1214,16 @@ Eval compute in (showForNaturalLanguage impl_intro1).
 Eval compute in (showForLogSeq impl_intro1).
 
 Definition impl_intro_elim : proofTreeOf_wrapped a1 (c1).
-eexists [(AtomicEvid _e2_) \by a1 \in c1] _.
+eexists [(AtomicEvid _e2_) \by a1 @ 1 \in c1] _ 1.
 eassert (apply_lambda _e1_ e1 e2 _ = e2).
 simpl. reflexivity. Unshelve. 3: reflexivity. 2: shelve.
 fold e2.
 rewrite <- H.
 
-eapply (impl_elim _e1_ e1 e2 a1 C1 C1 _ _ _ _).
-eapply (impl_intro _e1_ _ _ _ _ _ [] _ _ _).
-eapply (assume _e1_).
-eapply (assume _e2_).
+eapply (impl_elim _e1_ e1 e2 a1 1 1 C1 C1 _ _ _ _).
+eapply (impl_intro _e1_ _ _ 1 1 _ _ _ [] _ _ _).
+eapply (assume _e1_ _ 1).
+eapply (assume _e2_ _ 1).
 Unshelve.
 all: try reflexivity.
 Defined.
@@ -1239,11 +1244,11 @@ Eval compute in (showForLogSeq impl_intro_elim).
 
 
 Definition and_example : proofTreeOf_wrapped a1 (Implies c1 (c1 /\' c1)).
-eexists []  _.
-eapply (impl_intro _e1_ _ _ _ _ [e1 \by a1 \in c1] _ _ _ _).
-eapply and_intro with (Ps:= [e1 \by a1 \in c1]) (Qs:= [e1 \by a1 \in c1]). reflexivity.
-eapply (assume _e1_).
-eapply (assume _e1_).
+eexists []  _ 1.
+eapply (impl_intro _e1_ _ _ 1 1 _ _ [e1 \by a1 @ 1 \in c1] _ _ _ _).
+eapply and_intro with (Ps:= [e1 \by a1 @ 1 \in c1]) (Qs:= [e1 \by a1 @ 1 \in c1]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
+eapply (assume _e1_ _ 1).
+eapply (assume _e1_ _ 1).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1267,8 +1272,8 @@ Definition s := AtomicEvid _s_.
 Definition c := AtomicEvid _c_.
 
 Program Definition concreteProofTreeExampleWith2Conjuncts : 
-proofTreeOf [l \by P \in c1;s \by P \in c2] ({{l, s}} \by P \in (C1 /\' C2)).
-eapply and_intro with (Ps:= [l \by P \in c1]) (Qs:= [s \by P \in c2]). reflexivity.
+proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1\in c2] ({{l, s}} \by P @ 1 \in (C1 /\' C2)).
+eapply and_intro with (Ps:= [l \by P @ 1 \in c1]) (Qs:= [s \by P @ 1 \in c2]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
 apply assume.
 apply assume.
 Defined.
@@ -1288,9 +1293,9 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith2Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith2Conjuncts.
 
 Program Definition concreteProofTreeExampleWith3Conjuncts : 
-proofTreeOf [l \by P \in c1;s \by P \in c2;c \by P \in c3] ({{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3)).
-eapply and_intro with (Ps:= [l \by P \in c1;s \by P \in c2]) (Qs:= [c \by P \in c3]). reflexivity.
-eapply and_intro with (Ps:= [l \by P \in c1]) (Qs:= [s \by P \in c2]). reflexivity.
+proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1 \in c2;c \by P @ 1 \in c3] ({{{{l, s}},c}} \by P @ 1 \in (C1 /\' C2 /\' C3)).
+eapply and_intro with (Ps:= [l \by P @ 1 \in c1;s \by P @ 1 \in c2]) (Qs:= [c \by P @ 1 \in c3]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
+eapply and_intro with (Ps:= [l \by P @ 1 \in c1]) (Qs:= [s \by P @ 1 \in c2]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
 apply (assume _l_).
 apply (assume _s_).
 apply (assume _c_).
@@ -1315,8 +1320,8 @@ We can also combine existing trees into new trees, when appropriate. For example
 |*)
 
 Program Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
-proofTreeOf [l \by P \in c1;s \by P \in c2;c \by P \in c3] ({{{{l, s}},c}} \by P \in (C1 /\' C2 /\' C3)).
-eapply and_intro with (Ps:= [l \by P \in c1;s \by P \in c2]) (Qs:= [c \by P \in c3]). reflexivity.
+proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1 \in c2;c \by P @ 1 \in c3] ({{{{l, s}},c}} \by P @ 1 \in (C1 /\' C2 /\' C3)).
+eapply and_intro with (Ps:= [l \by P @ 1 \in c1;s \by P @ 1 \in c2]) (Qs:= [c \by P @ 1 \in c3]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
 exact concreteProofTreeExampleWith2Conjuncts.
 Show Proof.
 apply (assume _c_).
@@ -1338,8 +1343,8 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 
 Program Definition concreteProofTreeExampleTrust : 
-proofTreeOf [e \by a2 \in (c1)] e \by a1 \in (c1).
-eapply (trust _ a1 a2 c1 trustT).
+proofTreeOf [e \by a2 @ 1 \in (c1)] e \by a1 @ 1 \in (c1).
+eapply (trust _ a1 a2 1 1 1 c1 trustT). reflexivity.
 apply (assume _e_).
 Defined.
 
@@ -1358,8 +1363,8 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleTrust).
 Eval compute in showForLogSeq concreteProofTreeExampleTrust.
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
-proofTreeOf [l \by P \in c1;s \by P \in c2;c \by P \in c3] ({{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3)).
-eapply (trust _ _ _ _ trustU).
+proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1 \in c2;c \by P @ 1 \in c3] ({{{{l, s}},c}} \by Q @ 1 \in (C1 /\' C2 /\' C3)).
+eapply (trust _ _ _ 1 1 1 _ trustU). reflexivity.
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
 
@@ -1378,10 +1383,10 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWi
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrust.
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
-proofTreeOf [l \by P \in c1;s \by P \in c2;c \by P \in c3] ({{{{l, s}},c}} \by Q \in (C1 /\' C2 /\' C3)).
-eapply (trust _ Q Q _ trustU).
-eapply (trust _ Q Q _ trustV).
-eapply (trust _ _ _ _ trustU).
+proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1 \in c2;c \by P @ 1 \in c3] ({{{{l, s}},c}} \by Q @ 1 \in (C1 /\' C2 /\' C3)).
+eapply (trust _ Q Q 1 1 1 _ trustU). reflexivity.
+eapply (trust _ Q Q 1 1 1 _ trustV). reflexivity.
+eapply (trust _ _ _ 1 1 1 _ trustU). reflexivity.
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Show Proof.
 Defined.
@@ -1404,8 +1409,8 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAnd
 
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
 Proof.
-eexists _ _.
-apply (assume _e_ a1).
+eexists _ _ _.
+apply (assume _e_ a1 1).
 Defined.
 
 (*|
@@ -1426,10 +1431,10 @@ Eval compute in showForLogSeq exampleWithProofOf.
 
 Definition bot_example : proofTreeOf_wrapped a1 (_|_ ->' (C1 /\' C2)).
 Proof.
-eexists [] _.
-eapply (impl_intro _eB_ _ a1) with (Ps := [(AtomicEvid _eB_) \by a1 \in _|_]). 1,2,3: shelve.
-apply bot_elim.
-apply (assume _eB_).
+eexists [] _ _.
+eapply (impl_intro _eB_ _ a1) with (Ps := [(AtomicEvid _eB_) \by a1 @ 1 \in _|_]) (w1 := 1). 1,2,3: shelve.
+apply bot_elim with (w := 1).
+apply (assume _eB_ _ 1).
 Unshelve.
 all: reflexivity.
 Defined.
@@ -1451,10 +1456,10 @@ Eval compute in showForLogSeq bot_example.
 
 Definition bot_example2 : proofTreeOf_wrapped a1 (_|_ ->' (C1 \/' C2 ->' (C3 /\' _|_))).
 Proof.
-eexists [] _.
-eapply (impl_intro _eB_ _ a1) with (Ps := [(AtomicEvid _eB_) \by a1 \in _|_]). 1,2,3: shelve.
+eexists [] _ _.
+eapply (impl_intro _eB_ _ a1) with (Ps := [(AtomicEvid _eB_) \by a1 @ 1 \in _|_]) (w1 := 1). 1,2,3: shelve.
 apply bot_elim.
-apply (assume _eB_).
+apply (assume _eB_ _ 1).
 Unshelve.
 all: reflexivity.
 Defined.
