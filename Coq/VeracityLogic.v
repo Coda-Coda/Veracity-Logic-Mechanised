@@ -1580,6 +1580,38 @@ Eval compute in (showForProofTree chainWithAnd).
 Eval compute in (showForNaturalLanguage chainWithAnd). 
 Eval compute in (showForLogSeq chainWithAnd). 
 
+Definition impl_intro_elim_with_weights : proofTreeOf_wrapped a1 (c1).
+eexists [(AtomicEvid _e2_) \by a1 @ (1 # 2) \in c1] _ (1 # 2).
+eassert (apply_lambda _e1_ e1 e2 _ = e2).
+simpl. reflexivity. Unshelve. 3: reflexivity. 2: shelve.
+fold e2.
+rewrite <- H.
+
+eapply (impl_elim _e1_ e1 e2 a1 (1 # 2) (1 # 2) C1 C1 _ _ _ _).
+eapply (impl_intro _e1_ _ _ (1 # 2) (1 # 2) _ _ _ [] _ _ _).
+eapply (assume _e1_ _ (1 # 2)).
+eapply (assume _e2_ _ (1 # 2)).
+Unshelve.
+all: try reflexivity.
+Defined.
+    
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro_elim_with_weights).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage impl_intro_elim_with_weights).
+Eval compute in (showForLogSeq impl_intro_elim_with_weights).
+
+
+
+
 End VeracityLogic.
 
 (*|
