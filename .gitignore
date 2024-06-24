@@ -10,3 +10,4 @@ Coq/.core.make.d
 Coq/CoqMakefile.conf
 Coq/core.make
 Coq/core.make.conf
+Coq/html/VeracityLogic.html
