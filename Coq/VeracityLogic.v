@@ -868,7 +868,7 @@ Fixpoint showForProofTree_proofTreeOf_helper (Ps : list judgement) (j : judgemen
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
 match p with
-| hole l j => "\AxiomC{$\textcolor{red}{" ++ (showForProofTree j) ++ "}$}"
+| hole l j => "\AxiomC{$\textcolor{red}{" ++ (showForProofTree_judgement Ts _ _ p) ++ "}$}"
 | assume e a w C => "\AxiomC{$ " 
              ++ showForProofTree C 
              ++ " \textit{ is a veracity claim} $}"
