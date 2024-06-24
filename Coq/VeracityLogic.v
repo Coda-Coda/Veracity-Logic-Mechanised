@@ -364,6 +364,7 @@ The central inductive definition of valid proof trees
 |*)
 
 Inductive proofTreeOf : list judgement -> judgement -> Type :=
+| hole l j : proofTreeOf l j
 | assume e a w c : proofTreeOf [((AtomicEvid e) \by a @ w \in c)] ((AtomicEvid e) \by a @ w \in c)
 
 | bot_elim e a w C Ps
@@ -815,6 +816,7 @@ Definition showForLogSeq_judgement (Ts : list trustRelation) (indent : string) (
 Fixpoint getAllTrustRelationsUsed (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list trustRelation :=
 match p with
+| hole l j => []
 | assume e a w C => []
 | bot_elim e a w C Ps M => getAllTrustRelationsUsed _ _ M
 | and_intro e1 e2 a w1 w2 w3 C1 C2 Ps Qs Rs H HWeight L R => 
@@ -833,6 +835,7 @@ end.
 Fixpoint getAllEvidence (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list evid :=
 match p with
+| hole l j => []
 | assume e a w C => [(AtomicEvid e)]
 | bot_elim e a w C _ M => (getAllEvidence _ _ M)
 | and_intro e1 e2 a w1 w2 w3 C1 C2 Ps Qs Rs H HWeight L R => getAllEvidence _ _ L ++ getAllEvidence _ _ R 
@@ -865,6 +868,7 @@ Fixpoint showForProofTree_proofTreeOf_helper (Ps : list judgement) (j : judgemen
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
 match p with
+| hole l j => "\AxiomC{$\textcolor{red}{" ++ (showForProofTree j) ++ "}$}"
 | assume e a w C => "\AxiomC{$ " 
              ++ showForProofTree C 
              ++ " \textit{ is a veracity claim} $}"
@@ -924,6 +928,7 @@ Fixpoint showForNaturalLanguage_proofTreeOf_helper (indent : string) (Ps : list 
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
 match p with
+| hole l j => indent ++ "we stopped the proof at this point and assumed it was provable."
 | assume e a w C => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
@@ -1006,6 +1011,7 @@ Fixpoint showForLogSeq_proofTreeOf_helper (indent : string) (Ps : list judgement
   : string :=
 let Ts := (removeDups (getAllTrustRelationsUsed Ps j p)) in
 match p with
+| hole l j => indent ++ "- " ++ "We stopped the proof at this point and assumed it was provable."
 | assume e a w C => 
 indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
   " ++ indent ++ "- " ++ "Logical rule used: we assume this"
