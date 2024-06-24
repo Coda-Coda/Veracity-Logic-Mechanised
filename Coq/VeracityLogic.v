@@ -1609,6 +1609,57 @@ Eval compute in (showForProofTree impl_intro_elim_with_weights).
 Eval compute in (showForNaturalLanguage impl_intro_elim_with_weights).
 Eval compute in (showForLogSeq impl_intro_elim_with_weights).
 
+Definition impl_intro_elim_with_different_weights : proofTreeOf_wrapped a1 (c1 /\' c2).
+eexists [e3 \by a1 @ (1 # 2) \in c1; e4 \by a1 @ (1 # 3) \in c2] {{e3,e4}} (1 # 3).
+eassert (apply_lambda _e2_ e2 e3 _ = e3).
+simpl. reflexivity. Unshelve. 2: reflexivity.
+fold e3.
+rewrite <- H.
+
+eapply (impl_elim _e2_ {{e3,e2}} e4 a1 (1 # 3) (1 # 3) C2 (C1 /\' C2)) with (Ps := [e3 \by a1 @ 1 # 2 \in c1]) (Qs := [e4 \by a1 @ (1 # 3) \in c2]) (Rs := [(apply_lambda _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1; e4 \by a1 @ (1 # 3) \in c2]).
+simpl. reflexivity.
+2: eapply assume.
+Unshelve. 2: reflexivity.
+
+eassert (apply_lambda _e1_ (Lambda _e2_ (1 # 3) {{e3,e2}}) e3    _ = (Lambda _e2_ (1 # 3) {{e3,e2}})).
+simpl. reflexivity. Unshelve. 2: reflexivity.
+fold e2.
+rewrite <- H0.
+
+eapply (impl_elim _e1_ (Lambda _e2_ (1 # 3) {{e1,e2}}) e3 a1 (1 # 2) (1 # 3) C1 (C2 ->' C1 /\' C2)) with (Ps := []) (Qs := [(apply_lambda _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1]) (Rs := [(apply_lambda _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1]). reflexivity.
+
+simpl.
+
+eapply impl_intro with (Ps := [(AtomicEvid _e1_) \by a1 @ 1 # 2 \in C1]). reflexivity. reflexivity. simpl. reflexivity.
+
+eapply impl_intro
+
+with (Ps := [(AtomicEvid _e2_) \by a1 @ 1 # 3 \in C2; (AtomicEvid _e1_) \by a1 @ 1 # 2 \in C1])
+. 
+reflexivity. simpl. reflexivity. simpl. reflexivity.
+
+eapply and_intro with (Ps := [(AtomicEvid _e1_) \by a1 @ 1 # 2 \in C1]) (Qs := [(AtomicEvid _e2_) \by a1 @ 1 # 3 \in C2]) (w1 := 1#2) (w2 := 1#3). reflexivity. reflexivity.
+
+eapply assume.
+eapply assume.
+simpl.
+eapply assume.
+
+Defined.
+    
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro_elim_with_different_weights).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage impl_intro_elim_with_different_weights).
+Eval compute in (showForLogSeq impl_intro_elim_with_different_weights).
 
 
 
