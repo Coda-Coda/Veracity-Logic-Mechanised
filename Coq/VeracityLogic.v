@@ -90,7 +90,6 @@ Definition natToDigit (n : nat) : ascii :=
     | _ => "9"
   end.
 
-Require Import Coq.Numbers.Natural.Peano.NPeano.
 Fixpoint writeNatAux (time n : nat) (acc : string) : string :=
   let acc' := String (natToDigit (n mod 10)) acc in
   match time with
