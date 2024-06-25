@@ -2,6 +2,15 @@
 Veracity Logic Mechanised in Coq
 ================================
 
+This Coq formalisation is an attempt to mechanise a logic for veracity, with the goal of precisely pinning down the meaning of veracity.
+Veracity is concerned with trust, truth, demonstrability and authenticity.
+We take an approach inspired by intuitionistic logic, in part due to a desire not to "lose information" as proofs progress.
+For further details, please see the arXiv paper "A logic for Veracity" by Steve Reeves available at https://arxiv.org/abs/2302.06164.
+
+This work was completed as a part of the `Veracity Lab <https://veracity.wgtn.ac.nz/>`_ which was one of the `Spearhead projects <https://www.sftichallenge.govt.nz/our-research/projects/spearhead/veracity-technology/>`_ of the `Science for Technological Innovation National Science Challenge (SfTI) <https://www.sftichallenge.govt.nz/>`_ in New Zealand.
+
+.. contents::
+
 ..
   The following is required to get MathJax to process the outputs marked with the class coq-math.
 
