@@ -51,11 +51,18 @@ This work was completed as a part of the `Veracity Lab <https://veracity.wgtn.ac
 Imports
 -------
 
+`List`, `ListNotations`, `String`, `Strings.Ascii` and `Bool` are required for various aspects of this formalisation as one might expect.
+In particular, `String` and `Strings.Ascii` are required because a key feature of this formalisation is the ability to output strings as LaTeX, natural language, or formatted for `LogSeq <https://logseq.com>`_.
+
+`QArith` and `QArith.Qminmax` are imported because rational numbers are used to represent weights (e.g. how much does one actor trust another).
+We chose rational numbers rather than real numbers because rational numbers are much easier to work with and the additional expressivity of real numbers is not necessary here.
+
 |*)
 
 Require Import List.
 Import ListNotations.
 Require Import String.
+Require Import Strings.Ascii.
 Require Import Bool.
 Require Import Program.
 Require Import QArith.
@@ -63,15 +70,18 @@ Require Import QArith.Qminmax.
 
 (*|
 
-Printing Rational Numbers
+Printing rational numbers
 -------------------------
+
+Coq does not natively include a function to convert rational numbers to strings (or even natural numbers).
+Here we define a function that prints rational numbers as strings formatted for LaTeX.
+E.g. as `\frac{3}{8}` i.e. :math:`\frac{3}{8}`.
 
 The following `writeNat` function and those it depends on are used under the MIT License, they are by @arthuraa on GitHub.
 See: https://github.com/arthuraa/poleiro/blob/master/theories/ReadNat.v
 
 |*)
 
-Require Import Coq.Strings.Ascii.
 
 Open Scope char_scope.
 Open Scope nat_scope.
@@ -130,12 +140,27 @@ Eval compute in writeQ 0.35.
 .. coq:: all
 |*)
 
+(*|
+
+Start of the formalisation of the veracity logic
+------------------------------------------------
+
+With the preliminaries covered, we now begin to introduce the definitions directly related to the veracity logic.
+
+|*)
+
 Section VeracityLogic.
 
 (*|
 
 Types for names
 ---------------
+
+First, we introduce inductive types for the names of atomic evidence, actors and trust relations.
+
+We use `Scheme Equality for ...` to automatically generate functions such as `atomic_evid_name_beq` which are boolean equality functions for each of the inductive types for names.
+
+For more information on `Scheme Equality`, please see: https://coq.inria.fr/doc/V8.17.1/refman/proofs/writing-proofs/reasoning-inductives.html#coq:cmd.Scheme-Equality.
 
 |*)
 
@@ -165,6 +190,13 @@ Inductive atomic_evid_name :=
 .
 
 Scheme Equality for atomic_evid_name.
+Check atomic_evid_name_beq. (* .unfold *)
+
+(*|
+
+The `Check` command, above, prints the type of the term following it.
+
+|*)
 
 Inductive actor_name :=
   | _a1_
@@ -187,6 +219,7 @@ Inductive actor_name :=
 .
 
 Scheme Equality for actor_name.
+Check actor_name_beq. (* .unfold *)
 
 Inductive claim_name :=
   | _c1_
@@ -207,6 +240,7 @@ Inductive claim_name :=
 . 
 
 Scheme Equality for claim_name.
+Check claim_name_beq. (* .unfold *)
 
 Inductive trust_relation_name :=
   | _A_Trust_
@@ -217,6 +251,7 @@ Inductive trust_relation_name :=
 .
 
 Scheme Equality for trust_relation_name.
+Check trust_relation_name_beq. (* .unfold *)
 
 (*|
 
