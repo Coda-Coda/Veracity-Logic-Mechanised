@@ -452,22 +452,22 @@ The following functions implement the core features of abstractions.
 
 Open Scope beq_scope.
 
-Fixpoint notUsedInInnerLambda (x : atomic_evid_name) (bx : evid) : bool :=
+Fixpoint notUsedInInnerAbstraction (x : atomic_evid_name) (bx : evid) : bool :=
 match bx with
   | AtomicEvid _ => true
-  | Pair e1 e2 => notUsedInInnerLambda x e1 && notUsedInInnerLambda x e2
-  | Left e => notUsedInInnerLambda x e
-  | Right e => notUsedInInnerLambda x e
-  | Lambda x' _ bx' => (negb (x =? x')) && notUsedInInnerLambda x bx'
+  | Pair e1 e2 => notUsedInInnerAbstraction x e1 && notUsedInInnerAbstraction x e2
+  | Left e => notUsedInInnerAbstraction x e
+  | Right e => notUsedInInnerAbstraction x e
+  | Lambda x' _ bx' => (negb (x =? x')) && notUsedInInnerAbstraction x bx'
 end.
 
-Program Fixpoint apply_lambda (x : atomic_evid_name) (bx : evid) (a : evid) (H2 : notUsedInInnerLambda x bx = true) : evid := 
+Program Fixpoint apply_abstraction (x : atomic_evid_name) (bx : evid) (a : evid) (H2 : notUsedInInnerAbstraction x bx = true) : evid := 
   match bx with
   | AtomicEvid name => if name =? x then a else AtomicEvid name
-  | Pair e1 e2 => Pair (apply_lambda x e1 a _) (apply_lambda x e2 a _)
-  | Left e => Left (apply_lambda x e a _)
-  | Right e => Right (apply_lambda x e a _)
-  | Lambda x' w bx' => Lambda x' w (apply_lambda x bx' a _)
+  | Pair e1 e2 => Pair (apply_abstraction x e1 a _) (apply_abstraction x e2 a _)
+  | Left e => Left (apply_abstraction x e a _)
+  | Right e => Right (apply_abstraction x e a _)
+  | Lambda x' w bx' => Lambda x' w (apply_abstraction x bx' a _)
 end.
 Next Obligation.
 simpl in H2. apply andb_prop in H2. destruct H2. auto.
@@ -480,7 +480,7 @@ simpl in H2. apply andb_prop in H2. destruct H2. auto.
 Defined.
 
 Program Example apply_example1 :
-  apply_lambda _x_
+  apply_abstraction _x_
     (Left (AtomicEvid _x_))
     (AtomicEvid _l_) _ 
   = Left (AtomicEvid _l_).
@@ -488,7 +488,7 @@ reflexivity.
 Qed.
 
 Program Example apply_example2 : 
-  apply_lambda _y_
+  apply_abstraction _y_
     (Pair (AtomicEvid _y_) (AtomicEvid _s_))
     (Right (AtomicEvid _l_)) _
   = Pair (Right (AtomicEvid _l_)) (AtomicEvid _s_).
@@ -586,7 +586,7 @@ Inductive proofTreeOf : list judgement -> judgement -> Type :=
             proofTreeOf Ps (e \by a1 @ w2 \in C)
 
 | impl_intro (x : atomic_evid_name) (bx : evid) a w1 w2 (C1 : claim) C2 Ps Qs
-                    (H1 : notUsedInInnerLambda x bx = true)
+                    (H1 : notUsedInInnerAbstraction x bx = true)
                  (H2 : contains ((AtomicEvid x) \by a @ w1 \in C1) Ps = true)
                  (H3 : remove judgement_eq_dec ((AtomicEvid x) \by a @ w1 \in C1) Ps ==? Qs = true)
 
@@ -595,12 +595,12 @@ Inductive proofTreeOf : list judgement -> judgement -> Type :=
    proofTreeOf Qs ((Lambda x w1 bx) \by a @ w2 \in (Implies C1 C2))
 | impl_elim x bx y a w1 w2 C1 C2 Ps Qs Rs
                     (H1 : Ps ++ Qs ==? Rs = true)
-               (H2 : notUsedInInnerLambda x bx = true)                
+               (H2 : notUsedInInnerAbstraction x bx = true)                
                 
 (L: proofTreeOf Ps ((Lambda x w1 bx) \by a @ w2 \in (Implies C1 C2)))
                            (R: proofTreeOf Qs (y \by a @ w1 \in C1))
                         :
-    proofTreeOf Rs ((apply_lambda x bx y H2) \by a @ w2 \in C2)
+    proofTreeOf Rs ((apply_abstraction x bx y H2) \by a @ w2 \in C2)
 .
 
 Record proofTreeOf_wrapped (a : actor) (c : claim) := {
@@ -1404,7 +1404,7 @@ Eval compute in (showForLogSeq impl_intro1).
 
 Definition impl_intro_elim : proofTreeOf_wrapped a1 (c1).
 eexists [(AtomicEvid _e2_) \by a1 @ 1 \in c1] _ 1.
-eassert (apply_lambda _e1_ e1 e2 _ = e2).
+eassert (apply_abstraction _e1_ e1 e2 _ = e2).
 simpl. reflexivity. Unshelve. 3: reflexivity. 2: shelve.
 fold e2.
 rewrite <- H.
@@ -1743,7 +1743,7 @@ Eval compute in (showForLogSeq chainWithAnd).
 
 Definition impl_intro_elim_with_weights : proofTreeOf_wrapped a1 (c1).
 eexists [(AtomicEvid _e2_) \by a1 @ (1 # 2) \in c1] _ (1 # 2).
-eassert (apply_lambda _e1_ e1 e2 _ = e2).
+eassert (apply_abstraction _e1_ e1 e2 _ = e2).
 simpl. reflexivity. Unshelve. 3: reflexivity. 2: shelve.
 fold e2.
 rewrite <- H.
@@ -1772,22 +1772,22 @@ Eval compute in (showForLogSeq impl_intro_elim_with_weights).
 
 Definition impl_intro_elim_with_different_weights : proofTreeOf_wrapped a1 (c1 /\' c2).
 eexists [e3 \by a1 @ (1 # 2) \in c1; e4 \by a1 @ (1 # 3) \in c2] {{e3,e4}} (1 # 3).
-eassert (apply_lambda _e2_ e2 e3 _ = e3).
+eassert (apply_abstraction _e2_ e2 e3 _ = e3).
 simpl. reflexivity. Unshelve. 2: reflexivity.
 fold e3.
 rewrite <- H.
 
-eapply (impl_elim _e2_ {{e3,e2}} e4 a1 (1 # 3) (1 # 3) C2 (C1 /\' C2)) with (Ps := [e3 \by a1 @ 1 # 2 \in c1]) (Qs := [e4 \by a1 @ (1 # 3) \in c2]) (Rs := [(apply_lambda _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1; e4 \by a1 @ (1 # 3) \in c2]).
+eapply (impl_elim _e2_ {{e3,e2}} e4 a1 (1 # 3) (1 # 3) C2 (C1 /\' C2)) with (Ps := [e3 \by a1 @ 1 # 2 \in c1]) (Qs := [e4 \by a1 @ (1 # 3) \in c2]) (Rs := [(apply_abstraction _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1; e4 \by a1 @ (1 # 3) \in c2]).
 simpl. reflexivity.
 2: eapply assume.
 Unshelve. 2: reflexivity.
 
-eassert (apply_lambda _e1_ (Lambda _e2_ (1 # 3) {{e3,e2}}) e3    _ = (Lambda _e2_ (1 # 3) {{e3,e2}})).
+eassert (apply_abstraction _e1_ (Lambda _e2_ (1 # 3) {{e3,e2}}) e3    _ = (Lambda _e2_ (1 # 3) {{e3,e2}})).
 simpl. reflexivity. Unshelve. 2: reflexivity.
 fold e2.
 rewrite <- H0.
 
-eapply (impl_elim _e1_ (Lambda _e2_ (1 # 3) {{e1,e2}}) e3 a1 (1 # 2) (1 # 3) C1 (C2 ->' C1 /\' C2)) with (Ps := []) (Qs := [(apply_lambda _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1]) (Rs := [(apply_lambda _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1]). reflexivity.
+eapply (impl_elim _e1_ (Lambda _e2_ (1 # 3) {{e1,e2}}) e3 a1 (1 # 2) (1 # 3) C1 (C2 ->' C1 /\' C2)) with (Ps := []) (Qs := [(apply_abstraction _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1]) (Rs := [(apply_abstraction _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1]). reflexivity.
 
 simpl.
 
