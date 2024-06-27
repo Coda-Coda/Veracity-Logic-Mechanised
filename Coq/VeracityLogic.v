@@ -452,6 +452,18 @@ The following functions implement the core features of abstractions.
 
 Open Scope beq_scope.
 
+(*|
+
+First we define a helper function to help prevent a situation where the same atomic evidence is used for an abstraction multiple times. 
+
+We write the abstraction :math:`(x)(x)` as :math:`\lambda(x)(x)`.
+
+What we want to prevent is an abstraction such as :math:`\lambda(x)(\lambda(x)(x))`.
+
+Rather, we should not use :math:`x` as the variable for both abstractions. Instead, :math:`\lambda(x)(\lambda(y)(x))` or :math:`\lambda(x)(\lambda(y)(y))` would be permitted and are not ambiguous.
+
+|*)
+
 Fixpoint notUsedInInnerAbstraction (x : atomic_evid_name) (bx : evid) : bool :=
 match bx with
   | AtomicEvid _ => true
