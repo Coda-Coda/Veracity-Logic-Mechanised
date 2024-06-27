@@ -70,8 +70,8 @@ Require Import QArith.Qminmax.
 
 (*|
 
-Printing rational numbers
--------------------------
+Converting rational numbers to strings
+--------------------------------------
 
 Coq does not natively include a function to convert rational numbers to strings (or even natural numbers).
 Here we define a function that prints rational numbers as strings formatted for LaTeX.
@@ -260,6 +260,23 @@ Types of aspects of the veracity logic
 
 |*)
 
+(*|
+
+Claims
+~~~~~~
+
+First, we have the inductive type for claims.
+A claim can either be:
+
+  - A named atomic claim
+  - `Bottom`, the claim which can never have veracity
+  - A conjuction of two other claims
+  - A disjucntion of two other claims
+
+We again use `Scheme Equality` to define boolean equality for claims.
+
+|*)
+
 Inductive claim :=
   | AtomicClaim (n : claim_name)
   | Bottom
@@ -268,6 +285,31 @@ Inductive claim :=
   | Implies  (c1 c2 : claim).
 
 Scheme Equality for claim.
+
+(*|
+
+Evidence
+~~~~~~~~
+
+Secondly, we have the inductive type for evidence.
+Evidence can either be:
+
+  - Named atomic evidence
+  - A pair of other evidence (used for claims which are a conjunction)
+  - Evidence tagged with `Left` (used for claims which are a disjunction where the left disjunct is true)
+  - Evidence tagged with `Right` (used for claims which are a disjunction where the right disjunct is true)
+  - Evidence that involves an abstraction, described further below (used for implicative claims)
+
+An experimental alternative implementation of `evid` which uses dependent types to make the links described in the parentheses explicit can be found on the branch `WIP-dependent-evid` here: https://github.com/Coda-Coda/Veracity-Logic-Mechanised/blob/WIP-dependent-evid/Coq/VeracityLogic.v#L331.
+The experimental `WIP-dependent-evid` branch was only completed up to the definition of `proofTreeOf` and does not include working versions of the example proofs.
+
+We again use `Scheme Equality` to define boolean equality for evidence.
+
+**Abstractions** turn out to be challenging to formalise, especially when including weights.
+The solution taken in this formalisation at the moment is to require evidence of the same weight to be used when a lambda is applied as back when the lambda was constructed.
+This requires the formalisation to keep track of the weights used when lambdas are constructed, and so `Lambda` has the argument `required_weight`.
+
+|*)
 
 Inductive evid :=
   | AtomicEvid (n : atomic_evid_name)
@@ -278,21 +320,85 @@ Inductive evid :=
 
 Scheme Equality for evid.
 
+(*|
+
+Actors
+~~~~~~
+
+Next, we have the inductive type for actors.
+
+An `actor` can only be:
+
+  - A tagged `actor_name`
+
+We again use `Scheme Equality` to define boolean equality for actors.
+
+|*)
+
 Inductive actor :=
   | Actor (n : actor_name).
 
 Scheme Equality for actor.
 
+(*|
+
+Trust Relations
+~~~~~~~~~~~~~~~
+
+Next, we have the inductive type for trust relations.
+
+Similarly to actors, a `trust_relation` can only be:
+
+  - A tagged `trust_relation_name`
+
+We again use `Scheme Equality` to define boolean equality for trust relations.
+
+|*)
 
 Inductive trustRelation :=
   | Trust (n : trust_relation_name).
 
 Scheme Equality for trustRelation.
 
+(*|
+
+Judgements
+~~~~~~~~~~
+
+Finally, we have the inductive type for judgements.
+
+A `judgement` has one constructor which requries:
+
+  - Evidence, an Actor, a Weight, and a Claim.
+
+This is taken to mean that based on the provided evidence, the given actor holds that the given claim has veracity, at the strength of the given weight.
+
+We again use `Scheme Equality` to define boolean equality for judgements.
+
+|*)
+
 Inductive judgement :=
   Judgement (e : evid) (a : actor) (w : Q) (c: claim).
 
 Scheme Equality for judgement.
+
+(*|
+
+Helpful extras
+--------------
+
+|*)
+
+(*|
+
+Notation
+~~~~~~~~
+
+Here we define convenient notation for `Judgement`, `And`, `Or`, `Implies`, `Bottom`, and `Pair`.
+
+For more information on Coq's notation system please see https://coq.inria.fr/doc/V8.17.1/refman/user-extensions/syntax-extensions.html?highlight=notation#coq:cmd.Notation.
+
+|*)
 
 Notation "E \by A @ W \in C" := (Judgement E A W C) (at level 2).
 Infix "/\'" := And (at level 81, left associativity).
@@ -303,8 +409,12 @@ Notation "{{ x , y , .. , z }}" := (Pair .. (Pair x y) .. z).
 
 (*|
 
-Boolean Equality Typeclass
---------------------------
+Boolean equality typeclass
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here we define a typeclass for boolean equality with the notation `=?` to make things more convenient when using the boolean equality functions.
+
+For more information on Coq's typeclasses please see https://softwarefoundations.cis.upenn.edu/qc-current/Typeclasses.html.
 
 |*)
 
@@ -327,8 +437,16 @@ Close Scope string.
 
 (*|
 
-The machinery for applying lambas
----------------------------------
+The machinery for applying abstractions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Abstractions are described in the `arXiv paper <https://arxiv.org/abs/2302.06164>`_ as follows.
+
+.. pull-quote::
+
+  "For expression :math:`e` and variable :math:`x`, the expression :math:`(x)e` is an expression where all free occurrences of :math:`x` in :math:`e` become bound by this :math:`(x)`. The expression :math:`(x)e` called an abstraction (of :math:`e` by :math:`x`). For expression :math:`(x)e` and expression :math:`a`, :math:`(x)e(a)` is an expression where all occurrences of :math:`x` in :math:`e` bound by this :math:`(x)` are replaced by :math:`a`. The expression :math:`(x)e(a)`  is called the application of :math:`(x)e` to :math:`a`."
+
+The following functions implement the core features of abstractions.
 
 |*)
 
