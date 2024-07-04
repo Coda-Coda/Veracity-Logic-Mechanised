@@ -526,6 +526,10 @@ Qed.
 The machinery for equality treating lists as sets
 -------------------------------------------------
 
+We would like to treat assumptions as sets, because the order of assumptions is irrelevant and we would like to not be concerned with duplicate assumptions. The only operation we need to apply to assumptions is equality, which is used in the logical rules in the `proofTreeOf` definition later. So, here we take the straightforward approach of defining `eq_sets` which is an equality function treating lists as sets, defined as both lists being a `subset` of each other.
+
+The notation `{Beq A}` preceded by a backquote indicates that the type `A` is of the typeclass `Beq` described earlier, see `Boolean equality typeclass`_. So, `eq_sets` defines equality for lists treated as sets containing elements of a type which has a boolean equality function declared for it. The typeclass instance for `Beq` is what defines `=?` in the definitions below, as this was the notation we defined for `beq`. In this file we only use `eq_sets` for lists of evidence, but for the sake of generality we use the `Beq` typeclass.
+
 |*)
 
 Fixpoint contains {A} `{Beq A} (x : A) (l : list A) : bool :=
@@ -541,6 +545,13 @@ Fixpoint subset {A} `{Beq A} (l1 l2 : list A) : bool :=
 end.
 
 Definition eq_sets {A} `{Beq A} (l1 l2 : list A) : bool := subset l1 l2 && subset l2 l1.
+
+(*|
+
+We also define the notation `==?` for `eq_sets`.
+
+|*)
+
 Infix "==?" := eq_sets (at level 70) : beq_scope.
 
 (*|
