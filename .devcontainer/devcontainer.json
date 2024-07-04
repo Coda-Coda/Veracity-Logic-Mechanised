@@ -1,0 +1,36 @@
+{
+  // See https://github.com/xtruder/nix-devcontainer. Used under the MIT licence, https://github.com/xtruder/nix-devcontainer/blob/main/LICENSE.
+  "name": "veracity-logic-mechanised-in-codespaces",
+  "dockerFile": "Dockerfile",
+  "context": "${localWorkspaceFolder}",
+  "build": {
+    "args": {
+      "USER_UID": "${localEnv:USER_UID}",
+      "USER_GID": "${localEnv:USER_GID}"
+    }
+  },
+
+  "runArgs": [
+    "--security-opt", "label=disable"
+  ],
+
+  "containerEnv": {
+  },
+
+  "onCreateCommand": "cd Coq; nix-shell --run 'time alectryon --long-line-threshold 999999 --output-directory html VeracityLogic.v'; echo 'Done installing Coq, installing Alectryon and building Coq/html/VeracityLogic.html from Coq/VeracityLogic.v.'",
+
+  "overrideCommand": false,
+  "userEnvProbe": "loginShell",
+  "updateRemoteUserUID": false,
+  "forwardPorts": [],
+
+  "customizations": {
+   "vscode": {
+      "extensions": [
+        "coq-community.vscoq1"
+      ]
+    },
+    "codespaces": {
+    }
+  }
+}
