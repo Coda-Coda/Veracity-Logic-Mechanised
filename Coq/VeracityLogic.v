@@ -458,9 +458,9 @@ First we define a helper function to help prevent a situation where the same ato
 
 We write the abstraction :math:`(x)(x)` as :math:`\lambda(x)(x)`.
 
-What we want to prevent is an abstraction such as :math:`\lambda(x)(\lambda(x)(x))`.
+We want to prevent abstractions such as :math:`\lambda(x)(\lambda(x)(x))`. We should not use :math:`x` as the variable for both abstractions. Instead, :math:`\lambda(x)(\lambda(y)(x))` or :math:`\lambda(x)(\lambda(y)(y))` would be permitted and are not ambiguous.
 
-Rather, we should not use :math:`x` as the variable for both abstractions. Instead, :math:`\lambda(x)(\lambda(y)(x))` or :math:`\lambda(x)(\lambda(y)(y))` would be permitted and are not ambiguous.
+We represent an abstraction by `x` and `bx`, where `bx` is the evidence (potentially using `Pair`, `Left`, `Right` and `Lambda`) for which every occurrence of the `AtomicEvid` `x` within `bx` should be replaced by the supplied evidence `a` when `apply_abstraction` is called. For `apply_abstraction`, we require that the atomic evidence `x` is not used in an "inner abstraction" such as described in the previous paragraph. Coq's `Program` machinery is used to show that `notUsedInInnerAbstraction` returns `true` for recursive calls to `apply_abstraction`, supported by the proofs following each `Next Obligation`.
 
 |*)
 
@@ -491,6 +491,14 @@ Next Obligation.
 simpl in H2. apply andb_prop in H2. destruct H2. auto.
 Defined.
 
+(*|
+
+In the following example, Coq's `Program` machinery automatically fills in the proof that :math:`x` is not used in an inner abstraction, thanks to the tactic `program_simpl`. For more information on Coq's Program machinery please see: https://coq.inria.fr/doc/V8.17.1/refman/addendum/program.html. For the `program_simpl` tactic please see: https://github.com/coq/coq/blob/881027fa1c868bc12f7d2e4f9dd407c3847a95a7/theories/Program/Tactics.v#L319.
+
+Here we show that :math:`\lambda(x)(Left(x))(l) = Left(l)`.
+
+|*)
+
 Program Example apply_example1 :
   apply_abstraction _x_
     (Left (AtomicEvid _x_))
@@ -498,6 +506,12 @@ Program Example apply_example1 :
   = Left (AtomicEvid _l_).
 reflexivity.
 Qed.
+
+(*|
+
+Here we show that :math:`\lambda(y)((y,s))(Right(l)) = (Right(l),s)`.
+
+|*)
 
 Program Example apply_example2 : 
   apply_abstraction _y_
