@@ -559,10 +559,30 @@ Infix "==?" := eq_sets (at level 70) : beq_scope.
 The central inductive definition of valid proof trees
 -----------------------------------------------------
 
+Now we move to the most important definition of this file.
+The inductive type `proofTreeOf` defines what a correct proof tree can be.
+At it's core, it is a datatype for a tree.
+However, it is *dependently typed*, the type depends on the values `list judgement` (the list/set of assumptions) and `judgement` (the judgement that this proof tree). That is, `proofTreeOf Ps j` is the type of all correct proof trees of the judgement `j` with the assumptions `Ps`.
+
+In the rules we use the convention of naming variables as follows:
+
+  - `Ps`, `Qs`, `Rs` refer to the lists/sets of assumptions (we represent assumptions as judgements).
+  - `e`, `e1`, `e2` refer to evidence or, in some cases, atomic evidence names when we require the evidence to be atomic.
+  - `a`, `a1`, `a2` refer to actors.
+  - `w`, `w1`, `w2` refer to weights, of type `Q`.
+  - `c`, `c1`, `c2` refer to claims.
+  - `H`, `H1`, `H2` refer to "hypotheses" or, in these rules, conditions that must be met for the rule/constructor to be able to be applied. They are sometimes followed by a description, e.g. `HWeights` refers to a condition to do with weights.
+
+In these rules, we rely on Coq's type inference, so we don't explicity give the types of `e a w` and `c` in the `assume` rule, for example. But we could instead have written:
+
+`| assume (e : atomic_evid_name) (a : actor) (w : Q) (c : claim) ...`
+
+A helpful exercise may be to add explicit types like this whenever the types are not 100% clear and check if Coq still accepts the definition.
+
 |*)
 
 Inductive proofTreeOf : list judgement -> judgement -> Type :=
-| assume e a w c : proofTreeOf [((AtomicEvid e) \by a @ w \in c)] ((AtomicEvid e) \by a @ w \in c)
+| assume (e : atomic_evid_name) (a : actor) (w : Q) (c : claim) : proofTreeOf [((AtomicEvid e) \by a @ w \in c)] ((AtomicEvid e) \by a @ w \in c)
 
 | bot_elim e a w C Ps
 
