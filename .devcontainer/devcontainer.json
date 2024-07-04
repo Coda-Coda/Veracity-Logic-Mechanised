@@ -17,7 +17,7 @@
   "containerEnv": {
   },
 
-  "onCreateCommand": "cd Coq; nix-shell --run 'time alectryon --long-line-threshold 999999 --output-directory html VeracityLogic.v'; echo 'Done installing Coq, installing Alectryon and building Coq/html/VeracityLogic.html from Coq/VeracityLogic.v.'",
+  "onCreateCommand": "cp .vscode/settings-for-codespaces.json /home/code/.vscode-remote/data/Machine/settings.json; cd Coq; nix-shell --run 'time alectryon --long-line-threshold 999999 --output-directory html VeracityLogic.v'; echo 'Done installing Coq, installing Alectryon and building Coq/html/VeracityLogic.html from Coq/VeracityLogic.v.'",
 
   "overrideCommand": false,
   "userEnvProbe": "loginShell",
