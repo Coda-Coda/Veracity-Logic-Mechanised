@@ -409,6 +409,63 @@ Notation "{{ x , y , .. , z }}" := (Pair .. (Pair x y) .. z).
 
 (*|
 
+Shorter names for atomic evidence, actors, claims, etc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here we define convenient names such as `e` for `AtomicEvid _e_`.
+These will be used later on in examples and lemmas.
+
+|*)
+
+Definition e := AtomicEvid _e_.
+
+Definition e1 := AtomicEvid _e1_.
+Definition a1 := Actor _a1_.
+Definition c1 := AtomicClaim _c1_.
+
+Definition e2 := AtomicEvid _e2_.
+Definition a2 := Actor  _a2_.
+Definition c2 := AtomicClaim _c2_.
+
+Definition e3 := AtomicEvid _e3_.
+Definition a3 := Actor _a3_.
+Definition c3 := AtomicClaim _c3_.
+
+Definition e4 := AtomicEvid  _e4_.
+Definition a4 := Actor _a4_ .
+Definition c4 := AtomicClaim _c4_.
+
+Definition eB := AtomicEvid  _eB_.
+
+Definition x := AtomicEvid _x_ .
+Definition y := AtomicEvid _y_.
+Definition z := AtomicEvid _z_.
+Definition Penelope := Actor _P_.
+Definition Quentin := Actor _Q_.
+Definition Ryan := Actor _R_.
+Definition Samantha := Actor _S_.
+Definition Tom := Actor _T_.
+Definition Ulysses := Actor _U_.
+Definition Ledger := Actor _L_.
+Definition C1 := AtomicClaim _c1_.
+Definition C2 := AtomicClaim _c2_.
+Definition C3 := AtomicClaim _c3_.
+Definition C4 := AtomicClaim _c4_.
+Definition C5 := AtomicClaim _c5_.
+
+
+Definition trustT := Trust _T_Trust_.
+Definition trustU := Trust _U_Trust_.
+Definition trustV := Trust _V_Trust_.
+Definition trustA := Trust _A_Trust_.
+Definition trustB := Trust _B_Trust_.
+
+Definition j1 := x \by Penelope @ 1 \in c1.
+Definition j2 := y \by Penelope @ 1 \in c2.
+Definition j3 := z \by Penelope @ 1 \in c3.
+
+(*|
+
 Boolean equality typeclass
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -559,10 +616,58 @@ Infix "==?" := eq_sets (at level 70) : beq_scope.
 The central inductive definition of valid proof trees
 -----------------------------------------------------
 
+Now we move to the most important definition of this file.
+The inductive type `proofTreeOf` defines what a correct proof tree can be.
+At it's core, it is a datatype for a tree.
+However, it is *dependently typed*, the type depends on the values `list judgement` (the list/set of assumptions) and `judgement` (the judgement that this proof tree). That is, `proofTreeOf Ps j` is the type of all correct proof trees of the judgement `j` with the assumptions `Ps`.
+
+In the rules we use the convention of naming variables as follows:
+
+  - `Ps`, `Qs`, `Rs` refer to the lists/sets of assumptions (we represent assumptions as judgements).
+  - `e`, `e1`, `e2` refer to evidence or, in some cases, atomic evidence names when we require the evidence to be atomic.
+  - `a`, `a1`, `a2` refer to actors.
+  - `w`, `w1`, `w2` refer to weights, of type `Q`.
+  - `c`, `c1`, `c2` refer to claims.
+  - `H`, `H1`, `H2` refer to "hypotheses" or, in these rules, conditions that must be met for the rule/constructor to be able to be applied. They are sometimes followed by a description, e.g. `HWeights` refers to a condition to do with weights.
+
+In these rules, we rely on Coq's type inference, so we don't explicity give the types of `e a w` and `c` in the `assume` rule, for example. But we could instead have written:
+
+`| assume (e : atomic_evid_name) (a : actor) (w : Q) (c : claim) ...`
+
+A helpful exercise may be to add explicit types like this whenever the types are not 100% clear and check if Coq still accepts the definition.
+
+It is important to realise that `proofTreeOf` is a dependent `Type` (rather than a `Prop`), so we can pattern match on values of type `proofTreeOf Ps j` and use this to define functions on proof trees, such as converting them to Latex strings. The alternative would have been to make `proofTreeOf` an inductive proposition. For more information on inductive propositions see: https://softwarefoundations.cis.upenn.edu/lf-current/IndProp.html. `VeracityLogicV1.v <../Previous/VeracityLogicV1.v>`_ and `VeracityLogicV2.v <../Previous/VeracityLogicV2.v>`_ took the inductive proposition approach.
+
+For each rule, everything before the final colon is required in order to construct the proof tree that follows the final colon. 
+
+For example, in `and_intro`, for any:
+
+  - evidence `e1, e2`
+  - actor `a`
+  - weights `w1, w2, w3`
+  - claims `C1, C2`
+  - assumptions `Ps, Qs, Rs`
+
+As well as:
+
+  - a proof that the assumptions in `Rs` equals (`Ps` appended to `Qs`) (considered as sets)
+  - a proof that `w3` is the minimum of `w1` and `w2`
+
+Along with:
+
+  - a proof tree from the assumptions `Ps` of the judgement that the actor `a` holds that `C1` has veracity with weight `w1` by the evidence `e1`
+  - and a proof tree from the assumptions `Qs` of the judgement that the actor `a` holds that `C2` has veracity with weight `w2` by the evidence `e2`
+
+We then have constructed:
+
+- a proof tree from the assumptions `Rs` of the judgement that the actor `a` holds that :math:`C_1 \wedge C_2` has veracity with weight `w3` by the evidence :math:`(e_1,e_2)`.
+
+Further details of each rule are discussed later in: `Example applications of each rule`_.
+
 |*)
 
 Inductive proofTreeOf : list judgement -> judgement -> Type :=
-| assume e a w c : proofTreeOf [((AtomicEvid e) \by a @ w \in c)] ((AtomicEvid e) \by a @ w \in c)
+| assume (e : atomic_evid_name) (a : actor) (w : Q) (c : claim) : proofTreeOf [((AtomicEvid e) \by a @ w \in c)] ((AtomicEvid e) \by a @ w \in c)
 
 | bot_elim e a w C Ps
 
@@ -681,7 +786,7 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _e3_ => "e3"
       | _e4_ => "e4"
       | _eQ_ => "e?"
-      | _eB_ => "e\bot"
+      | _eB_ => "eB"
       | _l_ => "l"
       | _s_ => "s"
       | _c_ => "c"
@@ -1338,57 +1443,247 @@ Examples
 
 |*)
 
-Definition e := AtomicEvid _e_.
+(*|
 
-Definition e1 := AtomicEvid _e1_.
-Definition a1 := Actor _a1_.
-Definition c1 := AtomicClaim _c1_.
+Example applications of each rule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Definition e2 := AtomicEvid _e2_.
-Definition a2 := Actor  _a2_.
-Definition c2 := AtomicClaim _c2_.
+|*)
 
-Definition e3 := AtomicEvid _e3_.
-Definition a3 := Actor _a3_.
-Definition c3 := AtomicClaim _c3_.
+Lemma assume_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c1)] (e \by a1 @ (1 # 3) \in c1).
+Proof.
+apply assume.
+Defined.
 
-Definition e4 := AtomicEvid  _e4_.
-Definition a4 := Actor _a4_ .
-Definition c4 := AtomicClaim _c4_.
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
 
-Definition eB := AtomicEvid  _eB_.
+Eval compute in (showForProofTree assume_example).
 
-Definition x := AtomicEvid _x_ .
-Definition y := AtomicEvid _y_.
-Definition z := AtomicEvid _z_.
-Definition P := Actor _P_.
-Definition Q := Actor _Q_.
-Definition R := Actor _R_.
-Definition S := Actor _S_.
-Definition T := Actor _T_.
-Definition U := Actor _U_.
-Definition L := Actor _L_.
-Definition C1 := AtomicClaim _c1_.
-Definition C2 := AtomicClaim _c2_.
-Definition C3 := AtomicClaim _c3_.
-Definition C4 := AtomicClaim _c4_.
-Definition C5 := AtomicClaim _c5_.
+(*|
+.. coq::
+|*)
+
+Lemma bot_elim_example :
+  proofTreeOf [(eB \by a1 @ (1 # 3) \in _|_)] (eB \by a1 @ (1 # 3) \in (c1 \/' c2)).
+Proof.
+apply bot_elim.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree bot_elim_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma and_intro_example : proofTreeOf [(e1 \by a1 @ (1 # 3) \in c1); (e2 \by a1 @ (1 # 2) \in c2)] ({{e1,e2}} \by a1 @ (1 # 3) \in (c1 /\' c2)).
+Proof.
+apply and_intro with (w1:=(1#3)) (w2:=(1#2)) (Ps:=[e1 \by a1 @ 1 # 3 \in c1]) (Qs:=[e2 \by a1 @ 1 # 2 \in c2]). 1-2: reflexivity.
+apply assume.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_intro_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma and_elim1_example : proofTreeOf [(e1 \by a1 @ (1 # 3) \in c1); (e2 \by a1 @ (1 # 2) \in c2)] (e1 \by a1 @ (1 # 3) \in c1).
+Proof.
+apply and_elim1 with (e2:=e2) (C2:=c2).
+apply and_intro with (w1:=(1#3)) (w2:=(1#2)) (Ps:=[e1 \by a1 @ 1 # 3 \in c1]) (Qs:=[e2 \by a1 @ 1 # 2 \in c2]). 1-2: reflexivity.
+apply assume.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_elim1_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma and_elim2_example : proofTreeOf [(e1 \by a1 @ (1 # 3) \in c1); (e2 \by a1 @ (1 # 2) \in c2)] (e2 \by a1 @ (1 # 3) \in c2).
+Proof.
+apply and_elim2 with (e1:=e1) (C1:=c1).
+apply and_intro with (w1:=(1#3)) (w2:=(1#2)) (Ps:=[e1 \by a1 @ 1 # 3 \in c1]) (Qs:=[e2 \by a1 @ 1 # 2 \in c2]). 1-2: reflexivity.
+apply assume.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_elim2_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma or_intro1_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c1)] ((Left e) \by a1 @ (1 # 3) \in (c1 \/' c2)).
+Proof.
+apply or_intro1.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree or_intro1_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma or_intro2_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c2)] ((Right e) \by a1 @ (1 # 3) \in (c1 \/' c2)).
+Proof.
+apply or_intro2.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree or_intro2_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma or_elim1_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c1)] (e \by a1 @ (1 # 3) \in c1).
+Proof.
+apply or_elim1 with (C2:=c2).
+apply or_intro1.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree or_elim1_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma or_elim2_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c2)] (e \by a1 @ (1 # 3) \in c2).
+Proof.
+apply or_elim2 with (C1:=c1).
+apply or_intro2.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree or_elim2_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma trust_example :
+  proofTreeOf [(e \by Penelope @ (1 # 3) \in c1)] (e \by Quentin @ (1 # 6) \in c1).
+Proof.
+apply trust with (a2:=Penelope) (wTrust:=1#2) (w1:=1#3). apply trustT. reflexivity.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree trust_example).
+
+(*|
+.. coq::
+|*)
 
 
-Definition trustT := Trust _T_Trust_.
-Definition trustU := Trust _U_Trust_.
-Definition trustV := Trust _V_Trust_.
-Definition trustA := Trust _A_Trust_.
-Definition trustB := Trust _B_Trust_.
+Lemma impl_intro_example : proofTreeOf [] ((Lambda _e_ (1#4) e) \by a1 @ (1 # 4) \in (Implies c1 c1)).
+apply impl_intro with (Ps:=[e \by a1 @ 1 # 4 \in c1]). 1-3: reflexivity.
+apply assume.
+Defined.
+
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro_example).
+
+(*|
+.. coq::
+|*)
+
+
+Lemma impl_elim_example : proofTreeOf [(e2 \by a1 @ (1 # 4) \in c1)] ((e2 \by a1 @ (1 # 4) \in c1)).
+apply impl_elim with (x:=_e1_) (bx:=e1) (w1:=1#4) (C1:=c1) (Ps:=[]) (Qs:=[e2 \by a1 @ 1 # 4 \in c1]) (H2:=eq_refl). reflexivity.
+apply impl_intro with (Ps:=[e1 \by a1 @ 1 # 4 \in c1]). 1-3: reflexivity.
+apply assume.
+apply assume.
+Defined.
+
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_elim_example).
+
+(*|
+.. coq::
+|*)
+
+
+(*|
+
+Other examples
+~~~~~~~~~~~~~~
+
+|*)
+
 
 Eval compute in showForProofTree_judgement [] [(e1 \by a1 @ 1 \in c1)] (e1 \by a1 @ 1 \in c1) (assume _e1_ a1 1 c1).
 
-Definition j1 := x \by P @ 1 \in c1.
-Definition j2 := y \by P @ 1 \in c2.
-Definition j3 := z \by P @ 1 \in c3.
 
-
-Definition process_example : proofTreeOf_wrapped P (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
+Definition process_example : proofTreeOf_wrapped Penelope (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
 eexists  _ _ _.
 eapply impl_intro with (x:=_z_) (Ps := [j3]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
@@ -1498,8 +1793,8 @@ Definition s := AtomicEvid _s_.
 Definition c := AtomicEvid _c_.
 
 Program Definition concreteProofTreeExampleWith2Conjuncts : 
-proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1\in c2] ({{l, s}} \by P @ 1 \in (C1 /\' C2)).
-eapply and_intro with (Ps:= [l \by P @ 1 \in c1]) (Qs:= [s \by P @ 1 \in c2]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
+proofTreeOf [l \by Penelope @ 1 \in c1;s \by Penelope @ 1\in c2] ({{l, s}} \by Penelope @ 1 \in (C1 /\' C2)).
+eapply and_intro with (Ps:= [l \by Penelope @ 1 \in c1]) (Qs:= [s \by Penelope @ 1 \in c2]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
 apply assume.
 apply assume.
 Defined.
@@ -1519,9 +1814,9 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith2Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith2Conjuncts.
 
 Program Definition concreteProofTreeExampleWith3Conjuncts : 
-proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1 \in c2;c \by P @ 1 \in c3] ({{{{l, s}},c}} \by P @ 1 \in (C1 /\' C2 /\' C3)).
-eapply and_intro with (Ps:= [l \by P @ 1 \in c1;s \by P @ 1 \in c2]) (Qs:= [c \by P @ 1 \in c3]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
-eapply and_intro with (Ps:= [l \by P @ 1 \in c1]) (Qs:= [s \by P @ 1 \in c2]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
+proofTreeOf [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2;c \by Penelope @ 1 \in c3] ({{{{l, s}},c}} \by Penelope @ 1 \in (C1 /\' C2 /\' C3)).
+eapply and_intro with (Ps:= [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2]) (Qs:= [c \by Penelope @ 1 \in c3]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
+eapply and_intro with (Ps:= [l \by Penelope @ 1 \in c1]) (Qs:= [s \by Penelope @ 1 \in c2]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
 apply (assume _l_).
 apply (assume _s_).
 apply (assume _c_).
@@ -1546,8 +1841,8 @@ We can also combine existing trees into new trees, when appropriate. For example
 |*)
 
 Program Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
-proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1 \in c2;c \by P @ 1 \in c3] ({{{{l, s}},c}} \by P @ 1 \in (C1 /\' C2 /\' C3)).
-eapply and_intro with (Ps:= [l \by P @ 1 \in c1;s \by P @ 1 \in c2]) (Qs:= [c \by P @ 1 \in c3]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
+proofTreeOf [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2;c \by Penelope @ 1 \in c3] ({{{{l, s}},c}} \by Penelope @ 1 \in (C1 /\' C2 /\' C3)).
+eapply and_intro with (Ps:= [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2]) (Qs:= [c \by Penelope @ 1 \in c3]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
 exact concreteProofTreeExampleWith2Conjuncts.
 Show Proof.
 apply (assume _c_).
@@ -1589,7 +1884,7 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleTrust).
 Eval compute in showForLogSeq concreteProofTreeExampleTrust.
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
-proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1 \in c2;c \by P @ 1 \in c3] ({{{{l, s}},c}} \by Q @ 1 \in (C1 /\' C2 /\' C3)).
+proofTreeOf [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2;c \by Penelope @ 1 \in c3] ({{{{l, s}},c}} \by Quentin @ 1 \in (C1 /\' C2 /\' C3)).
 eapply (trust _ _ _ 1 1 1 _ trustU). reflexivity.
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Defined.
@@ -1609,9 +1904,9 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWi
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrust.
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
-proofTreeOf [l \by P @ 1 \in c1;s \by P @ 1 \in c2;c \by P @ 1 \in c3] ({{{{l, s}},c}} \by Q @ 1 \in (C1 /\' C2 /\' C3)).
-eapply (trust _ Q Q 1 1 1 _ trustU). reflexivity.
-eapply (trust _ Q Q 1 1 1 _ trustV). reflexivity.
+proofTreeOf [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2;c \by Penelope @ 1 \in c3] ({{{{l, s}},c}} \by Quentin @ 1 \in (C1 /\' C2 /\' C3)).
+eapply (trust _ Quentin Quentin 1 1 1 _ trustU). reflexivity.
+eapply (trust _ Quentin Quentin 1 1 1 _ trustV). reflexivity.
 eapply (trust _ _ _ 1 1 1 _ trustU). reflexivity.
 apply concreteProofTreeExampleWith3ConjunctsUsingExistingTree.
 Show Proof.
@@ -1707,8 +2002,8 @@ Eval compute in showForLogSeq bot_example2.
 
 
 Program Definition starP : 
-proofTreeOf [l \by L @ 1 \in c1] (l \by P @ (1 # 3) \in C1).
-eapply (trust _ P L (1 # 3) 1 (1 # 3) _ trustT). reflexivity.
+proofTreeOf [l \by Ledger @ 1 \in c1] (l \by Penelope @ (1 # 3) \in C1).
+eapply (trust _ Penelope Ledger (1 # 3) 1 (1 # 3) _ trustT). reflexivity.
 eapply (assume _ _ 1).
 Show Proof.
 Defined.
@@ -1728,12 +2023,12 @@ Eval compute in (showForLogSeq starP).
 
 
 Program Definition chain : 
-proofTreeOf [e \by P @ 1 \in c1] (e \by U @ (1 # 32) \in C1).
-eapply (trust _ U T (1 # 2) (1 # 16) (1 # 32) _ trustA). reflexivity.
-eapply (trust _ T S (1 # 2) (1 # 8) (1 # 16)  _ trustA). reflexivity.
-eapply (trust _ S R (1 # 2) (1 # 4) (1 # 8) _ trustA). reflexivity.
-eapply (trust _ R Q (1 # 2) (1 # 2) (1 # 4) _ trustA). reflexivity.
-eapply (trust _ Q P (1 # 2) 1 (1 # 2) _ trustA). reflexivity.
+proofTreeOf [e \by Penelope @ 1 \in c1] (e \by Ulysses @ (1 # 32) \in C1).
+eapply (trust _ Ulysses Tom (1 # 2) (1 # 16) (1 # 32) _ trustA). reflexivity.
+eapply (trust _ Tom Samantha (1 # 2) (1 # 8) (1 # 16)  _ trustA). reflexivity.
+eapply (trust _ Samantha Ryan (1 # 2) (1 # 4) (1 # 8) _ trustA). reflexivity.
+eapply (trust _ Ryan Quentin (1 # 2) (1 # 2) (1 # 4) _ trustA). reflexivity.
+eapply (trust _ Quentin Penelope (1 # 2) 1 (1 # 2) _ trustA). reflexivity.
 eapply (assume _ _ 1).
 Show Proof.
 Defined.
@@ -1754,12 +2049,12 @@ Eval compute in (showForNaturalLanguage chain).
 Eval compute in (showForLogSeq chain).
 
 Program Definition chainWithAnd : 
-proofTreeOf [e1 \by P @ 1 \in c1; e2 \by Q @ 1 \in c2] ({{e1,e2}} \by S @ (1 # 4) \in (C1 /\' C2)).
-eapply and_intro with (Ps := [e1 \by P @ 1 \in c1]) (Qs := [e2 \by Q @ 1 \in c2]) (w1 := 1 # 4) (w2 := 1 # 2). 1-2: reflexivity.
-eapply (trust _ S Q (1 # 2) (1 # 2) (1 # 4) _ trustB). reflexivity.
-eapply (trust _ Q P (1 # 2) 1 (1 # 2) _ trustA). reflexivity.
+proofTreeOf [e1 \by Penelope @ 1 \in c1; e2 \by Quentin @ 1 \in c2] ({{e1,e2}} \by Samantha @ (1 # 4) \in (C1 /\' C2)).
+eapply and_intro with (Ps := [e1 \by Penelope @ 1 \in c1]) (Qs := [e2 \by Quentin @ 1 \in c2]) (w1 := 1 # 4) (w2 := 1 # 2). 1-2: reflexivity.
+eapply (trust _ Samantha Quentin (1 # 2) (1 # 2) (1 # 4) _ trustB). reflexivity.
+eapply (trust _ Quentin Penelope (1 # 2) 1 (1 # 2) _ trustA). reflexivity.
 eapply (assume _ _ 1).
-eapply (trust _ S Q (1 # 2) 1 (1 # 2) _ trustB). reflexivity.
+eapply (trust _ Samantha Quentin (1 # 2) 1 (1 # 2) _ trustB). reflexivity.
 eapply (assume _ _ 1).
 Show Proof.
 Defined.
