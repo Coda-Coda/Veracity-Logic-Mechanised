@@ -636,6 +636,34 @@ In these rules, we rely on Coq's type inference, so we don't explicity give the 
 
 A helpful exercise may be to add explicit types like this whenever the types are not 100% clear and check if Coq still accepts the definition.
 
+It is important to realise that `proofTreeOf` is a dependent `Type` (rather than a `Prop`), so we can pattern match on values of type `proofTreeOf Ps j` and use this to define functions on proof trees, such as converting them to Latex strings. The alternative would have been to make `proofTreeOf` an inductive proposition. For more information on inductive propositions see: https://softwarefoundations.cis.upenn.edu/lf-current/IndProp.html. `VeracityLogicV1.v <../Previous/VeracityLogicV1.v>`_ and `VeracityLogicV2.v <../Previous/VeracityLogicV2.v>`_ took the inductive proposition approach.
+
+For each rule, everything before the final colon is required in order to construct the proof tree that follows the final colon. 
+
+For example, in `and_intro`, for any:
+
+  - evidence `e1, e2`
+  - actor `a`
+  - weights `w1, w2, w3`
+  - claims `C1, C2`
+  - assumptions `Ps, Qs, Rs`
+
+As well as:
+
+  - a proof that the assumptions in `Rs` equals (`Ps` appended to `Qs`) (considered as sets)
+  - a proof that `w3` is the minimum of `w1` and `w2`
+
+Along with:
+
+  - a proof tree from the assumptions `Ps` of the judgement that the actor `a` holds that `C1` has veracity with weight `w1` by the evidence `e1`
+  - and a proof tree from the assumptions `Qs` of the judgement that the actor `a` holds that `C2` has veracity with weight `w2` by the evidence `e2`
+
+We then have constructed:
+
+- a proof tree from the assumptions `Rs` of the judgement that the actor `a` holds that :math:`C_1 \wedge C_2` has veracity with weight `w3` by the evidence :math:`(e_1,e_2)`.
+
+Further details of each rule are discussed later in: `Example applications of each rule`_.
+
 |*)
 
 Inductive proofTreeOf : list judgement -> judgement -> Type :=
