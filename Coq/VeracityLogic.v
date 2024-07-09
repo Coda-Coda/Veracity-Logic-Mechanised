@@ -758,7 +758,7 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _e3_ => "e3"
       | _e4_ => "e4"
       | _eQ_ => "e?"
-      | _eB_ => "e\bot"
+      | _eB_ => "eB"
       | _l_ => "l"
       | _s_ => "s"
       | _c_ => "c"
@@ -1414,6 +1414,243 @@ Examples
 --------
 
 |*)
+
+(*|
+
+Example applications of each rule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|*)
+
+Lemma assume_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c1)] (e \by a1 @ (1 # 3) \in c1).
+Proof.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree assume_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma bot_elim_example :
+  proofTreeOf [(eB \by a1 @ (1 # 3) \in _|_)] (eB \by a1 @ (1 # 3) \in (c1 \/' c2)).
+Proof.
+apply bot_elim.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree bot_elim_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma and_intro_example : proofTreeOf [(e1 \by a1 @ (1 # 3) \in c1); (e2 \by a1 @ (1 # 2) \in c2)] ({{e1,e2}} \by a1 @ (1 # 3) \in (c1 /\' c2)).
+Proof.
+apply and_intro with (w1:=(1#3)) (w2:=(1#2)) (Ps:=[e1 \by a1 @ 1 # 3 \in c1]) (Qs:=[e2 \by a1 @ 1 # 2 \in c2]). 1-2: reflexivity.
+apply assume.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_intro_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma and_elim1_example : proofTreeOf [(e1 \by a1 @ (1 # 3) \in c1); (e2 \by a1 @ (1 # 2) \in c2)] (e1 \by a1 @ (1 # 3) \in c1).
+Proof.
+apply and_elim1 with (e2:=e2) (C2:=c2).
+apply and_intro with (w1:=(1#3)) (w2:=(1#2)) (Ps:=[e1 \by a1 @ 1 # 3 \in c1]) (Qs:=[e2 \by a1 @ 1 # 2 \in c2]). 1-2: reflexivity.
+apply assume.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_elim1_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma and_elim2_example : proofTreeOf [(e1 \by a1 @ (1 # 3) \in c1); (e2 \by a1 @ (1 # 2) \in c2)] (e2 \by a1 @ (1 # 3) \in c2).
+Proof.
+apply and_elim2 with (e1:=e1) (C1:=c1).
+apply and_intro with (w1:=(1#3)) (w2:=(1#2)) (Ps:=[e1 \by a1 @ 1 # 3 \in c1]) (Qs:=[e2 \by a1 @ 1 # 2 \in c2]). 1-2: reflexivity.
+apply assume.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_elim2_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma or_intro1_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c1)] ((Left e) \by a1 @ (1 # 3) \in (c1 \/' c2)).
+Proof.
+apply or_intro1.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree or_intro1_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma or_intro2_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c2)] ((Right e) \by a1 @ (1 # 3) \in (c1 \/' c2)).
+Proof.
+apply or_intro2.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree or_intro2_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma or_elim1_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c1)] (e \by a1 @ (1 # 3) \in c1).
+Proof.
+apply or_elim1 with (C2:=c2).
+apply or_intro1.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree or_elim1_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma or_elim2_example :
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c2)] (e \by a1 @ (1 # 3) \in c2).
+Proof.
+apply or_elim2 with (C1:=c1).
+apply or_intro2.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree or_elim2_example).
+
+(*|
+.. coq::
+|*)
+
+Lemma trust_example :
+  proofTreeOf [(e \by Penelope @ (1 # 3) \in c1)] (e \by Quentin @ (1 # 6) \in c1).
+Proof.
+apply trust with (a2:=Penelope) (wTrust:=1#2) (w1:=1#3). apply trustT. reflexivity.
+apply assume.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree trust_example).
+
+(*|
+.. coq::
+|*)
+
+
+Lemma impl_intro_example : proofTreeOf [] ((Lambda _e_ (1#4) e) \by a1 @ (1 # 4) \in (Implies c1 c1)).
+apply impl_intro with (Ps:=[e \by a1 @ 1 # 4 \in c1]). 1-3: reflexivity.
+apply assume.
+Defined.
+
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_intro_example).
+
+(*|
+.. coq::
+|*)
+
+
+Lemma impl_elim_example : proofTreeOf [(e2 \by a1 @ (1 # 4) \in c1)] ((e2 \by a1 @ (1 # 4) \in c1)).
+apply impl_elim with (x:=_e1_) (bx:=e1) (w1:=1#4) (C1:=c1) (Ps:=[]) (Qs:=[e2 \by a1 @ 1 # 4 \in c1]) (H2:=eq_refl). reflexivity.
+apply impl_intro with (Ps:=[e1 \by a1 @ 1 # 4 \in c1]). 1-3: reflexivity.
+apply assume.
+apply assume.
+Defined.
+
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree impl_elim_example).
+
+(*|
+.. coq::
+|*)
+
+
+(*|
+
+Other examples
+~~~~~~~~~~~~~~
+
+|*)
+
 
 Eval compute in showForProofTree_judgement [] [(e1 \by a1 @ 1 \in c1)] (e1 \by a1 @ 1 \in c1) (assume _e1_ a1 1 c1).
 
