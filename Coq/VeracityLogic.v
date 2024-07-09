@@ -1450,6 +1450,13 @@ Example applications of each rule
 
 |*)
 
+(*|
+
+Using the `assume` rule gives the leaf nodes of the proof trees.
+It allows any judgement to be shown to have veracity from exactly that assumption in the list of assumptions.
+
+|*)
+
 Lemma assume_example :
   proofTreeOf [(e \by a1 @ (1 # 3) \in c1)] (e \by a1 @ (1 # 3) \in c1).
 Proof.
@@ -1465,6 +1472,12 @@ Eval compute in (showForProofTree assume_example).
 
 (*|
 .. coq::
+|*)
+
+(*|
+
+`bot_elim` allows us to conclude any claim from evidence for the claim that should never have veracity, :math:`\bot`.
+
 |*)
 
 Lemma bot_elim_example :
@@ -1485,6 +1498,12 @@ Eval compute in (showForProofTree bot_elim_example).
 .. coq::
 |*)
 
+(*|
+
+`and_intro` combines two proof trees, taking the minimum weight of the two as the weight for the resulting conjunction.
+
+|*)
+
 Lemma and_intro_example : proofTreeOf [(e1 \by a1 @ (1 # 3) \in c1); (e2 \by a1 @ (1 # 2) \in c2)] ({{e1,e2}} \by a1 @ (1 # 3) \in (c1 /\' c2)).
 Proof.
 apply and_intro with (w1:=(1#3)) (w2:=(1#2)) (Ps:=[e1 \by a1 @ 1 # 3 \in c1]) (Qs:=[e2 \by a1 @ 1 # 2 \in c2]). 1-2: reflexivity.
@@ -1501,6 +1520,14 @@ Eval compute in (showForProofTree and_intro_example).
 
 (*|
 .. coq::
+|*)
+
+(*|
+
+`and_elim1` allows us to conclude the left conjunct from a conjunctive claim.
+It requires that the evidence is a `Pair`, here written as `{{e1, e2}}`.
+The weight remains the same.
+
 |*)
 
 Lemma and_elim1_example : proofTreeOf [(e1 \by a1 @ (1 # 3) \in c1); (e2 \by a1 @ (1 # 2) \in c2)] (e1 \by a1 @ (1 # 3) \in c1).
@@ -1522,6 +1549,12 @@ Eval compute in (showForProofTree and_elim1_example).
 .. coq::
 |*)
 
+(*|
+
+`and_elim2` is similar to `and_elim1` but allows us to conclude the right conjunct.
+
+|*)
+
 Lemma and_elim2_example : proofTreeOf [(e1 \by a1 @ (1 # 3) \in c1); (e2 \by a1 @ (1 # 2) \in c2)] (e2 \by a1 @ (1 # 3) \in c2).
 Proof.
 apply and_elim2 with (e1:=e1) (C1:=c1).
@@ -1539,6 +1572,14 @@ Eval compute in (showForProofTree and_elim2_example).
 
 (*|
 .. coq::
+|*)
+
+(*|
+
+`or_intro1` allows us to conclude a disjunctive claim by tagging the evidence with `Left`, represented in Latex as :math:`i(...)`.
+This indicates that the disjunctive claim has veracity because the left disjunct had been shown to have veracity.
+The right disjunct can be any claim.
+
 |*)
 
 Lemma or_intro1_example :
@@ -1559,6 +1600,13 @@ Eval compute in (showForProofTree or_intro1_example).
 .. coq::
 |*)
 
+(*|
+
+`or_intro2` similarly allows us to conclude a disjunctive claim but by tagging the evidence with `Right`, represented in Latex as :math:`j(...)`.
+The left disjunct can be any claim.
+
+|*)
+
 Lemma or_intro2_example :
   proofTreeOf [(e \by a1 @ (1 # 3) \in c2)] ((Right e) \by a1 @ (1 # 3) \in (c1 \/' c2)).
 Proof.
@@ -1577,11 +1625,22 @@ Eval compute in (showForProofTree or_intro2_example).
 .. coq::
 |*)
 
+(*|
+
+`or_elim1` allows us to conclude the left disjunct from a disjunctive claim whose veracity came from the left disjunct, as evident from tagged evidence.
+
+|*)
+
 Lemma or_elim1_example :
   proofTreeOf [(e \by a1 @ (1 # 3) \in c1)] (e \by a1 @ (1 # 3) \in c1).
 Proof.
-apply or_elim1 with (C2:=c2).
-apply or_intro1.
+apply or_elim1 with (C2:=c2). (* .unfold *)
+(*|
+
+Here we see the proof state before and after `or_elim1` is applied.
+
+|*)
+apply or_intro1. (* .unfold *)
 apply assume.
 Defined.
 
@@ -1596,11 +1655,17 @@ Eval compute in (showForProofTree or_elim1_example).
 .. coq::
 |*)
 
+(*|
+
+`or_elim2` similarly allows us to conclude the right disjunct from a disjunctive claim whose veracity came from the right disjunct.
+
+|*)
+
 Lemma or_elim2_example :
   proofTreeOf [(e \by a1 @ (1 # 3) \in c2)] (e \by a1 @ (1 # 3) \in c2).
 Proof.
-apply or_elim2 with (C1:=c1).
-apply or_intro2.
+apply or_elim2 with (C1:=c1). (* .unfold *)
+apply or_intro2. (* .unfold *)
 apply assume.
 Defined.
 
@@ -1615,10 +1680,33 @@ Eval compute in (showForProofTree or_elim2_example).
 .. coq::
 |*)
 
+(*|
+
+All the other rules require the actor to stay the same, `trust` allows the actor holding that the claim has veracity to change.
+An application of the rule `trust` is intended to implicitly declare that the named trust relation, in this case `trustT`, relates the two actors `a1` and `a2` with the weight `wTrust`.
+Currently, there is no mechanism forcing that `trust` is used in a consistent manner.
+One could, for instance, use `trustT` with Penelope and Quentin with weight :math:`\frac{1}{3}` and then elsewhere use `trustT` again with Penelope Quentin but with weight :math:`\frac{1}{2}`.
+This could be prevented with a technique such as explored in the branch `WIP-with-fDef-as-proofTreeOf-parameter` for the related challenge of ensuring that functions are applied consistently (which has been solved with `apply_abstraction` in the current code-base, not requiring `by_def1`/`by_def2`). See: https://github.com/Coda-Coda/Veracity-Logic-Mechanised/blob/5351832ae3d9a32b3a13eb5a5865b35b30ff3b47/Coq/VeracityLogic.v#L398 for the `fDef` approach.
+
+|*)
+
 Lemma trust_example :
-  proofTreeOf [(e \by Penelope @ (1 # 3) \in c1)] (e \by Quentin @ (1 # 6) \in c1).
+  proofTreeOf [(e \by Penelope @ (1 # 3) \in c1)] (e \by Quentin @ (1 # 6) \in c1). (* .unfold *)
 Proof.
-apply trust with (a2:=Penelope) (wTrust:=1#2) (w1:=1#3). apply trustT. reflexivity.
+(*|
+Applying the rule `trust` leaves us with three subgoals.
+|*)
+apply trust with (a2:=Penelope) (wTrust:=1#2) (w1:=1#3). (* .unfold *)
+(*|
+
+The first is just to name which trust relation we are using, in this case `trustT`.
+It would be better if we could have used the syntax `(name:=trustT)` but unfortunately we cannot do that in this case.
+
+The second subgoal can be solved by `reflexivity`.
+
+The third subgoal now has the actor `Penelope` rather then `Quentin`.
+|*)
+apply trustT. reflexivity.
 apply assume.
 Defined.
 
@@ -1633,6 +1721,17 @@ Eval compute in (showForProofTree trust_example).
 .. coq::
 |*)
 
+(*|
+
+------------
+
+As a side note, notice that we end all these proof tree "Lemmas" with the keyword `Defined`. Recall that `proofTreeOf Ps j` is a `Type` not a `Prop` and that we use pattern matching on proof trees to generate Latex strings and perform other computations about proof trees. The keyword `Defined` makes the proof tree definitions transparent and not opaque, which makes it possible (among other things) to generate Latex strings from them. For more information about `Defined` see https://coq.inria.fr/doc/V8.17.1/refman/proofs/writing-proofs/proof-mode.html?highlight=defined#coq:cmd.Defined.
+
+In addition to this, notice that we are using Coq's "proof mode" to construct *values* of type `proofTreeOf Ps j`. While it feels a bit like we are doing proofs about propositions, we are actually just constructing trees, *values*, that follow the rules of the `proofTreeOf` type. This is a somewhat related to the Curry-Howard correspondence where we see that constructing proofs of propositions is like constructing values of a particular type. The fact that we can use "proof mode" to carry out both tasks is related to the Curry-Howard correspondence. For more information on the Curry-Howard correspondence, see: https://softwarefoundations.cis.upenn.edu/lf-current/ProofObjects.html.
+
+------------
+
+|*)
 
 Lemma impl_intro_example : proofTreeOf [] ((Lambda _e_ (1#4) e) \by a1 @ (1 # 4) \in (Implies c1 c1)).
 apply impl_intro with (Ps:=[e \by a1 @ 1 # 4 \in c1]). 1-3: reflexivity.
