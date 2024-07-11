@@ -133,7 +133,19 @@ Definition writeQ (x : Q) : string :=
     ++  (writeNat numerator) 
     ++ "}{" 
     ++ (writeNat denominator) ++ "}".
+Eval compute in writeQ 0.35.
+
+Definition writeQNaturalLanguage (x : Q) : string :=
+  let simplified := Qred x in
+  let numerator := Z.to_nat (Qnum simplified) in
+  let denominator := Pos.to_nat (Qden simplified) in
+  if (denominator =? 1) then writeNat numerator else
+    (writeNat numerator) 
+    ++ "/" 
+    ++ (writeNat denominator).
+Eval compute in writeQNaturalLanguage 0.35.
 Close Scope nat_scope.
+
 Eval compute in writeQ 0.35.
 
 (*|
@@ -794,9 +806,24 @@ Class ShowForLogSeq A : Type :=
     showForLogSeq : A -> string
   }.
 
+(*|
+
+For printing rational numbers (for weights) we will use `writeQ` for Latex and LogSeq (since LogSeq supports basic Latex commands in "math mode"), and `writeQNaturalLanguage` for natural language. `writeQ` and `writeQNaturalLanguage` were defined earlier in `Converting rational numbers to strings`_.
+
+|*)
+
 Instance : ShowForProofTree Q := { showForProofTree := writeQ }.
-Instance : ShowForNaturalLanguage Q := { showForNaturalLanguage := writeQ }.
+Instance : ShowForNaturalLanguage Q := { showForNaturalLanguage := writeQNaturalLanguage }.
 Instance : ShowForLogSeq Q := { showForLogSeq := writeQ }.
+
+(*|
+
+Now we can write the following:
+
+|*)
+
+Eval compute in showForProofTree 0.125. (* .unfold *)
+Eval compute in showForNaturalLanguage 0.125. (* .unfold *)
 
 Instance : ShowForProofTree atomic_evid_name := { 
   showForProofTree n := 
@@ -1090,7 +1117,7 @@ Instance : ShowForProofTree judgement := {
 Instance : ShowForNaturalLanguage judgement := {
   showForNaturalLanguage j :=
   match j with
-  | Judgement e a w c => showForNaturalLanguage c ++ " is supported by $" ++ showForNaturalLanguage e ++ "$ at weight $" ++ showForNaturalLanguage w ++ "$ which " ++ showForNaturalLanguage a ++ " uses"
+  | Judgement e a w c => showForNaturalLanguage c ++ " is supported by $" ++ showForNaturalLanguage e ++ "$ at weight " ++ showForNaturalLanguage w ++ " which " ++ showForNaturalLanguage a ++ " uses"
   end
 }.
 
@@ -1309,7 +1336,7 @@ indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ L ++ "
 "
-++ indent ++ "by the trust relation " ++ showForNaturalLanguage name ++ " with weight $" ++ showForNaturalLanguage wTrust ++ "$."
+++ indent ++ "by the trust relation " ++ showForNaturalLanguage name ++ " with weight " ++ showForNaturalLanguage wTrust ++ "."
 | impl_intro _ _ _ _ _ _ _ _ _ _ _ _ M => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
