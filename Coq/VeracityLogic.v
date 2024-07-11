@@ -648,7 +648,7 @@ In these rules, we rely on Coq's type inference, so we don't explicity give the 
 
 A helpful exercise may be to add explicit types like this whenever the types are not 100% clear and check if Coq still accepts the definition.
 
-It is important to realise that `proofTreeOf` is a dependent `Type` (rather than a `Prop`), so we can pattern match on values of type `proofTreeOf Ps j` and use this to define functions on proof trees, such as converting them to Latex strings. The alternative would have been to make `proofTreeOf` an inductive proposition. For more information on inductive propositions see: https://softwarefoundations.cis.upenn.edu/lf-current/IndProp.html. `VeracityLogicV1.v <../Previous/VeracityLogicV1.v>`_ and `VeracityLogicV2.v <../Previous/VeracityLogicV2.v>`_ took the inductive proposition approach.
+It is important to realise that `proofTreeOf` is a dependent `Type` (rather than a `Prop`), so we can pattern match on values of type `proofTreeOf Ps j` and use this to define functions on proof trees, such as converting them to Latex strings. The alternative would have been to make `proofTreeOf` an inductive proposition. For more information on inductive propositions see: https://softwarefoundations.cis.upenn.edu/lf-current/IndProp.html. `Previous/VeracityLogicV1.v <../Previous/VeracityLogicV1.v>`_ and `Previous/VeracityLogicV2.v <../Previous/VeracityLogicV2.v>`_ took the inductive proposition approach.
 
 For each rule, everything before the final colon is required in order to construct the proof tree that follows the final colon. 
 
@@ -1226,7 +1226,7 @@ Instance : ShowForLogSeq judgement := {
 
 (*|
 
-Here are a few examples of printing `judgement`s.
+Here are a few examples of printing the type `judgement`.
 
 |*)
 
@@ -1288,6 +1288,12 @@ Eval compute in showForProofTree_judgement [trustT;trustU] [x \by Quentin @ 1 \i
 Eval compute in showForNaturalLanguage_judgement [trustT;trustU] [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
 Eval compute in showForLogSeq_judgement [trustT;trustU] "" [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
 
+(*|
+
+We need to compute which trust relations were used during the proofs, so that we can print them.
+
+|*)
+
 Fixpoint getAllTrustRelationsUsed (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list trustRelation :=
 match p with
@@ -1306,6 +1312,13 @@ match p with
 | impl_elim _ _ _ _ _ _ _ _ _ _ _ _ _ L R => getAllTrustRelationsUsed _ _ L ++ getAllTrustRelationsUsed _ _ R 
 end.
 
+(*|
+
+In the LogSeq output, we print out a bulleted list of what longer names correspond to the shorter names for evidence.
+So, we need to compute a list of all the evidence that was used in the proof, to construct this summary of the evidence names.
+
+|*)
+
 Fixpoint getAllEvidence (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list evid :=
 match p with
@@ -1323,19 +1336,67 @@ match p with
 | impl_elim _ _ _ _ _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ _ M
 end.
 
+(*|
+
+We also will need a helper function to filter out non-atomic evidence from the summary of evidence names.
+
+|*)
+
 Definition isAtomicEvidence (e : evid) : bool :=
 match e with
   | AtomicEvid _ => true
   | _ => false
 end.
 
-Definition getAssumptions (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) : list judgement := Ps.
+
+(*|
+
+In some scenarios, we will wish to remove duplicates from lists that are being treated as sets before we print them.
+`removeDups` removes duplicates from lists which hold a type which is of the `Beq` typeclass.
+
+|*)
 
 Fixpoint removeDups {A} `{Beq A} (l : list A) : list A :=
     match l with
     | [] => []
     | h :: tl => if existsb (beq h) tl then removeDups tl else h :: removeDups tl
     end.
+
+(*|
+
+We now define the representation of proof trees, which is the main purpose of this section.
+These helper functions provide the core functionality related to printing proof trees.
+
+For `showForProofTree` we make use of `bussproofs` commands.
+For more information on `bussproofs`, see https://ctan.org/pkg/bussproofs.
+We assume that the Latex file already includes: `\usepackage{bussproofs}`.
+The commands used are also compatible with MathJax for incorporating into webpages. For more information on MathJax see: https://www.mathjax.org/.
+Mathjax's functionality is used to make Alectryon's html output render the proof trees.
+
+------------------
+
+As an aside, this file is written in a literate programming style intended to be processed by the tool Alectryon.
+Alectryon, as used here, generates HTML which includes the output from running the Coq commands in this file, showing some outputs explictly due to command such as `.unfold`.
+For more information about Alectryon see: https://github.com/cpitclaudel/alectryon.
+It is used under the MIT license.
+
+To install Alectryon, this repository uses the Nix Package Manager (https://nixos.org), however Alectryon can be installed using other methods such as using `opam` as described here: https://github.com/cpitclaudel/alectryon?tab=readme-ov-file#setup. If you have Nix installed (see: https://nixos.org/download/), simply running `nix-shell` from the Coq subdirectory will install Alectryon and Coq v8.17 as specified in the `shell.nix <../shell.nix>`_ file in the `Coq` subdirectory.
+
+The command:
+
+`cd Coq; nix-shell --run "time alectryon --long-line-threshold 999999 --output-directory html VeracityLogic.v"`
+
+Will build `Coq/html/VeracityLogic.html` after installing the dependencies (if not yet installed). (When run from the root of this repository).
+
+`tasks.json` sets up VSCode to carry this out upon `Ctrl+Shift+B`.
+
+The files in `.devcontainer` set up Nix and build `VeracityLogic.html` when opened as a GitHub Codespace (all that is needed is a browser!). See the `README <../../README.md>`_ for more information.
+
+------------------
+
+As mentioned before the aside, here are the core definitions defining the string representations of proof trees.
+
+|*)
 
 Fixpoint showForProofTree_proofTreeOf_helper (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : string :=
@@ -1544,6 +1605,12 @@ indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ R
 end.
 
+(*|
+
+Next are some helper functions which make it possible to print lists of proof trees and which wrap the string output of proof trees with a title or Latex `begin`/`end` command as appropriate.
+
+|*)
+
 Open Scope string.
 
 Fixpoint showForProofTree_list_newline {A} `{ShowForProofTree A} (l : list A) :=
@@ -1603,11 +1670,24 @@ Fixpoint showListOfProofTrees {Ps} {j : judgement} (l : list (proofTreeOf Ps j))
 " ++ showForProofTree h ++ showListOfProofTrees tl
     end.
 
+(*|
+
+Here we define how to print the `proofTreeOf_wrapped` type, which helps when we don't know the evidence or assumptions up front.
+We simply extract the `_p` value from the record, which is of type `proofTreeOf Ps j`, and then print it as defined above.
+
+|*)
+
 Instance showForProofTree_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForProofTree (proofTreeOf_wrapped a c) := { showForProofTree p := showForProofTree (_p a c p) }.
 Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped a c) := { showForNaturalLanguage p := showForNaturalLanguage (_p a c p) }.
 Instance showForLogSeq_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForLogSeq (proofTreeOf_wrapped a c) := { showForLogSeq p := showForLogSeq (_p a c p) }.
 
 Open Scope beq_scope.
+
+(*|
+
+For examples of proof trees being printed, please see the outputs in the `Examples`_ section, next.
+
+|*)
 
 (*|
 
@@ -1647,6 +1727,15 @@ Eval compute in (showForProofTree assume_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage assume_example). (* .unfold *)
+Eval compute in (showForLogSeq assume_example). (* .unfold *)
+
+(*|
+
+*Note that when viewing this as an HTML page, you can click on most Coq commands to fold/unfold the output.*
+
+|*)
+
 (*|
 
 `bot_elim` allows us to conclude any claim from evidence for the claim that should never have veracity, :math:`\bot`.
@@ -1671,6 +1760,9 @@ Eval compute in (showForProofTree bot_elim_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage bot_elim_example).
+Eval compute in (showForLogSeq bot_elim_example).
+
 (*|
 
 `and_intro` combines two proof trees, taking the minimum weight of the two as the weight for the resulting conjunction.
@@ -1694,6 +1786,9 @@ Eval compute in (showForProofTree and_intro_example).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showForNaturalLanguage and_intro_example).
+Eval compute in (showForLogSeq and_intro_example).
 
 (*|
 
@@ -1722,6 +1817,9 @@ Eval compute in (showForProofTree and_elim1_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage and_elim1_example).
+Eval compute in (showForLogSeq and_elim1_example).
+
 (*|
 
 `and_elim2` is similar to `and_elim1` but allows us to conclude the right conjunct.
@@ -1746,6 +1844,9 @@ Eval compute in (showForProofTree and_elim2_example).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showForNaturalLanguage and_elim2_example).
+Eval compute in (showForLogSeq and_elim2_example).
 
 (*|
 
@@ -1773,6 +1874,9 @@ Eval compute in (showForProofTree or_intro1_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage or_intro1_example).
+Eval compute in (showForLogSeq or_intro1_example).
+
 (*|
 
 `or_intro2` similarly allows us to conclude a disjunctive claim but by tagging the evidence with `Right`, represented in Latex as :math:`j(...)`.
@@ -1797,6 +1901,9 @@ Eval compute in (showForProofTree or_intro2_example).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showForNaturalLanguage or_intro2_example).
+Eval compute in (showForLogSeq or_intro2_example).
 
 (*|
 
@@ -1828,6 +1935,9 @@ Eval compute in (showForProofTree or_elim1_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage or_elim1_example).
+Eval compute in (showForLogSeq or_elim1_example).
+
 (*|
 
 `or_elim2` similarly allows us to conclude the right disjunct from a disjunctive claim whose veracity came from the right disjunct.
@@ -1852,6 +1962,9 @@ Eval compute in (showForProofTree or_elim2_example).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showForNaturalLanguage or_elim2_example).
+Eval compute in (showForLogSeq or_elim2_example).
 
 (*|
 
@@ -1894,6 +2007,9 @@ Eval compute in (showForProofTree trust_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage trust_example).
+Eval compute in (showForLogSeq trust_example).
+
 (*|
 
 ------------
@@ -1923,6 +2039,8 @@ Eval compute in (showForProofTree impl_intro_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage impl_intro_example).
+Eval compute in (showForLogSeq impl_intro_example).
 
 Lemma impl_elim_example : proofTreeOf [(e2 \by a1 @ (1 # 4) \in c1)] ((e2 \by a1 @ (1 # 4) \in c1)).
 apply impl_elim with (x:=_e1_) (bx:=e1) (w1:=1#4) (C1:=c1) (Ps:=[]) (Qs:=[e2 \by a1 @ 1 # 4 \in c1]) (H2:=eq_refl). reflexivity.
@@ -1943,6 +2061,8 @@ Eval compute in (showForProofTree impl_elim_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage impl_elim_example).
+Eval compute in (showForLogSeq impl_elim_example).
 
 (*|
 
