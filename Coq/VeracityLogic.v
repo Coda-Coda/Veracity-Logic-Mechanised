@@ -745,6 +745,19 @@ Inductive proofTreeOf : list judgement -> judgement -> Type :=
     proofTreeOf Rs ((apply_abstraction x bx y H2) \by a @ w2 \in C2)
 .
 
+(*|
+
+Helper for when only the actor and claim is known up front
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`proofTreeOf_wrapped` is a dependent record which makes it more convenient to represent the type of a proof tree involving an actor holding that some claim has veracity, but where the evidence and list of assumptions is not known up front. It is a *dependent* record because the type of `_p` depends on the values from the earlier fields `_Ps`, `_e` and `_w`.
+
+This allows us to start "proofs" (i.e. proof mode sessions where we are constructing a value of the `proofTreeOf` type) by only specifiying the actor and claim, using the tactic `eexists` to let Coq assist in filling out the evidence and list of assumptions.
+
+For more information on Coq's records see: https://coq.inria.fr/doc/V8.17.1/refman/language/core/records.html.
+
+|*)
+
 Record proofTreeOf_wrapped (a : actor) (c : claim) := {
   _Ps : list judgement;
   _e : evid;
@@ -756,6 +769,14 @@ Record proofTreeOf_wrapped (a : actor) (c : claim) := {
 
 String representations
 ----------------------
+
+Here we define the functions which ultimately convert proof trees (values of type `proofTreeOf Ps j`) into string representations for:
+
+  - Latex (making use of the `bussproofs` package)
+  - Natural language (indented plain text)
+  - LogSeq (a text-based note-taking tool supporting collapsable nested bullets, available from https://logseq.com/)
+
+First we define typeclasses for each type of `show`. `Show`/`show` are typically used as the names for the typeclass/function which convert datatypes to a string. For more infomation on typeclasses, see the link in the section `Boolean equality typeclass`_.
 
 |*)
 Open Scope string.
