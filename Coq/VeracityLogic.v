@@ -2138,6 +2138,31 @@ The second bullet corresponds to the proof of the antecedent of the implicative 
 - (* .unfold *) apply assume.
 Defined.
 
+(*|
+
+Here is the same proof without the commentary and unfolded proof state.
+
+|*)
+
+Lemma impl_elim_example' : proofTreeOf
+  [(e2 \by a1 @ (1 # 4) \in c1)]
+  ((e2 \by a1 @ (1 # 4) \in c1)).
+apply impl_elim with
+  (x:=_e1_)
+  (bx:=e1)
+  (w1:=1#4)
+  (C1:=c1)
+  (Ps:=[])
+  (Qs:=[e2 \by a1 @ 1 # 4 \in c1])
+  (H2:=eq_refl).
+  reflexivity.
+- apply impl_intro with
+    (Ps:=[e1 \by a1 @ 1 # 4 \in c1]).
+      1-3: reflexivity.
+  apply assume.
+- apply assume.
+Defined.
+
 
 (*|
 .. coq:: unfold
