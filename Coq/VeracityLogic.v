@@ -825,6 +825,12 @@ Now we can write the following:
 Eval compute in showForProofTree 0.125. (* .unfold *)
 Eval compute in showForNaturalLanguage 0.125. (* .unfold *)
 
+(*|
+
+Next, we define the string representations of the names given to atomic evidence, actors, claims and trust relations. 
+
+|*)
+
 Instance : ShowForProofTree atomic_evid_name := { 
   showForProofTree n := 
     match n with
@@ -995,6 +1001,12 @@ Instance : ShowForNaturalLanguage trust_relation_name := {
   }.
 Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
 
+(*|
+
+Now we define how to represent evidence, using a recursive functions.
+
+|*)
+
 Fixpoint showForProofTreeEvid e :=
   match e with
   | AtomicEvid name => showForProofTree name
@@ -1005,9 +1017,34 @@ Fixpoint showForProofTreeEvid e :=
   | Lambda e1 w e2 => "\lambda(" ++ showForProofTree e1 ++ "_{" ++ showForProofTree w ++ "})(" ++ showForProofTreeEvid e2 ++ ")"
 end.
 
+(*|
+
+For now, all three representations print evidence the same way. This is not ideal for the natural language representation, which could be improved in the future.
+
+|*)
+
 Instance : ShowForProofTree evid := { showForProofTree := showForProofTreeEvid }.
 Instance : ShowForNaturalLanguage evid := { showForNaturalLanguage := showForProofTree }.
 Instance : ShowForLogSeq evid := {showForLogSeq := showForNaturalLanguage}.
+
+(*|
+
+Here are a couple of examples of printing evidence:
+
+|*)
+
+Eval compute in showForProofTree {{e1, Left e2}}. (* .unfold *)
+Eval compute in showForProofTree (Lambda _e1_ (1#2) (Right e1)). (* .unfold *)
+
+(*|
+
+Here we define the representation of claims.
+For the sake of brevity, we use `fix` to inline the recursive function.
+
+For more information on `fix` and `Fixpoint` see: https://coq.inria.fr/doc/V8.17.1/refman/language/core/inductive.html?highlight=fix#recursive-functions-fix and https://coq.inria.fr/doc/V8.17.1/refman/language/core/inductive.html?highlight=fix#top-level-recursive-functions.
+
+
+|*)
 
 Instance : ShowForProofTree claim := {
   showForProofTree :=
@@ -1033,6 +1070,24 @@ Instance : ShowForNaturalLanguage claim := {
     end
 }.
 Instance : ShowForLogSeq claim := {showForLogSeq := showForNaturalLanguage}.
+
+(*|
+
+Here are a couple of examples of printing claims:
+
+|*)
+
+Eval compute in showForProofTree (c1 \/' c2). (* .unfold *)
+Eval compute in showForLogSeq (c1 \/' c2). (* .unfold *)
+
+Eval compute in showForProofTree ((c1 /\' c2) ->' c2). (* .unfold *)
+Eval compute in showForLogSeq ((c1 /\' c2) ->' c2). (* .unfold *)
+
+(*|
+
+Here we define how to print the tagged types `actor` and `trustRelation` by simply printing the names as defined earlier.
+
+|*)
 
 Instance : ShowForProofTree actor := {
   showForProofTree a :=
@@ -1076,6 +1131,16 @@ Instance : ShowForLogSeq trustRelation := {
   end
 }.
 
+(*|
+
+We will need to be able to print lists in certain scenarios (e.g. lists of assumptions or of trust relations that were used).
+The way we would like to print these lists differs for Latex, natural language and LogSeq.
+
+The notation of `{ShowForProofTree A}` preceded by a backtick indicates that the type `A` must be of the typeclass `ShowForProofTree`.
+So, these functions are defined for printing lists which contain a type for which `ShowForProofTree` has been defined (or whichever of `ShowForNaturalLanguage` or `ShowForLogSeq` is indicated).
+
+|*)
+
 Fixpoint showForProofTree_list {A} `{ShowForProofTree A} (l : list A) :=
   match l with
     | [] => ""
@@ -1098,6 +1163,12 @@ Instance showForNaturalLanguage_list_instance (A : Type) `(ShowForNaturalLanguag
     showForNaturalLanguage l := showForNaturalLanguage_list l
   }.
 
+(*|
+
+We don't create a typeclass instance of `showForLogSeq` for lists because we need to pass an additional parameter `indent` to produces strings that are appropriately indented for the LogSeq output.
+
+|*)
+
 Fixpoint showForLogSeq_list {A} `{ShowForLogSeq A} (indent : string) (l : list A) :=
   match l with
     | [] => ""
@@ -1105,6 +1176,31 @@ Fixpoint showForLogSeq_list {A} `{ShowForLogSeq A} (indent : string) (l : list A
     | h :: tl => indent ++ "- " ++ showForLogSeq h ++ "
 " ++ showForLogSeq_list indent tl
   end.
+
+(*|
+
+Here are few examples of printing lists.
+
+|*)
+
+Eval compute in showForProofTree []. (* .unfold *)
+Eval compute in showForProofTree [(Left e2)]. (* .unfold *)
+Eval compute in showForProofTree [(Left e2);e1]. (* .unfold *)
+
+Eval compute in showForNaturalLanguage []. (* .unfold *)
+Eval compute in showForNaturalLanguage [(Left e2)]. (* .unfold *)
+Eval compute in showForNaturalLanguage [(Left e2);e1]. (* .unfold *)
+
+Eval compute in showForLogSeq_list "  " []. (* .unfold *)
+Eval compute in showForLogSeq_list "  " [(Left e2)]. (* .unfold *)
+Eval compute in showForLogSeq_list "  " [(Left e2);e1]. (* .unfold *)
+
+(*|
+
+Here we define how to show judgements.
+This relies on the previous definitions for printing evidence, actors, weights and claims.
+
+|*)
 
 Instance : ShowForProofTree judgement := {
   showForProofTree j :=
@@ -1127,6 +1223,25 @@ Instance : ShowForLogSeq judgement := {
   | Judgement e a w c => showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence $" ++ showForLogSeq e ++ "$ at weight $" ++ showForLogSeq w ++ "$"
   end
 }.
+
+(*|
+
+Here are a few examples of printing `judgement`s.
+
+|*)
+
+Eval compute in showForProofTree (x \by Penelope @ 1 \in c1). (* .unfold *)
+Eval compute in showForNaturalLanguage (x \by Penelope @ 1 \in c1). (* .unfold *)
+Eval compute in showForLogSeq (x \by Penelope @ 1 \in c1). (* .unfold *)
+
+(*|
+
+The name "judgement" is also used to refer to a `judgement` along with its assumptions and the trust relations used in its proof.
+Here we define how to print this generalised form.
+We also pass as an argument to these functions the argument `(p : proofTreeOf Ps j)` which is the proof of the judgement.
+The definitions here don't directly make use of `p`, however when calling them we will typically have a proof tree `p` in our context and so instead of writing the arguments `Ps` and `j` explicitly we can then use Coq's type inference to compute them.
+
+|*)
 
 Definition showForProofTree_judgement (Ts : list trustRelation) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) :=
     match Ps with
@@ -1162,6 +1277,16 @@ Definition showForLogSeq_judgement (Ts : list trustRelation) (indent : string) (
 " ++ indent ++ "  collapsed:: true
 " ++ showForLogSeq_list ("  " ++ indent) Ts
   end.
+
+(*|
+
+Here are a few examples of printing the generalised form of judgements:
+
+|*)
+
+Eval compute in showForProofTree_judgement [trustT;trustU] [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
+Eval compute in showForNaturalLanguage_judgement [trustT;trustU] [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
+Eval compute in showForLogSeq_judgement [trustT;trustU] "" [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
 
 Fixpoint getAllTrustRelationsUsed (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list trustRelation :=
