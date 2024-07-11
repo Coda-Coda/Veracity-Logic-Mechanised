@@ -674,7 +674,7 @@ We then have constructed:
 
 - a proof tree from the assumptions `Rs` of the judgement that the actor `a` holds that :math:`C_1 \wedge C_2` has veracity with weight `w3` by the evidence :math:`(e_1,e_2)`.
 
-Further details of each rule are discussed later in: `Example applications of each rule`_.
+Further details of each rule are discussed later in: `Example application of each rule`_.
 
 |*)
 
@@ -1698,12 +1698,15 @@ Examples
 
 (*|
 
-Example applications of each rule
+Example application of each rule
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |*)
 
 (*|
+
+assume
+++++++
 
 Using the `assume` rule gives the leaf nodes of the proof trees.
 It allows any judgement to be shown to have veracity from exactly that assumption in the list of assumptions.
@@ -1738,6 +1741,9 @@ Eval compute in (showForLogSeq assume_example). (* .unfold *)
 
 (*|
 
+bot_elim
+++++++++
+
 `bot_elim` allows us to conclude any claim from evidence for the claim that should never have veracity, :math:`\bot`.
 
 |*)
@@ -1765,6 +1771,9 @@ Eval compute in (showForLogSeq bot_elim_example).
 
 (*|
 
+and_intro
++++++++++
+
 `and_intro` combines two proof trees, taking the minimum weight of the two as the weight for the resulting conjunction.
 
 |*)
@@ -1791,6 +1800,9 @@ Eval compute in (showForNaturalLanguage and_intro_example).
 Eval compute in (showForLogSeq and_intro_example).
 
 (*|
+
+and_elim1
++++++++++
 
 `and_elim1` allows us to conclude the left conjunct from a conjunctive claim.
 It requires that the evidence is a `Pair`, here written as `{{e1, e2}}`.
@@ -1822,6 +1834,9 @@ Eval compute in (showForLogSeq and_elim1_example).
 
 (*|
 
+and_elim2
++++++++++
+
 `and_elim2` is similar to `and_elim1` but allows us to conclude the right conjunct.
 
 |*)
@@ -1849,6 +1864,9 @@ Eval compute in (showForNaturalLanguage and_elim2_example).
 Eval compute in (showForLogSeq and_elim2_example).
 
 (*|
+
+or_intro1
++++++++++
 
 `or_intro1` allows us to conclude a disjunctive claim by tagging the evidence with `Left`, represented in Latex as :math:`i(...)`.
 This indicates that the disjunctive claim has veracity because the left disjunct had been shown to have veracity.
@@ -1879,6 +1897,9 @@ Eval compute in (showForLogSeq or_intro1_example).
 
 (*|
 
+or_intro2
++++++++++
+
 `or_intro2` similarly allows us to conclude a disjunctive claim but by tagging the evidence with `Right`, represented in Latex as :math:`j(...)`.
 The left disjunct can be any claim.
 
@@ -1906,6 +1927,9 @@ Eval compute in (showForNaturalLanguage or_intro2_example).
 Eval compute in (showForLogSeq or_intro2_example).
 
 (*|
+
+or_elim1
+++++++++
 
 `or_elim1` allows us to conclude the left disjunct from a disjunctive claim whose veracity came from the left disjunct, as evident from tagged evidence.
 
@@ -1940,6 +1964,9 @@ Eval compute in (showForLogSeq or_elim1_example).
 
 (*|
 
+or_elim2
+++++++++
+
 `or_elim2` similarly allows us to conclude the right disjunct from a disjunctive claim whose veracity came from the right disjunct.
 
 |*)
@@ -1967,6 +1994,9 @@ Eval compute in (showForNaturalLanguage or_elim2_example).
 Eval compute in (showForLogSeq or_elim2_example).
 
 (*|
+
+trust
++++++
 
 All the other rules require the actor to stay the same, `trust` allows the actor holding that the claim has veracity to change.
 An application of the rule `trust` is intended to implicitly declare that the named trust relation, in this case `trustT`, relates the two actors `a1` and `a2` with the weight `wTrust`.
@@ -2022,8 +2052,32 @@ In addition to this, notice that we are using Coq's "proof mode" to construct *v
 
 |*)
 
-Lemma impl_intro_example : proofTreeOf [] ((Lambda _e_ (1#4) e) \by a1 @ (1 # 4) \in (Implies c1 c1)).
-apply impl_intro with (Ps:=[e \by a1 @ 1 # 4 \in c1]). 1-3: reflexivity.
+(*|
+
+impl_intro
+++++++++++
+
+`impl_intro` allows us to conclude implicative claims, such as :math:`(C_1 \wedge C_2) \rightarrow C_1`.
+This gives us evidence such as `(Lambda _e_ (1#4) e)`, which represents the abstraction :math:`\lambda(e)(e)`, where the evidence it is applied to (which will replace :math:`e`) *must* have weight :math:`\frac{1}{4}`.
+For an overview of abstractions, see: `The machinery for applying abstractions`_.
+
+|*)
+
+Lemma impl_intro_example : proofTreeOf [] ((Lambda _e1_ (1#4) e1) \by a1 @ (1 # 4) \in (Implies c1 c1)).
+(*|
+The application of `impl_intro` generates three side conditions:
+
+  - The check that `e` is not used in an "inner abstraction"
+  - The check that `Ps` (the assumptions of the judgement "above" `impl_intro`) contains the evidence that will become the variable in our abstraction.
+  - The check that `Qs` (the assumptions of the judgement "below" `impl_intro`) is `Ps` with the evidence mentioned in the previous bullet point removed from it. In this case `Qs` must be the empty list.
+
+These three subgoals are all solvable by `reflexivity`, so we solve them using the notation `1-3: reflexivity`.
+When writing proofs, it may be helpful to instead use `1-3: try reflexivity`, so that Coq will discharge all the goals solvable by `reflexivity` and leave the rest unsolved, rather than failing.
+This is only relevant if, during the process of constructing a proof, at that point some of the conditions do not hold and perhaps some variables such as `with (Ps:=[e \by a1 @ 1 # 4 \in c1])` need tweaking.
+However, here there are no such problems and `reflexivity` solves the 3 subgoals.
+|*)
+apply impl_intro with (Ps:=[e1 \by a1 @ 1 # 4 \in c1]). (* .unfold *)
+1-3: reflexivity. (* .unfold *)
 apply assume.
 Defined.
 
@@ -2042,11 +2096,46 @@ Eval compute in (showForProofTree impl_intro_example).
 Eval compute in (showForNaturalLanguage impl_intro_example).
 Eval compute in (showForLogSeq impl_intro_example).
 
+(*|
+
+impl_elim
++++++++++
+
+Given a proof tree concluding in a judgement with an implicative claim and a second proof tree which shows that the antecedent of the implicative claim has veracity, `impl_elim` allows us to apply the abstraction from the evidence for that implicative claim to conclude the consequent of the implicative claim. The evidence becomes the result of applying the abstraction to the evidence from the second proof tree. See: `The machinery for applying abstractions`_ for information about applying abstractions.
+
+We require that the evidence for the antecedent has the *same weight* as the evidence which was in the application of `impl_intro` when the abstraction was constructed.
+This is done to prevent scenarios which could lead to problematic weights greater than 1 being possible by applying a combination of `and_intro`, `impl_intro`, and `impl_elim` and handling weights when abstractions are applied by multiplying the weights of both pieces of evidence with each other.
+For example, :math:`y_1 \in C_1 \vdash ((y,y),y)_2 \in ((C_1 \wedge C_1) \wedge C_1)` could be concluded with that approach. However, what should be possible is :math:`y_1 \in C_1 \vdash ((y,y),y)_1 \in ((C_1 \wedge C_1) \wedge C_1)`.
+
+|*)
+
 Lemma impl_elim_example : proofTreeOf [(e2 \by a1 @ (1 # 4) \in c1)] ((e2 \by a1 @ (1 # 4) \in c1)).
-apply impl_elim with (x:=_e1_) (bx:=e1) (w1:=1#4) (C1:=c1) (Ps:=[]) (Qs:=[e2 \by a1 @ 1 # 4 \in c1]) (H2:=eq_refl). reflexivity.
-apply impl_intro with (Ps:=[e1 \by a1 @ 1 # 4 \in c1]). 1-3: reflexivity.
-apply assume.
-apply assume.
+(*|
+`impl_elim` produces side-conditions corresponding to:
+
+  - `H2 : notUsedInInnerAbstraction x bx = true`
+  - `(Ps ++ Qs ==? Rs) = true`.
+
+Here, we have discharged `H2` by providing the proof `eq_refl`, which asserts that any value is equal to itself (Coq evaluates the LHS and RHS first). Instead, we could have used `eapply` instead of `apply` and deleted `(H2:=eq_refl)`. This would leave us with the shelved subgoal `notUsedInInnerAbstraction _e1_ e1 = true` which we could then bring into focus using `Unshelve` and solve using `4: reflexivity`. For more information about `eq_refl` see for example: https://www.cs.cornell.edu/courses/cs3110/2018fa/lec/21-coq-logic/notes.html. For information about shelving goals see: https://coq.inria.fr/doc/V8.17.1/refman/proofs/writing-proofs/proof-mode.html#shelving-goals.
+
+We discharge the second side-condition using `reflexivity`.
+It is checking that the assumptions in the resulting judgement are the combination of the assumptions from the proof trees "above" it.
+
+|*)
+apply impl_elim with (x:=_e1_) (bx:=e1) (w1:=1#4) (C1:=c1) (Ps:=[]) (Qs:=[e2 \by a1 @ 1 # 4 \in c1]) (H2:=eq_refl). (* .unfold *)
+reflexivity. (* .unfold *)
+(*|
+Next we use bullets to show the proof structure and focus relevant parts of the proof. For more information about bullets see: https://coq.inria.fr/doc/V8.17.1/refman/proofs/writing-proofs/proof-mode.html#bullets.
+
+The first bullet corresponds to the proof of the implicative claim.
+It is the same as `impl_intro_example`.
+In fact, we could have explicitly used that proof here instead repeating the tactics from that proof, e.g. `exact impl_intro_example`.
+
+The second bullet corresponds to the proof of the antecedent of the implicative claim, using different evidence, `e2`, but of the same weight.
+|*)
+- (* .unfold *) apply impl_intro with (Ps:=[e1 \by a1 @ 1 # 4 \in c1]). 1-3: reflexivity.
+  apply assume.
+- (* .unfold *) apply assume.
 Defined.
 
 
