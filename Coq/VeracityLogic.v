@@ -133,7 +133,19 @@ Definition writeQ (x : Q) : string :=
     ++  (writeNat numerator) 
     ++ "}{" 
     ++ (writeNat denominator) ++ "}".
+Eval compute in writeQ 0.35.
+
+Definition writeQNaturalLanguage (x : Q) : string :=
+  let simplified := Qred x in
+  let numerator := Z.to_nat (Qnum simplified) in
+  let denominator := Pos.to_nat (Qden simplified) in
+  if (denominator =? 1) then writeNat numerator else
+    (writeNat numerator) 
+    ++ "/" 
+    ++ (writeNat denominator).
+Eval compute in writeQNaturalLanguage 0.35.
 Close Scope nat_scope.
+
 Eval compute in writeQ 0.35.
 
 (*|
@@ -636,7 +648,7 @@ In these rules, we rely on Coq's type inference, so we don't explicity give the 
 
 A helpful exercise may be to add explicit types like this whenever the types are not 100% clear and check if Coq still accepts the definition.
 
-It is important to realise that `proofTreeOf` is a dependent `Type` (rather than a `Prop`), so we can pattern match on values of type `proofTreeOf Ps j` and use this to define functions on proof trees, such as converting them to Latex strings. The alternative would have been to make `proofTreeOf` an inductive proposition. For more information on inductive propositions see: https://softwarefoundations.cis.upenn.edu/lf-current/IndProp.html. `VeracityLogicV1.v <../Previous/VeracityLogicV1.v>`_ and `VeracityLogicV2.v <../Previous/VeracityLogicV2.v>`_ took the inductive proposition approach.
+It is important to realise that `proofTreeOf` is a dependent `Type` (rather than a `Prop`), so we can pattern match on values of type `proofTreeOf Ps j` and use this to define functions on proof trees, such as converting them to Latex strings. The alternative would have been to make `proofTreeOf` an inductive proposition. For more information on inductive propositions see: https://softwarefoundations.cis.upenn.edu/lf-current/IndProp.html. `Previous/VeracityLogicV1.v <../Previous/VeracityLogicV1.v>`_ and `Previous/VeracityLogicV2.v <../Previous/VeracityLogicV2.v>`_ took the inductive proposition approach.
 
 For each rule, everything before the final colon is required in order to construct the proof tree that follows the final colon. 
 
@@ -745,6 +757,19 @@ Inductive proofTreeOf : list judgement -> judgement -> Type :=
     proofTreeOf Rs ((apply_abstraction x bx y H2) \by a @ w2 \in C2)
 .
 
+(*|
+
+Helper for when only the actor and claim is known up front
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`proofTreeOf_wrapped` is a dependent record which makes it more convenient to represent the type of a proof tree involving an actor holding that some claim has veracity, but where the evidence and list of assumptions is not known up front. It is a *dependent* record because the type of `_p` depends on the values from the earlier fields `_Ps`, `_e` and `_w`.
+
+This allows us to start "proofs" (i.e. proof mode sessions where we are constructing a value of the `proofTreeOf` type) by only specifiying the actor and claim, using the tactic `eexists` to let Coq assist in filling out the evidence and list of assumptions.
+
+For more information on Coq's records see: https://coq.inria.fr/doc/V8.17.1/refman/language/core/records.html.
+
+|*)
+
 Record proofTreeOf_wrapped (a : actor) (c : claim) := {
   _Ps : list judgement;
   _e : evid;
@@ -756,6 +781,14 @@ Record proofTreeOf_wrapped (a : actor) (c : claim) := {
 
 String representations
 ----------------------
+
+Here we define the functions which ultimately convert proof trees (values of type `proofTreeOf Ps j`) into string representations for:
+
+  - Latex (making use of the `bussproofs` package)
+  - Natural language (indented plain text)
+  - LogSeq (a text-based note-taking tool supporting collapsable nested bullets, available from https://logseq.com/)
+
+First we define typeclasses for each type of `show`. `Show`/`show` are typically used as the names for the typeclass/function which convert datatypes to a string. For more infomation on typeclasses, see the link in the section `Boolean equality typeclass`_.
 
 |*)
 Open Scope string.
@@ -773,9 +806,30 @@ Class ShowForLogSeq A : Type :=
     showForLogSeq : A -> string
   }.
 
+(*|
+
+For printing rational numbers (for weights) we will use `writeQ` for Latex and LogSeq (since LogSeq supports basic Latex commands in "math mode"), and `writeQNaturalLanguage` for natural language. `writeQ` and `writeQNaturalLanguage` were defined earlier in `Converting rational numbers to strings`_.
+
+|*)
+
 Instance : ShowForProofTree Q := { showForProofTree := writeQ }.
-Instance : ShowForNaturalLanguage Q := { showForNaturalLanguage := writeQ }.
+Instance : ShowForNaturalLanguage Q := { showForNaturalLanguage := writeQNaturalLanguage }.
 Instance : ShowForLogSeq Q := { showForLogSeq := writeQ }.
+
+(*|
+
+Now we can write the following:
+
+|*)
+
+Eval compute in showForProofTree 0.125. (* .unfold *)
+Eval compute in showForNaturalLanguage 0.125. (* .unfold *)
+
+(*|
+
+Next, we define the string representations of the names given to atomic evidence, actors, claims and trust relations. 
+
+|*)
 
 Instance : ShowForProofTree atomic_evid_name := { 
   showForProofTree n := 
@@ -947,6 +1001,12 @@ Instance : ShowForNaturalLanguage trust_relation_name := {
   }.
 Instance : ShowForLogSeq trust_relation_name := {showForLogSeq := showForNaturalLanguage}.
 
+(*|
+
+Now we define how to represent evidence, using a recursive functions.
+
+|*)
+
 Fixpoint showForProofTreeEvid e :=
   match e with
   | AtomicEvid name => showForProofTree name
@@ -957,9 +1017,34 @@ Fixpoint showForProofTreeEvid e :=
   | Lambda e1 w e2 => "\lambda(" ++ showForProofTree e1 ++ "_{" ++ showForProofTree w ++ "})(" ++ showForProofTreeEvid e2 ++ ")"
 end.
 
+(*|
+
+For now, all three representations print evidence the same way. This is not ideal for the natural language representation, which could be improved in the future.
+
+|*)
+
 Instance : ShowForProofTree evid := { showForProofTree := showForProofTreeEvid }.
 Instance : ShowForNaturalLanguage evid := { showForNaturalLanguage := showForProofTree }.
 Instance : ShowForLogSeq evid := {showForLogSeq := showForNaturalLanguage}.
+
+(*|
+
+Here are a couple of examples of printing evidence:
+
+|*)
+
+Eval compute in showForProofTree {{e1, Left e2}}. (* .unfold *)
+Eval compute in showForProofTree (Lambda _e1_ (1#2) (Right e1)). (* .unfold *)
+
+(*|
+
+Here we define the representation of claims.
+For the sake of brevity, we use `fix` to inline the recursive function.
+
+For more information on `fix` and `Fixpoint` see: https://coq.inria.fr/doc/V8.17.1/refman/language/core/inductive.html?highlight=fix#recursive-functions-fix and https://coq.inria.fr/doc/V8.17.1/refman/language/core/inductive.html?highlight=fix#top-level-recursive-functions.
+
+
+|*)
 
 Instance : ShowForProofTree claim := {
   showForProofTree :=
@@ -985,6 +1070,24 @@ Instance : ShowForNaturalLanguage claim := {
     end
 }.
 Instance : ShowForLogSeq claim := {showForLogSeq := showForNaturalLanguage}.
+
+(*|
+
+Here are a couple of examples of printing claims:
+
+|*)
+
+Eval compute in showForProofTree (c1 \/' c2). (* .unfold *)
+Eval compute in showForLogSeq (c1 \/' c2). (* .unfold *)
+
+Eval compute in showForProofTree ((c1 /\' c2) ->' c2). (* .unfold *)
+Eval compute in showForLogSeq ((c1 /\' c2) ->' c2). (* .unfold *)
+
+(*|
+
+Here we define how to print the tagged types `actor` and `trustRelation` by simply printing the names as defined earlier.
+
+|*)
 
 Instance : ShowForProofTree actor := {
   showForProofTree a :=
@@ -1028,6 +1131,16 @@ Instance : ShowForLogSeq trustRelation := {
   end
 }.
 
+(*|
+
+We will need to be able to print lists in certain scenarios (e.g. lists of assumptions or of trust relations that were used).
+The way we would like to print these lists differs for Latex, natural language and LogSeq.
+
+The notation of `{ShowForProofTree A}` preceded by a backtick indicates that the type `A` must be of the typeclass `ShowForProofTree`.
+So, these functions are defined for printing lists which contain a type for which `ShowForProofTree` has been defined (or whichever of `ShowForNaturalLanguage` or `ShowForLogSeq` is indicated).
+
+|*)
+
 Fixpoint showForProofTree_list {A} `{ShowForProofTree A} (l : list A) :=
   match l with
     | [] => ""
@@ -1050,6 +1163,12 @@ Instance showForNaturalLanguage_list_instance (A : Type) `(ShowForNaturalLanguag
     showForNaturalLanguage l := showForNaturalLanguage_list l
   }.
 
+(*|
+
+We don't create a typeclass instance of `showForLogSeq` for lists because we need to pass an additional parameter `indent` to produces strings that are appropriately indented for the LogSeq output.
+
+|*)
+
 Fixpoint showForLogSeq_list {A} `{ShowForLogSeq A} (indent : string) (l : list A) :=
   match l with
     | [] => ""
@@ -1057,6 +1176,31 @@ Fixpoint showForLogSeq_list {A} `{ShowForLogSeq A} (indent : string) (l : list A
     | h :: tl => indent ++ "- " ++ showForLogSeq h ++ "
 " ++ showForLogSeq_list indent tl
   end.
+
+(*|
+
+Here are few examples of printing lists.
+
+|*)
+
+Eval compute in showForProofTree []. (* .unfold *)
+Eval compute in showForProofTree [(Left e2)]. (* .unfold *)
+Eval compute in showForProofTree [(Left e2);e1]. (* .unfold *)
+
+Eval compute in showForNaturalLanguage []. (* .unfold *)
+Eval compute in showForNaturalLanguage [(Left e2)]. (* .unfold *)
+Eval compute in showForNaturalLanguage [(Left e2);e1]. (* .unfold *)
+
+Eval compute in showForLogSeq_list "  " []. (* .unfold *)
+Eval compute in showForLogSeq_list "  " [(Left e2)]. (* .unfold *)
+Eval compute in showForLogSeq_list "  " [(Left e2);e1]. (* .unfold *)
+
+(*|
+
+Here we define how to show judgements.
+This relies on the previous definitions for printing evidence, actors, weights and claims.
+
+|*)
 
 Instance : ShowForProofTree judgement := {
   showForProofTree j :=
@@ -1069,7 +1213,7 @@ Instance : ShowForProofTree judgement := {
 Instance : ShowForNaturalLanguage judgement := {
   showForNaturalLanguage j :=
   match j with
-  | Judgement e a w c => showForNaturalLanguage c ++ " is supported by $" ++ showForNaturalLanguage e ++ "$ at weight $" ++ showForNaturalLanguage w ++ "$ which " ++ showForNaturalLanguage a ++ " uses"
+  | Judgement e a w c => showForNaturalLanguage c ++ " is supported by $" ++ showForNaturalLanguage e ++ "$ at weight " ++ showForNaturalLanguage w ++ " which " ++ showForNaturalLanguage a ++ " uses"
   end
 }.
 
@@ -1079,6 +1223,25 @@ Instance : ShowForLogSeq judgement := {
   | Judgement e a w c => showForLogSeq c ++ " is held by " ++ showForLogSeq a ++ " by the evidence $" ++ showForLogSeq e ++ "$ at weight $" ++ showForLogSeq w ++ "$"
   end
 }.
+
+(*|
+
+Here are a few examples of printing the type `judgement`.
+
+|*)
+
+Eval compute in showForProofTree (x \by Penelope @ 1 \in c1). (* .unfold *)
+Eval compute in showForNaturalLanguage (x \by Penelope @ 1 \in c1). (* .unfold *)
+Eval compute in showForLogSeq (x \by Penelope @ 1 \in c1). (* .unfold *)
+
+(*|
+
+The name "judgement" is also used to refer to a `judgement` along with its assumptions and the trust relations used in its proof.
+Here we define how to print this generalised form.
+We also pass as an argument to these functions the argument `(p : proofTreeOf Ps j)` which is the proof of the judgement.
+The definitions here don't directly make use of `p`, however when calling them we will typically have a proof tree `p` in our context and so instead of writing the arguments `Ps` and `j` explicitly we can then use Coq's type inference to compute them.
+
+|*)
 
 Definition showForProofTree_judgement (Ts : list trustRelation) (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) :=
     match Ps with
@@ -1115,6 +1278,22 @@ Definition showForLogSeq_judgement (Ts : list trustRelation) (indent : string) (
 " ++ showForLogSeq_list ("  " ++ indent) Ts
   end.
 
+(*|
+
+Here are a few examples of printing the generalised form of judgements:
+
+|*)
+
+Eval compute in showForProofTree_judgement [trustT;trustU] [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
+Eval compute in showForNaturalLanguage_judgement [trustT;trustU] [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
+Eval compute in showForLogSeq_judgement [trustT;trustU] "" [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
+
+(*|
+
+We need to compute which trust relations were used during the proofs, so that we can print them.
+
+|*)
+
 Fixpoint getAllTrustRelationsUsed (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list trustRelation :=
 match p with
@@ -1133,6 +1312,13 @@ match p with
 | impl_elim _ _ _ _ _ _ _ _ _ _ _ _ _ L R => getAllTrustRelationsUsed _ _ L ++ getAllTrustRelationsUsed _ _ R 
 end.
 
+(*|
+
+In the LogSeq output, we print out a bulleted list of what longer names correspond to the shorter names for evidence.
+So, we need to compute a list of all the evidence that was used in the proof, to construct this summary of the evidence names.
+
+|*)
+
 Fixpoint getAllEvidence (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : list evid :=
 match p with
@@ -1150,19 +1336,67 @@ match p with
 | impl_elim _ _ _ _ _ _ _ _ _ _ _ _ _ _ M => getAllEvidence _ _ M
 end.
 
+(*|
+
+We also will need a helper function to filter out non-atomic evidence from the summary of evidence names.
+
+|*)
+
 Definition isAtomicEvidence (e : evid) : bool :=
 match e with
   | AtomicEvid _ => true
   | _ => false
 end.
 
-Definition getAssumptions (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j) : list judgement := Ps.
+
+(*|
+
+In some scenarios, we will wish to remove duplicates from lists that are being treated as sets before we print them.
+`removeDups` removes duplicates from lists which hold a type which is of the `Beq` typeclass.
+
+|*)
 
 Fixpoint removeDups {A} `{Beq A} (l : list A) : list A :=
     match l with
     | [] => []
     | h :: tl => if existsb (beq h) tl then removeDups tl else h :: removeDups tl
     end.
+
+(*|
+
+We now define the representation of proof trees, which is the main purpose of this section.
+These helper functions provide the core functionality related to printing proof trees.
+
+For `showForProofTree` we make use of `bussproofs` commands.
+For more information on `bussproofs`, see https://ctan.org/pkg/bussproofs.
+We assume that the Latex file already includes: `\usepackage{bussproofs}`.
+The commands used are also compatible with MathJax for incorporating into webpages. For more information on MathJax see: https://www.mathjax.org/.
+Mathjax's functionality is used to make Alectryon's html output render the proof trees.
+
+------------------
+
+As an aside, this file is written in a literate programming style intended to be processed by the tool Alectryon.
+Alectryon, as used here, generates HTML which includes the output from running the Coq commands in this file, showing some outputs explictly due to command such as `.unfold`.
+For more information about Alectryon see: https://github.com/cpitclaudel/alectryon.
+It is used under the MIT license.
+
+To install Alectryon, this repository uses the Nix Package Manager (https://nixos.org), however Alectryon can be installed using other methods such as using `opam` as described here: https://github.com/cpitclaudel/alectryon?tab=readme-ov-file#setup. If you have Nix installed (see: https://nixos.org/download/), simply running `nix-shell` from the Coq subdirectory will install Alectryon and Coq v8.17 as specified in the `shell.nix <../shell.nix>`_ file in the `Coq` subdirectory.
+
+The command:
+
+`cd Coq; nix-shell --run "time alectryon --long-line-threshold 999999 --output-directory html VeracityLogic.v"`
+
+Will build `Coq/html/VeracityLogic.html` after installing the dependencies (if not yet installed). (When run from the root of this repository).
+
+`tasks.json` sets up VSCode to carry this out upon `Ctrl+Shift+B`.
+
+The files in `.devcontainer` set up Nix and build `VeracityLogic.html` when opened as a GitHub Codespace (all that is needed is a browser!). See the `README <../../README.md>`_ for more information.
+
+------------------
+
+As mentioned before the aside, here are the core definitions defining the string representations of proof trees.
+
+|*)
 
 Fixpoint showForProofTree_proofTreeOf_helper (Ps : list judgement) (j : judgement) (p : proofTreeOf Ps j)
   : string :=
@@ -1288,7 +1522,7 @@ indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
 ++ showForNaturalLanguage_proofTreeOf_helper ("  " ++ indent) _ _ L ++ "
 "
-++ indent ++ "by the trust relation " ++ showForNaturalLanguage name ++ " with weight $" ++ showForNaturalLanguage wTrust ++ "$."
+++ indent ++ "by the trust relation " ++ showForNaturalLanguage name ++ " with weight " ++ showForNaturalLanguage wTrust ++ "."
 | impl_intro _ _ _ _ _ _ _ _ _ _ _ _ M => 
 indent ++ showForNaturalLanguage_judgement Ts _ _ p ++ ", because
 " 
@@ -1371,6 +1605,12 @@ indent ++ "- " ++ showForLogSeq_judgement Ts ("  " ++ indent) _ _ p ++ "
 " ++ showForLogSeq_proofTreeOf_helper ("      " ++ indent) _ _ R
 end.
 
+(*|
+
+Next are some helper functions which make it possible to print lists of proof trees and which wrap the string output of proof trees with a title or Latex `begin`/`end` command as appropriate.
+
+|*)
+
 Open Scope string.
 
 Fixpoint showForProofTree_list_newline {A} `{ShowForProofTree A} (l : list A) :=
@@ -1430,11 +1670,24 @@ Fixpoint showListOfProofTrees {Ps} {j : judgement} (l : list (proofTreeOf Ps j))
 " ++ showForProofTree h ++ showListOfProofTrees tl
     end.
 
+(*|
+
+Here we define how to print the `proofTreeOf_wrapped` type, which helps when we don't know the evidence or assumptions up front.
+We simply extract the `_p` value from the record, which is of type `proofTreeOf Ps j`, and then print it as defined above.
+
+|*)
+
 Instance showForProofTree_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForProofTree (proofTreeOf_wrapped a c) := { showForProofTree p := showForProofTree (_p a c p) }.
 Instance showForNaturalLanguage_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForNaturalLanguage (proofTreeOf_wrapped a c) := { showForNaturalLanguage p := showForNaturalLanguage (_p a c p) }.
 Instance showForLogSeq_proofTreeOf_wrapped_instance (a : actor) (c : claim) : ShowForLogSeq (proofTreeOf_wrapped a c) := { showForLogSeq p := showForLogSeq (_p a c p) }.
 
 Open Scope beq_scope.
+
+(*|
+
+For examples of proof trees being printed, please see the outputs in the `Examples`_ section, next.
+
+|*)
 
 (*|
 
@@ -1474,6 +1727,15 @@ Eval compute in (showForProofTree assume_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage assume_example). (* .unfold *)
+Eval compute in (showForLogSeq assume_example). (* .unfold *)
+
+(*|
+
+*Note that when viewing this as an HTML page, you can click on most Coq commands to fold/unfold the output.*
+
+|*)
+
 (*|
 
 `bot_elim` allows us to conclude any claim from evidence for the claim that should never have veracity, :math:`\bot`.
@@ -1498,6 +1760,9 @@ Eval compute in (showForProofTree bot_elim_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage bot_elim_example).
+Eval compute in (showForLogSeq bot_elim_example).
+
 (*|
 
 `and_intro` combines two proof trees, taking the minimum weight of the two as the weight for the resulting conjunction.
@@ -1521,6 +1786,9 @@ Eval compute in (showForProofTree and_intro_example).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showForNaturalLanguage and_intro_example).
+Eval compute in (showForLogSeq and_intro_example).
 
 (*|
 
@@ -1549,6 +1817,9 @@ Eval compute in (showForProofTree and_elim1_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage and_elim1_example).
+Eval compute in (showForLogSeq and_elim1_example).
+
 (*|
 
 `and_elim2` is similar to `and_elim1` but allows us to conclude the right conjunct.
@@ -1573,6 +1844,9 @@ Eval compute in (showForProofTree and_elim2_example).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showForNaturalLanguage and_elim2_example).
+Eval compute in (showForLogSeq and_elim2_example).
 
 (*|
 
@@ -1600,6 +1874,9 @@ Eval compute in (showForProofTree or_intro1_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage or_intro1_example).
+Eval compute in (showForLogSeq or_intro1_example).
+
 (*|
 
 `or_intro2` similarly allows us to conclude a disjunctive claim but by tagging the evidence with `Right`, represented in Latex as :math:`j(...)`.
@@ -1624,6 +1901,9 @@ Eval compute in (showForProofTree or_intro2_example).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showForNaturalLanguage or_intro2_example).
+Eval compute in (showForLogSeq or_intro2_example).
 
 (*|
 
@@ -1655,6 +1935,9 @@ Eval compute in (showForProofTree or_elim1_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage or_elim1_example).
+Eval compute in (showForLogSeq or_elim1_example).
+
 (*|
 
 `or_elim2` similarly allows us to conclude the right disjunct from a disjunctive claim whose veracity came from the right disjunct.
@@ -1679,6 +1962,9 @@ Eval compute in (showForProofTree or_elim2_example).
 (*|
 .. coq::
 |*)
+
+Eval compute in (showForNaturalLanguage or_elim2_example).
+Eval compute in (showForLogSeq or_elim2_example).
 
 (*|
 
@@ -1721,6 +2007,9 @@ Eval compute in (showForProofTree trust_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage trust_example).
+Eval compute in (showForLogSeq trust_example).
+
 (*|
 
 ------------
@@ -1750,6 +2039,8 @@ Eval compute in (showForProofTree impl_intro_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage impl_intro_example).
+Eval compute in (showForLogSeq impl_intro_example).
 
 Lemma impl_elim_example : proofTreeOf [(e2 \by a1 @ (1 # 4) \in c1)] ((e2 \by a1 @ (1 # 4) \in c1)).
 apply impl_elim with (x:=_e1_) (bx:=e1) (w1:=1#4) (C1:=c1) (Ps:=[]) (Qs:=[e2 \by a1 @ 1 # 4 \in c1]) (H2:=eq_refl). reflexivity.
@@ -1770,6 +2061,8 @@ Eval compute in (showForProofTree impl_elim_example).
 .. coq::
 |*)
 
+Eval compute in (showForNaturalLanguage impl_elim_example).
+Eval compute in (showForLogSeq impl_elim_example).
 
 (*|
 
