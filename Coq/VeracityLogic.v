@@ -2189,6 +2189,12 @@ Other examples
 
 |*)
 
+(*|
+
+Process example
++++++++++++++++
+
+|*)
 
 Definition process_example : proofTreeOf_wrapped Penelope (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
@@ -2219,6 +2225,14 @@ Eval compute in (showForProofTree process_example).
 Eval compute in (showForNaturalLanguage process_example).
 Eval compute in (showForLogSeq process_example).
 
+(*|
+
+impl_intro example
+++++++++++++++++++
+
+|*)
+
+
 Definition impl_intro1 : proofTreeOf_wrapped a1 ((Implies c1 c1)).
 eexists [] _ _.
 eapply (impl_intro _e1_ _ _ 1 1 _ _ _ _ _ _ _).
@@ -2240,6 +2254,13 @@ Eval compute in (showForProofTree impl_intro1).
 
 Eval compute in (showForNaturalLanguage impl_intro1).
 Eval compute in (showForLogSeq impl_intro1).
+
+(*|
+
+impl_intro and impl_elim example
+++++++++++++++++++++++++++++++++
+
+|*)
 
 Definition impl_intro_elim : proofTreeOf_wrapped a1 (c1).
 eexists [(AtomicEvid _e2_) \by a1 @ 1 \in c1] _ 1.
@@ -2270,6 +2291,12 @@ Eval compute in (showForProofTree impl_intro_elim).
 Eval compute in (showForNaturalLanguage impl_intro_elim).
 Eval compute in (showForLogSeq impl_intro_elim).
 
+(*|
+
+and example
++++++++++++
+
+|*)
 
 Definition and_example : proofTreeOf_wrapped a1 (Implies c1 (c1 /\' c1)).
 eexists []  _ 1.
@@ -2294,6 +2321,14 @@ Eval compute in (showForProofTree and_example).
 
 Eval compute in (showForNaturalLanguage and_example).
 Eval compute in (showForLogSeq and_example).
+
+(*|
+
+and example with 2 conjuncts
+++++++++++++++++++++++++++++
+
+|*)
+
 
 Definition l := AtomicEvid _l_ .
 Definition s := AtomicEvid _s_.
@@ -2320,6 +2355,13 @@ Eval compute in (showForProofTree concreteProofTreeExampleWith2Conjuncts).
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith2Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith2Conjuncts.
 
+(*|
+
+and example with 3 conjuncts
+++++++++++++++++++++++++++++
+
+|*)
+
 Program Definition concreteProofTreeExampleWith3Conjuncts : 
 proofTreeOf [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2;c \by Penelope @ 1 \in c3] ({{{{l, s}},c}} \by Penelope @ 1 \in (C1 /\' C2 /\' C3)).
 eapply and_intro with (Ps:= [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2]) (Qs:= [c \by Penelope @ 1 \in c3]) (w1 := 1) (w2 := 1) (w3 := 1). 1-2: reflexivity.
@@ -2344,7 +2386,12 @@ Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 
 (*|
+
+and example with 3 conjuncts using existing proof tree
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 We can also combine existing trees into new trees, when appropriate. For example:
+
 |*)
 
 Program Definition concreteProofTreeExampleWith3ConjunctsUsingExistingTree : 
@@ -2370,6 +2417,14 @@ Eval compute in (showForProofTree concreteProofTreeExampleWith3Conjuncts).
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3Conjuncts).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 
+(*|
+
+trust example
++++++++++++++
+
+|*)
+
+
 Program Definition concreteProofTreeExampleTrust : 
 proofTreeOf [e \by a2 @ 1 \in (c1)] e \by a1 @ 1 \in (c1).
 eapply (trust _ a1 a2 1 1 1 c1 trustT). reflexivity.
@@ -2389,6 +2444,13 @@ Eval compute in (showForProofTree concreteProofTreeExampleTrust).
 
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleTrust).
 Eval compute in showForLogSeq concreteProofTreeExampleTrust.
+
+(*|
+
+trust example with 3 conjuncts
+++++++++++++++++++++++++++++++
+
+|*)
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
 proofTreeOf [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2;c \by Penelope @ 1 \in c3] ({{{{l, s}},c}} \by Quentin @ 1 \in (C1 /\' C2 /\' C3)).
@@ -2410,6 +2472,14 @@ Eval compute in (showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrus
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWithTrust).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrust.
 
+(*|
+
+trust example with 3 conjuncts and extra steps
+++++++++++++++++++++++++++++++++++++++++++++++
+
+|*)
+
+
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras : 
 proofTreeOf [l \by Penelope @ 1 \in c1;s \by Penelope @ 1 \in c2;c \by Penelope @ 1 \in c3] ({{{{l, s}},c}} \by Quentin @ 1 \in (C1 /\' C2 /\' C3)).
 eapply (trust _ Quentin Quentin 1 1 1 _ trustU). reflexivity.
@@ -2424,7 +2494,6 @@ Defined.
    :class: coq-math
 |*)
 
-
 Eval compute in (showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras). 
 
 (*|
@@ -2434,6 +2503,12 @@ Eval compute in (showForProofTree concreteProofTreeExampleWith3ConjunctsWithTrus
 Eval compute in (showForNaturalLanguage concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras).
 Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAndExtras. 
 
+(*|
+
+proofTreeOf_wrapped example
++++++++++++++++++++++++++++
+
+|*)
 
 Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
 Proof.
@@ -2446,9 +2521,7 @@ Defined.
    :class: coq-math
 |*)
 
-
 Eval compute in showForProofTree exampleWithProofOf.
-
 
 (*|
 .. coq::
@@ -2456,6 +2529,13 @@ Eval compute in showForProofTree exampleWithProofOf.
 
 Eval compute in showForNaturalLanguage exampleWithProofOf.
 Eval compute in showForLogSeq exampleWithProofOf.
+
+(*|
+
+bot example
++++++++++++
+
+|*)
 
 Definition bot_example : proofTreeOf_wrapped a1 (_|_ ->' (C1 /\' C2)).
 Proof.
@@ -2482,6 +2562,14 @@ Eval compute in showForProofTree bot_example.
 Eval compute in showForNaturalLanguage bot_example.
 Eval compute in showForLogSeq bot_example.
 
+(*|
+
+bot example 2
++++++++++++++
+
+|*)
+
+
 Definition bot_example2 : proofTreeOf_wrapped a1 (_|_ ->' (C1 \/' C2 ->' (C3 /\' _|_))).
 Proof.
 eexists [] _ _.
@@ -2497,7 +2585,6 @@ Defined.
    :class: coq-math
 |*)
 
-
 Eval compute in showForProofTree bot_example2.
 
 (*|
@@ -2507,6 +2594,12 @@ Eval compute in showForProofTree bot_example2.
 Eval compute in showForNaturalLanguage bot_example2.
 Eval compute in showForLogSeq bot_example2.
 
+(*|
+
+trust in a star example for Penelope
+++++++++++++++++++++++++++++++++++++
+
+|*)
 
 Program Definition starP : 
 proofTreeOf [l \by Ledger @ 1 \in c1] (l \by Penelope @ (1 # 3) \in C1).
@@ -2528,6 +2621,12 @@ Eval compute in (showForProofTree starP).
 
 Eval compute in (showForLogSeq starP).
 
+(*|
+
+trust in a chain example
+++++++++++++++++++++++++
+
+|*)
 
 Program Definition chain : 
 proofTreeOf [e \by Penelope @ 1 \in c1] (e \by Ulysses @ (1 # 32) \in C1).
@@ -2545,7 +2644,6 @@ Defined.
    :class: coq-math
 |*)
 
-
 Eval compute in (showForProofTree chain). 
 
 (*|
@@ -2554,6 +2652,13 @@ Eval compute in (showForProofTree chain).
 
 Eval compute in (showForNaturalLanguage chain).
 Eval compute in (showForLogSeq chain).
+
+(*|
+
+trust in a chain example with conjunction
++++++++++++++++++++++++++++++++++++++++++
+
+|*)
 
 Program Definition chainWithAnd : 
 proofTreeOf [e1 \by Penelope @ 1 \in c1; e2 \by Quentin @ 1 \in c2] ({{e1,e2}} \by Samantha @ (1 # 4) \in (C1 /\' C2)).
@@ -2579,6 +2684,13 @@ Eval compute in (showForProofTree chainWithAnd).
 
 Eval compute in (showForNaturalLanguage chainWithAnd). 
 Eval compute in (showForLogSeq chainWithAnd). 
+
+(*|
+
+impl_intro and impl_elim example with weights
++++++++++++++++++++++++++++++++++++++++++++++
+
+|*)
 
 Definition impl_intro_elim_with_weights : proofTreeOf_wrapped a1 (c1).
 eexists [(AtomicEvid _e2_) \by a1 @ (1 # 2) \in c1] _ (1 # 2).
@@ -2608,6 +2720,13 @@ Eval compute in (showForProofTree impl_intro_elim_with_weights).
 
 Eval compute in (showForNaturalLanguage impl_intro_elim_with_weights).
 Eval compute in (showForLogSeq impl_intro_elim_with_weights).
+
+(*|
+
+impl_intro and impl_elim example with differing weights
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+|*)
 
 Definition impl_intro_elim_with_different_weights : proofTreeOf_wrapped a1 (c1 /\' c2).
 eexists [e3 \by a1 @ (1 # 2) \in c1; e4 \by a1 @ (1 # 3) \in c2] {{e3,e4}} (1 # 3).
@@ -2661,10 +2780,11 @@ Eval compute in (showForProofTree impl_intro_elim_with_different_weights).
 Eval compute in (showForNaturalLanguage impl_intro_elim_with_different_weights).
 Eval compute in (showForLogSeq impl_intro_elim_with_different_weights).
 
-
-
 End VeracityLogic.
 
 (*|
-*The proofs on this page are rendered using MathJax which happens to require at least one explicit math command*. Hence: :math:`x`.
+
+*The proof trees on this page are rendered using MathJax which happens to require at least one explicit math command.*
+Hence: :math:`x` is included here so that the proof tree rendering continues to work even if all other comments including math commands are removed.
+
 |*)
