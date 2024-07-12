@@ -6,11 +6,15 @@
   box-shadow: none;
 }
 
+body {
+  background: white !important;
+}
+
 .coq-math > * > * >  * > * > .alectryon-message {
-  background:#f6f5f4 !important;
+  background:white !important;
 }
 
 .coq-math > * > * >  * > .alectryon-messages {
-  background: #f6f5f4 !important;
+  background: white !important;
   border: none;
 }
