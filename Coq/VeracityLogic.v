@@ -1288,6 +1288,10 @@ Eval compute in showForProofTree_judgement [trustT;trustU] [x \by Quentin @ 1 \i
 Eval compute in showForNaturalLanguage_judgement [trustT;trustU] [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
 Eval compute in showForLogSeq_judgement [trustT;trustU] "" [x \by Quentin @ 1 \in c1] (x \by Penelope @ 1 \in c1) _. (* .unfold *)
 
+Eval compute in showForProofTree_judgement [] [(e1 \by a1 @ 1 \in c1)] (e1 \by a1 @ 1 \in c1) (assume _e1_ a1 1 c1). (* .unfold *)
+Eval compute in showForNaturalLanguage_judgement [] [(e1 \by a1 @ 1 \in c1)] (e1 \by a1 @ 1 \in c1) (assume _e1_ a1 1 c1). (* .unfold *)
+Eval compute in showForLogSeq_judgement [] "" [(e1 \by a1 @ 1 \in c1)] (e1 \by a1 @ 1 \in c1) (assume _e1_ a1 1 c1). (* .unfold *)
+
 (*|
 
 We need to compute which trust relations were used during the proofs, so that we can print them.
@@ -2184,9 +2188,6 @@ Other examples
 ~~~~~~~~~~~~~~
 
 |*)
-
-
-Eval compute in showForProofTree_judgement [] [(e1 \by a1 @ 1 \in c1)] (e1 \by a1 @ 1 \in c1) (assume _e1_ a1 1 c1).
 
 
 Definition process_example : proofTreeOf_wrapped Penelope (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
