@@ -2191,8 +2191,59 @@ Other examples
 
 (*|
 
+proofTreeOf_wrapped example
++++++++++++++++++++++++++++
+
+This example shows how we can use `proofTreeOf_wrapped` to only declare up front the actor and claim, leaving the assumption list, evidence and weight for Coq to infer or for clarification by later tactics.
+We make use of `eexists _ _ _` with underscores to indicate that Coq should try infer these values as the proof progresses.
+The underscores correspond to the fields in the `proofTreeOf_wrapped` record, in order.
+
+So we have underscores for:
+
+  - `_Ps`: the list of assumptions
+  - `_e`: the evidence
+  - `_w`: the weight of the concluding judgement
+
+In this proof, Coq can infer all these from the application of `assume` as well as the actor and claim supplied to `proofTreeOf_wrapped`.
+
+|*)
+
+Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
+Proof.
+eexists _ _ _.
+apply (assume _e_ a1 1).
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in showForProofTree exampleWithProofOf.
+
+(*|
+.. coq::
+|*)
+
+Eval compute in showForNaturalLanguage exampleWithProofOf.
+Eval compute in showForLogSeq exampleWithProofOf.
+
+
+(*|
+
 Process example
 +++++++++++++++
+
+This example corresponds to the second example in section 4.2 in the `arXiv paper (v4) <https://arxiv.org/pdf/2302.06164v4>`_ (top of page 13).
+Please see the paper for further information about this example.
+
+-----------------
+
+When viewing as a webpage:
+*For ease of reading in the following examples, the proof state will not be expanded.
+However, clicking on a Coq tactic or command will unfold the proof state or output at that point.*
+
+-----------------
 
 |*)
 
@@ -2230,6 +2281,9 @@ Eval compute in (showForLogSeq process_example).
 impl_intro example
 ++++++++++++++++++
 
+This example shows a basic application of the `impl_intro` rule to show that the claim :math:`C_1 \rightarrow C_1` has veracity.
+We use 1 for the weights in this example.
+
 |*)
 
 
@@ -2260,10 +2314,15 @@ Eval compute in (showForLogSeq impl_intro1).
 impl_intro and impl_elim example
 ++++++++++++++++++++++++++++++++
 
+This example shows a basic application of `impl_elim`.
+
 |*)
 
 Definition impl_intro_elim : proofTreeOf_wrapped a1 (c1).
 eexists [(AtomicEvid _e2_) \by a1 @ 1 \in c1] _ 1.
+(*|
+The tactics on the next four lines are not required for the proof and could be deleted, however they help to highlight what is happening with the application of the abstraction: :math:`\lambda(e_1)(e_1)(e_2) = e_2`.
+|*)
 eassert (apply_abstraction _e1_ e1 e2 _ = e2).
 simpl. reflexivity. Unshelve. 3: reflexivity. 2: shelve.
 fold e2.
@@ -2296,6 +2355,8 @@ Eval compute in (showForLogSeq impl_intro_elim).
 and example
 +++++++++++
 
+This is an example showing that the claim :math:`C_1 \rightarrow (C_1 \wedge C_1)` has veracity.
+
 |*)
 
 Definition and_example : proofTreeOf_wrapped a1 (Implies c1 (c1 /\' c1)).
@@ -2326,6 +2387,8 @@ Eval compute in (showForLogSeq and_example).
 
 and example with 2 conjuncts
 ++++++++++++++++++++++++++++
+
+This example shows the application of the `and_intro` rule to show that a claim with two conjuncts has veracity.
 
 |*)
 
@@ -2360,6 +2423,8 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith2Conjuncts.
 and example with 3 conjuncts
 ++++++++++++++++++++++++++++
 
+This example shows the application of the `and_intro` rule twice to show that a claim with three conjuncts has veracity.
+
 |*)
 
 Program Definition concreteProofTreeExampleWith3Conjuncts : 
@@ -2390,7 +2455,8 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 and example with 3 conjuncts using existing proof tree
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-We can also combine existing trees into new trees, when appropriate. For example:
+This example shows that we can also combine existing proof trees into new proof trees, when appropriate.
+For example, here we make use of the already defined proof tree `concreteProofTreeExampleWith2Conjuncts`.
 
 |*)
 
@@ -2422,6 +2488,8 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3Conjuncts.
 trust example
 +++++++++++++
 
+This example shows the use of a trust relation to change which actor holds that the claim has veracity, from `a2` to `a1`, because `a1` trusts `a2`.
+
 |*)
 
 
@@ -2450,6 +2518,8 @@ Eval compute in showForLogSeq concreteProofTreeExampleTrust.
 trust example with 3 conjuncts
 ++++++++++++++++++++++++++++++
 
+This example shows using a previously defined proof tree as well as a trust relation to show that Quentin holds that :math:`(C_1 \wedge C_2) \wedge C_3` has veracity because Quentin trusts Penelope, and becuase of the proof tree `concreteProofTreeExampleWith3ConjunctsUsingExistingTree`.
+
 |*)
 
 Program Definition concreteProofTreeExampleWith3ConjunctsWithTrust : 
@@ -2476,6 +2546,8 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrust.
 
 trust example with 3 conjuncts and extra steps
 ++++++++++++++++++++++++++++++++++++++++++++++
+
+Here is the same proof as the previous example, with some extra unnecessary applications of the trust rule with Quentin trusting himself.
 
 |*)
 
@@ -2505,35 +2577,12 @@ Eval compute in showForLogSeq concreteProofTreeExampleWith3ConjunctsWithTrustAnd
 
 (*|
 
-proofTreeOf_wrapped example
-+++++++++++++++++++++++++++
-
-|*)
-
-Definition exampleWithProofOf : proofTreeOf_wrapped a1 C1.
-Proof.
-eexists _ _ _.
-apply (assume _e_ a1 1).
-Defined.
-
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-Eval compute in showForProofTree exampleWithProofOf.
-
-(*|
-.. coq::
-|*)
-
-Eval compute in showForNaturalLanguage exampleWithProofOf.
-Eval compute in showForLogSeq exampleWithProofOf.
-
-(*|
-
 bot example
 +++++++++++
+
+This example shows the use of `bot_elim` to conclude any claim.
+`bot`/:math:`\bot` is short for "bottom", following the convention in logic.
+The claim :math:`C_1 \wedge C_2` could be replaced with any claim and the proof would still succeed.
 
 |*)
 
@@ -2567,6 +2616,8 @@ Eval compute in showForLogSeq bot_example.
 bot example 2
 +++++++++++++
 
+Here is another example using `bot_elim` to conclude a different claim.
+
 |*)
 
 
@@ -2596,35 +2647,11 @@ Eval compute in showForLogSeq bot_example2.
 
 (*|
 
-trust in a star example for Penelope
-++++++++++++++++++++++++++++++++++++
-
-|*)
-
-Program Definition starP : 
-proofTreeOf [l \by Ledger @ 1 \in c1] (l \by Penelope @ (1 # 3) \in C1).
-eapply (trust _ Penelope Ledger (1 # 3) 1 (1 # 3) _ trustT). reflexivity.
-eapply (assume _ _ 1).
-Show Proof.
-Defined.
-
-(*|
-.. coq:: unfold
-   :class: coq-math
-|*)
-
-Eval compute in (showForProofTree starP).
-
-(*|
-.. coq::
-|*)
-
-Eval compute in (showForLogSeq starP).
-
-(*|
-
 trust in a chain example
 ++++++++++++++++++++++++
+
+This example corresponds to the first example describing trust with information arranged in a star in section 4.1 in the `arXiv paper (v4) <https://arxiv.org/pdf/2302.06164v4>`_ (top of page 11).
+Please see the paper for further information about this example.
 
 |*)
 
@@ -2655,8 +2682,42 @@ Eval compute in (showForLogSeq chain).
 
 (*|
 
+trust in a star example for Penelope
+++++++++++++++++++++++++++++++++++++
+
+This example corresponds to the second example describing trust with information arranged in a star in section 4.1 in the `arXiv paper (v4) <https://arxiv.org/pdf/2302.06164v4>`_ (middle of page 11).
+Please see the paper for further information about this example.
+This is only for one actor, Penelope, but by replacing Penelope with other actors we would obtain the proofs for the other points in the star.
+
+|*)
+
+Program Definition starP : 
+proofTreeOf [l \by Ledger @ 1 \in c1] (l \by Penelope @ (1 # 3) \in C1).
+eapply (trust _ Penelope Ledger (1 # 3) 1 (1 # 3) _ trustT). reflexivity.
+eapply (assume _ _ 1).
+Show Proof.
+Defined.
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree starP).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForLogSeq starP).
+
+(*|
+
 trust in a chain example with conjunction
 +++++++++++++++++++++++++++++++++++++++++
+
+This example extends the `trust in a chain example`_ by making the final claim a conjunction, joining two proof trees with differing weights together.
+Here we see in action our definition of the weight of a conjunction being the minimum of the weights of the two proof trees used in it.
 
 |*)
 
@@ -2690,6 +2751,10 @@ Eval compute in (showForLogSeq chainWithAnd).
 impl_intro and impl_elim example with weights
 +++++++++++++++++++++++++++++++++++++++++++++
 
+This example demonstrates `impl_elim` where the weight is :math:`\frac{1}{2}`.
+The weight associated with :math:`e2` must also be :math:`\frac{1}{2}` in this example, otherwise `all: try reflexivity` will not solve the relevant goal.
+The weights must match when an abstraction is applied, as described in the `impl_elim`_ section.
+
 |*)
 
 Definition impl_intro_elim_with_weights : proofTreeOf_wrapped a1 (c1).
@@ -2721,9 +2786,15 @@ Eval compute in (showForLogSeq impl_intro_elim_with_weights).
 impl_intro and impl_elim example with differing weights
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+This example shows how nested abstractions can have differing weights required for their arguments.
+Here, partway through the proof, we have :math:`\lambda(e1_{\frac{1}{2}})(\lambda(e2_{\frac{1}{3}})((e1, e2)))^{a_{1}}_{\frac{1}{3}}` as evidence.
+So, the first piece of evidence supplied to the abstraction will need a weight of :math:`\frac{1}{2}` and the second one :math:`\frac{1}{3}`.
+And the resulting piece of evidence will have weight :math:`\frac{1}{3}`.
+This is shown in the rest of the proof, with :math:`e3` and :math:`e4`.
+
 |*)
 
-Definition impl_intro_elim_with_different_weights : proofTreeOf_wrapped a1 (c1 /\' c2).
+Definition impl_intro_elim_with_differing_weights : proofTreeOf_wrapped a1 (c1 /\' c2).
 eexists [e3 \by a1 @ (1 # 2) \in c1; e4 \by a1 @ (1 # 3) \in c2] {{e3,e4}} (1 # 3).
 
 eapply (impl_elim _e2_ {{e3,e2}} e4 a1 (1 # 3) (1 # 3) C2 (C1 /\' C2)) with (Ps := [e3 \by a1 @ 1 # 2 \in c1]) (Qs := [e4 \by a1 @ (1 # 3) \in c2]) (Rs := [(apply_abstraction _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1; e4 \by a1 @ (1 # 3) \in c2]).
@@ -2762,18 +2833,21 @@ Defined.
    :class: coq-math
 |*)
 
-Eval compute in (showForProofTree impl_intro_elim_with_different_weights).
+Eval compute in (showForProofTree impl_intro_elim_with_differing_weights).
 
 (*|
 .. coq::
 |*)
 
-Eval compute in (showForNaturalLanguage impl_intro_elim_with_different_weights).
-Eval compute in (showForLogSeq impl_intro_elim_with_different_weights).
+Eval compute in (showForNaturalLanguage impl_intro_elim_with_differing_weights).
+Eval compute in (showForLogSeq impl_intro_elim_with_differing_weights).
 
 End VeracityLogic.
 
 (*|
+
+Typesetting with Alectryon + MathJax
+------------------------------------
 
 *The proof trees on this page are rendered using MathJax which happens to require at least one explicit math command.*
 Hence: :math:`x` is included here so that the proof tree rendering continues to work even if all other comments including math commands are removed.
