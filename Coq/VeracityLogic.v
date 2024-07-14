@@ -2694,11 +2694,6 @@ impl_intro and impl_elim example with weights
 
 Definition impl_intro_elim_with_weights : proofTreeOf_wrapped a1 (c1).
 eexists [(AtomicEvid _e2_) \by a1 @ (1 # 2) \in c1] _ (1 # 2).
-eassert (apply_abstraction _e1_ e1 e2 _ = e2).
-simpl. reflexivity. Unshelve. 3: reflexivity. 2: shelve.
-fold e2.
-rewrite <- H.
-
 eapply (impl_elim _e1_ e1 e2 a1 (1 # 2) (1 # 2) C1 C1 _ _ _ _).
 eapply (impl_intro _e1_ _ _ (1 # 2) (1 # 2) _ _ _ [] _ _ _).
 eapply (assume _e1_ _ (1 # 2)).
@@ -2730,10 +2725,6 @@ impl_intro and impl_elim example with differing weights
 
 Definition impl_intro_elim_with_different_weights : proofTreeOf_wrapped a1 (c1 /\' c2).
 eexists [e3 \by a1 @ (1 # 2) \in c1; e4 \by a1 @ (1 # 3) \in c2] {{e3,e4}} (1 # 3).
-eassert (apply_abstraction _e2_ e2 e3 _ = e3).
-simpl. reflexivity. Unshelve. 2: reflexivity.
-fold e3.
-rewrite <- H.
 
 eapply (impl_elim _e2_ {{e3,e2}} e4 a1 (1 # 3) (1 # 3) C2 (C1 /\' C2)) with (Ps := [e3 \by a1 @ 1 # 2 \in c1]) (Qs := [e4 \by a1 @ (1 # 3) \in c2]) (Rs := [(apply_abstraction _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1; e4 \by a1 @ (1 # 3) \in c2]).
 simpl. reflexivity.
@@ -2743,7 +2734,7 @@ Unshelve. 2: reflexivity.
 eassert (apply_abstraction _e1_ (Lambda _e2_ (1 # 3) {{e3,e2}}) e3    _ = (Lambda _e2_ (1 # 3) {{e3,e2}})).
 simpl. reflexivity. Unshelve. 2: reflexivity.
 fold e2.
-rewrite <- H0.
+rewrite <- H.
 
 eapply (impl_elim _e1_ (Lambda _e2_ (1 # 3) {{e1,e2}}) e3 a1 (1 # 2) (1 # 3) C1 (C2 ->' C1 /\' C2)) with (Ps := []) (Qs := [(apply_abstraction _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1]) (Rs := [(apply_abstraction _e2_ e2 e3 eq_refl) \by a1 @ 1 # 2 \in c1]). reflexivity.
 
