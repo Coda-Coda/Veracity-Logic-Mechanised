@@ -1,0 +1,1 @@
+(import ./Coq/shell.nix)
