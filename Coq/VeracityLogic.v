@@ -2846,10 +2846,29 @@ End VeracityLogic.
 
 (*|
 
-Typesetting with Alectryon + MathJax
-------------------------------------
+Addional notes
+--------------
 
-*The proof trees on this page are rendered using MathJax which happens to require at least one explicit math command.*
+The proof trees on this page are rendered using MathJax which happens to require at least one explicit math command.
 Hence: :math:`x` is included here so that the proof tree rendering continues to work even if all other comments including math commands are removed.
+
+When viewing this file directly as a `.v` file, the syntax::
+
+  .. coq:: unfold
+    :class: coq-math
+
+Indicates the beginning of a Coq snippet that should be unfolded with the output rendered using MathJax's Latex.
+This is used for rendering proof trees.
+
+These snippets are followed by::
+
+  .. coq::
+
+To indicate that the default should now be to leave Coq commands folded and not to render the output using MathJax.
+The `class` `coq-math` is a CSS class, which interacts with the code following::
+
+  .. raw:: html
+
+Which is near the start of this file, in order to load and render MathJax when appropriate.
 
 |*)
