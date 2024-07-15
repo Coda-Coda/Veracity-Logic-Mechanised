@@ -2871,4 +2871,6 @@ The `class` `coq-math` is a CSS class, which interacts with the code following::
 
 Which is near the start of this file, in order to load and render MathJax when appropriate.
 
+Finally, some CSS overrides are defined in `Coq/html/overrides.css` which improve the look of the output.
+
 |*)
