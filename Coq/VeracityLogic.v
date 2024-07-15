@@ -2,6 +2,8 @@
 Veracity Logic Mechanised in Coq
 ================================
 
+By `Daniel Britten <https://www.linkedin.com/in/daniel-britten-3178b5102>`_ and `Steve Reeves <https://profiles.waikato.ac.nz/steve.reeves>`_.
+
 This Coq formalisation is an attempt to mechanise a logic for veracity, with the goal of precisely pinning down the meaning of veracity.
 Veracity is concerned with trust, truth, demonstrability and authenticity.
 We take an approach inspired by intuitionistic logic, in part due to a desire not to "lose information" as proofs progress.
