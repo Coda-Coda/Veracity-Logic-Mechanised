@@ -1,12 +1,10 @@
-# Veracity Logic Mechanised [DRAFT]
+# Veracity Logic Mechanised
 
-This repository contains **work in progress** on mechanising a logic for Veracity in [Coq](https://coq.inria.fr/) and [Isabelle](https://isabelle.in.tum.de/).
+This repository contains a mechanisation of a logic for veracity in [Coq](https://coq.inria.fr/) as well as early work in [Isabelle](https://isabelle.in.tum.de/).
 
 The veracity logic mechanised in Coq is best viewed at: https://coda-coda.github.io/Veracity-Logic-Mechanised
 
-Please see https://arxiv.org/abs/2302.06164 for more information.
-
-More to come soon!
+Please see the arXiv paper at https://arxiv.org/abs/2302.06164 for more information.
 
 ## Codespaces + VSCoq (using this repository from just a web-browser)
 
