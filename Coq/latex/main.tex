@@ -1,0 +1,40 @@
+\documentclass{article}
+
+\usepackage{texments}
+%%% for movies by alectryon
+\usepackage{./coq-snippets/assets/alectryon}
+\usepackage{./coq-snippets/assets/pygments}
+
+% Prevent breaks in the middle of syntactic units
+\let\OldPY\PY
+\def\PY#1#2{\OldPY{#1}{\mbox{#2}}}
+
+
+%%% One hypothesis per line 
+\makeatletter
+\renewcommand{\alectryon@hyps@sep}{\alectryon@nl}
+\makeatother
+
+\makeatletter
+\newcommand{\pathtomovies}{./coq-snippets}
+\newcommand{\inputsnippets}[1]
+  {{\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}% Adjust spacing
+    \alectryon@copymacros\begin{io}
+      \forcsvlist{\item\@inputsnippet}{#1}
+    \end{io}}}
+\let\input@old\input % Save definition of \input
+\newcommand{\@inputsnippet}[1]
+  {{\renewenvironment{alectryon}{}{}% Skip \begin{alectryon} included in snippet
+    \input@old{{\pathtomovies}/#1}}}
+\makeatother
+
+\title{Example}
+\author{Daniel Britten}
+
+\begin{document}
+
+\maketitle
+
+\inputsnippets{or-elim2-example.tex}
+
+\end{document}

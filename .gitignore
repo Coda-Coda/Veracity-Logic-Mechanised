@@ -11,3 +11,9 @@ Coq/CoqMakefile.conf
 Coq/core.make
 Coq/core.make.conf
 Coq/html/VeracityLogic.html
+Coq/latex/main.fls
+Coq/latex/main.fdb_latexmk
+Coq/latex/main.log
+Coq/latex/main.synctex.gz
+Coq/latex/main.pdf
+Coq/latex/coq-snippets/*

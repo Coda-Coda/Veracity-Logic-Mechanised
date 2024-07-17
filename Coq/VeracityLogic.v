@@ -1977,13 +1977,16 @@ or_elim2
 
 |*)
 
+(* begin snippet or-elim2-example:: in *)
 Lemma or_elim2_example :
-  proofTreeOf [(e \by a1 @ (1 # 3) \in c2)] (e \by a1 @ (1 # 3) \in c2).
+  proofTreeOf [(e \by a1 @ (1 # 3) \in c2)]
+              (e \by a1 @ (1 # 3) \in c2).
 Proof.
-apply or_elim2 with (C1:=c1). (* .unfold *)
-apply or_intro2. (* .unfold *)
+apply or_elim2 with (C1:=c1). (* .out *)
+apply or_intro2. (* .out *)
 apply assume.
 Defined.
+(* end snippet or-elim2-example *)
 
 (*|
 .. coq:: unfold
