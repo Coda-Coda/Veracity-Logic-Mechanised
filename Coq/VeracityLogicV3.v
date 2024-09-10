@@ -2,6 +2,8 @@
 Veracity Logic Mechanised in Coq V3
 ===================================
 
+Also started adding purely linguistic terms (a la M-L).
+
 This version aims to more closely align with the draft paper.
 It also features a LaTeX/MathJax visualisation of completed proofs.
 
