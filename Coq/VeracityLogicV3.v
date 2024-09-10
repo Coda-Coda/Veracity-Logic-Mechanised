@@ -114,6 +114,18 @@ Scheme Equality for name.
 Inductive namePair :=
   | NamePair (id : name) (short long : string).
 
+  (*|
+Expressions as from page 24 (section 3.8) of "Programming in M-L's Type Theory", Nordstrom, Petersson and Smith.
+|*)
+Inductive expression :=
+  | Var (name : string)
+  | PrimConst (name : string)
+  | Application (abs exp : string)
+  | Abstraction (var body : string).
+
+(*| 
+Then need rules that essentially talk about the arity and things like reduction and equaity betwen these "linguistic" forms (as M-L says it). |
+*)
 Inductive evid :=
   | AtomicEvid (name : namePair)
   | Pair (e1 e2: evid)
