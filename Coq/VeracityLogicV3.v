@@ -58,9 +58,7 @@ Handling a trust relation and weights are future work (2024).
 
 Require Import List.
 Import ListNotations.
-Require Import String.
-Require Import Coq.Strings.Ascii.
-Require Import Bool.
+Require Import Bool Ascii String.
 
 (*|
 .. coq:: all
@@ -122,12 +120,15 @@ Expressions as from page 24 (section 3.8) of "Programming in M-L's Type Theory",
 Inductive expression :=
   | Var (name : string)
   | PrimConst (name : string)
-  | Application (abs exp : string)
-  | Abstraction (var body : string).
+  | Application (abs exp : expression)
+  | Abstraction (var : string) (body : expression).
+
+ 
 
 (*| 
-Then need rules that essentially talk about the arity and things like reduction and equaity betwen these "linguistic" forms (as M-L says it). |
+Then need rules that essentially talk about the arity and things like reduction and equaity between these "linguistic" forms (as M-L says it). |
 *)
+
 Inductive evid :=
   | AtomicEvid (name : namePair)
   | Pair (e1 e2: evid)
@@ -191,6 +192,75 @@ Class Beq A : Type :=
   }.
 Infix "=?" := beq : beq_scope.
 
+(*
+Inductive expression :=
+  | Var (name : string)
+  | PrimConst (name : string)
+  | Application (abs exp : expression)
+  | Abstraction (var : string) (body : expression).
+*)
+
+Fixpoint beqExpression (e1 e2: expression) : bool :=
+  match e1,e2 with
+  | Var x, Var y =>  eqb x y
+  | Var x,_ => false
+  | PrimConst a, PrimConst b => eqb a b
+  | PrimConst a, _ => false
+  | Application l1 r1, Application l2 r2 => beqExpression l1 l2 && beqExpression r1 r2
+  | Application l1 r1,_ => false
+  | Abstraction v1 e1, Abstraction v2 e2 => eqb v1 v2 && beqExpression e1 e2
+  | Abstraction v1 e1,_ => false
+  end.
+  Instance : Beq expression := { beq := beqExpression }.
+
+  Fixpoint freeIn (x : string) (exp : expression) : bool :=
+    match exp with
+    | Var y => eqb x y
+    | PrimConst _ => false
+    | Application l r => freeIn x l || freeIn x r
+    | Abstraction v e => negb (eqb v x) && freeIn x e
+    end.
+
+    Compute freeIn "x" (Var"x").
+    Compute freeIn "x" (Abstraction "x" (Var "x")).
+
+    Example test1freeIn: freeIn "x" (Var"x") = true.
+    Proof. simpl. reflexivity. Qed.
+
+    (*
+    t is free for 𝑥 in ϕ if
+    (i) ϕ is atomic;
+    (ii) ϕ is ϕ1∨ϕ2 (or is ϕ1∧ϕ2, or is ¬ϕ1) and 𝑡 is free for 𝑥 in ϕ1 and ϕ2;
+    (iii) ϕ is ∃𝑦ψ (or ∀𝑦ψ) and if 𝑥∈FV(ϕ), then 𝑦∉FV(𝑡) and 𝑡 is free for 𝑥 in ψ.
+    *)
+
+    (* t is free for x in e -> freeFor t x e *)
+
+    Fixpoint freeFor (t : expression) (x : string) (exp : expression) : bool :=
+      match exp with
+      | Var _ => true
+      | PrimConst _ => true
+      | Application l r => freeFor t x l || freeFor t x r
+      | Abstraction v e => if freeIn x exp 
+                           then negb (freeIn v t) && freeFor t x e
+                           else true
+      end.
+
+      Example testFreeFor1: freeFor (Var "y") "x" (Abstraction "y" (Var "x")) = false.
+      Proof. simpl. reflexivity. Qed.
+
+      Example testFreeFor2: freeFor (Var "y") "x" (Abstraction "y" (Var "y")) = true.
+      Proof. simpl. reflexivity. Qed.
+
+      Example testFreeFor3: freeFor (Abstraction "y" (Var "y")) "x" (Abstraction "y" (Var "x")) = true.
+      Proof. simpl. reflexivity. Qed. 
+      
+      Example testFreeFor4: freeFor (Abstraction "x" (Var "y")) "x" (Abstraction "y" (Var "x")) = false.
+      Proof. simpl. reflexivity. Qed.
+   
+
+  
+
 Definition beqNamePair (n1 n2 : namePair) : bool :=
 match n1,n2 with
 | NamePair id1 _ _,NamePair id2 _ _ => name_beq id1 id2
@@ -210,7 +280,7 @@ end.
 Instance : Beq actor := { beq := beqActor }.
 
 (* Inductive evid :=
-  | AtomicEvid (name : string)
+  | AtomicEvid (name : namepair)
   | Pair (: evid)
   | Left (e1 : evid)
   | Right (e1 : evid)
@@ -257,7 +327,7 @@ end
 Instance : Beq claim := { beq := beqClaim }.
 
 (* Inductive singleJudgement :=
-  | SingleJudgement (e : evid) (a : actor) (c: claim). *)
+  | SingleJudgement (a : actor) (c: claim). *)
 
 Definition beqSingleJudgement (j1 j2 : singleJudgement) : bool :=
 match j1,j2 with
@@ -466,9 +536,10 @@ Definition c4 := AtomicClaim (NamePair _c4_ "c_{4}" "example claim 4").
 
 (*|
 We can also assume arbitrary evidence/claims exist. This currently doesn't work well with printing to Latex. An experimental alternative is demonstrated in the experimental-NamedC-and-NamedE branch.
-|*)
+
 Context (e4 : evid).
 Context (c4 : claim).
+*)
 
 (*|
 Example Single judgements:
