@@ -114,20 +114,6 @@ Scheme Equality for name.
 Inductive namePair :=
   | NamePair (id : name) (short long : string).
 
-  (*|
-Expressions as from page 24 (section 3.8) of "Programming in M-L's Type Theory", Nordstrom, Petersson and Smith.
-|*)
-Inductive expression :=
-  | Var (name : string)
-  | PrimConst (name : string)
-  | Application (abs exp : expression)
-  | Abstraction (var : string) (body : expression).
-
- 
-
-(*| 
-Then need rules that essentially talk about the arity and things like reduction and equaity between these "linguistic" forms (as M-L says it). |
-*)
 
 Inductive evid :=
   | AtomicEvid (name : namePair)
@@ -192,39 +178,85 @@ Class Beq A : Type :=
   }.
 Infix "=?" := beq : beq_scope.
 
+  (*|
+Expressions as from page 24 (section 3.8) of "Programming in M-L's Type Theory", 
+Nordstrom, Petersson and Smith.
+|*)
+
+Inductive arity :=
+  | Zero 
+  | Arrow (a b : arity).
+
+  Fixpoint beqArity (a1 a2 : arity) : bool :=
+  match a1, a2 with
+  | Zero, Zero => true
+  | Zero, _ => false
+  | Arrow a11 a12, Arrow a21 a22 => beqArity a11 a21 && beqArity a12 a22
+  | Arrow _ _, _ => false
+  end.
+
+  Instance : Beq arity := { beq := beqArity }.
+
+Inductive expression : Type :=
+  | Var (name : string) (a : arity)
+  | PrimConst (name : string) (a : arity)
+  | Application (abs exp : expression) (a : arity)
+  | Abstraction (var body : expression) (a : arity).
+
+
+
 (*
-Inductive expression :=
-  | Var (name : string)
-  | PrimConst (name : string)
-  | Application (abs exp : expression)
-  | Abstraction (var : string) (body : expression).
+   Then need rules that essentially talk about the arity and things like reduction and 
+   equality between these "linguistic" forms (as M-L says it).
 *)
 
-Fixpoint beqExpression (e1 e2: expression) : bool :=
-  match e1,e2 with
-  | Var x, Var y =>  eqb x y
-  | Var x,_ => false
-  | PrimConst a, PrimConst b => eqb a b
-  | PrimConst a, _ => false
-  | Application l1 r1, Application l2 r2 => beqExpression l1 l2 && beqExpression r1 r2
-  | Application l1 r1,_ => false
-  | Abstraction v1 e1, Abstraction v2 e2 => eqb v1 v2 && beqExpression e1 e2
-  | Abstraction v1 e1,_ => false
-  end.
-  Instance : Beq expression := { beq := beqExpression }.
+  (* Working out the arity of an expression *)
+
+  Fixpoint getArity (e : expression) : arity :=
+    match e with
+    | Var _ a => a
+    | PrimConst _ a => a
+    | Abstraction _ _ a => a
+    | Application _ _ a => a
+    end.
+
+  Fixpoint checkArity (e : expression) : bool :=
+    match e with
+    | Var x Zero => true
+    | Var _ _ => false
+    | PrimConst c Zero => true
+    | PrimConst _ _ => false
+    | Abstraction (Var x a) exp (Arrow alpha c) => beq a alpha && beq (getArity exp) c
+    | Abstraction _ _ _ => false
+    | Application app arg a => match getArity app with 
+                                | Zero => false 
+                                | Arrow a' c => beq a' (getArity arg) && beq a c
+                               end
+    end.
+
+    Compute checkArity (Var "x" Zero).
+    Compute checkArity (Application (Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero)) 
+                            (PrimConst "a" Zero) Zero).
+    Compute checkArity (Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)).                    
+
+    (* We haven't done the arity for the various term-formers 
+       like \lambda, case, apply etc.*)
+  
 
   Fixpoint freeIn (x : string) (exp : expression) : bool :=
     match exp with
-    | Var y => eqb x y
-    | PrimConst _ => false
-    | Application l r => freeIn x l || freeIn x r
-    | Abstraction v e => negb (eqb v x) && freeIn x e
+    | Var y _ => eqb x y
+    | PrimConst _ _  => false
+    | Application l r _ => freeIn x l || freeIn x r
+    | Abstraction (Var v _) e _ => negb (eqb v x) && freeIn x e
+    | Abstraction _ _ _ => false
     end.
 
-    Compute freeIn "x" (Var"x").
-    Compute freeIn "x" (Abstraction "x" (Var "x")).
+    Compute freeIn "x" (Var"x" _).
+    Compute freeIn "x" (Abstraction (Var "x" _ ) (Var "x" _) _).
+    Compute freeIn "x" (Abstraction (Var "y" _ ) (Var "x" _) _).
 
-    Example test1freeIn: freeIn "x" (Var"x") = true.
+    Example test1freeIn: freeIn "x" (Var "x" Zero) = true.
     Proof. simpl. reflexivity. Qed.
 
     (*
@@ -238,27 +270,45 @@ Fixpoint beqExpression (e1 e2: expression) : bool :=
 
     Fixpoint freeFor (t : expression) (x : string) (exp : expression) : bool :=
       match exp with
-      | Var _ => true
-      | PrimConst _ => true
-      | Application l r => freeFor t x l || freeFor t x r
-      | Abstraction v e => if freeIn x exp 
+      | Var _ _ => true
+      | PrimConst _ _ => true
+      | Application l r _ => freeFor t x l || freeFor t x r
+      | Abstraction (Var v _) e _ => if freeIn x exp 
                            then negb (freeIn v t) && freeFor t x e
                            else true
+      | Abstraction _ _ _ => false
       end.
 
-      Example testFreeFor1: freeFor (Var "y") "x" (Abstraction "y" (Var "x")) = false.
+      Example testFreeFor1: freeFor (Var "y" Zero) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = false.
       Proof. simpl. reflexivity. Qed.
 
-      Example testFreeFor2: freeFor (Var "y") "x" (Abstraction "y" (Var "y")) = true.
+      Example testFreeFor2: freeFor (Var "y" Zero) "x"  (Abstraction (Var "y" Zero) (Var "y" Zero)(Arrow Zero Zero)) = true.
       Proof. simpl. reflexivity. Qed.
 
-      Example testFreeFor3: freeFor (Abstraction "y" (Var "y")) "x" (Abstraction "y" (Var "x")) = true.
+      Example testFreeFor3: freeFor (Abstraction (Var "y" Zero) (Var "y" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = true.
       Proof. simpl. reflexivity. Qed. 
       
-      Example testFreeFor4: freeFor (Abstraction "x" (Var "y")) "x" (Abstraction "y" (Var "x")) = false.
+      Example testFreeFor4: freeFor (Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = false.
       Proof. simpl. reflexivity. Qed.
    
+      Fixpoint beqExpression (e1 e2: expression) : bool :=
+        match e1,e2 with
+        | Var x a , Var y b =>  eqb x y && beq a b
+        | Var x a, _ => false
+        | PrimConst c a, PrimConst d b => eqb c d && beq a b
+        | PrimConst c a, _ => false
+        | Application l1 r1 a1, Application l2 r2 a2 => beqExpression l1 l2 && beqExpression r1 r2 && beq a1 a2
+                                                        (* || beta-rule *)
 
+        | Application l1 r1 a1, _ => false
+        | Abstraction (Var v1 _) e1 a1, Abstraction (Var v2 _) e2 a2 => eqb v1 v2 && beqExpression e1 e2 && beq a1 a2
+                                                                        (* || zeta-rule *)
+                                                                        (* || alpha-rule *)
+                                                                        (* || eta-rule *)
+        | Abstraction v1 e1 a1, _ => false
+        end.
+        Instance : Beq expression := { beq := beqExpression }.
+      
   
 
 Definition beqNamePair (n1 n2 : namePair) : bool :=
