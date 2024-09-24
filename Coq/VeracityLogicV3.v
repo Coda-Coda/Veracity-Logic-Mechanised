@@ -183,9 +183,12 @@ Expressions as from page 24 (section 3.8) of "Programming in M-L's Type Theory",
 Nordstrom, Petersson and Smith.
 |*)
 
+(* Working up to defining definitional equality *)
+
 Inductive arity :=
   | Zero 
   | Arrow (a b : arity).
+  (* Arity for composites to come... *)
 
   Fixpoint beqArity (a1 a2 : arity) : bool :=
   match a1, a2 with
@@ -203,16 +206,9 @@ Inductive expression : Type :=
   | Application (abs exp : expression) (a : arity)
   | Abstraction (var body : expression) (a : arity).
 
-
-
-(*
-   Then need rules that essentially talk about the arity and things like reduction and 
-   equality between these "linguistic" forms (as M-L says it).
-*)
-
   (* Working out the arity of an expression *)
 
-  Fixpoint getArity (e : expression) : arity :=
+  Definition getArity (e : expression) : arity :=
     match e with
     | Var _ a => a
     | PrimConst _ a => a
@@ -220,7 +216,7 @@ Inductive expression : Type :=
     | Application _ _ a => a
     end.
 
-  Fixpoint checkArity (e : expression) : bool :=
+  Definition checkArity (e : expression) : bool :=
     match e with
     | Var x Zero => true
     | Var _ _ => false
@@ -242,6 +238,12 @@ Inductive expression : Type :=
     (* We haven't done the arity for the various term-formers 
        like \lambda, case, apply etc.*)
   
+(*
+   Then need rules that essentially talk about the arity and 
+   things like reduction and equality between these 
+   "linguistic" forms (as M-L says it), which is a
+   definitional equality. Also these next few basic things.
+*)
 
   Fixpoint freeIn (x : string) (exp : expression) : bool :=
     match exp with
@@ -290,24 +292,34 @@ Inductive expression : Type :=
       
       Example testFreeFor4: freeFor (Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = false.
       Proof. simpl. reflexivity. Qed.
+
+      Fixpoint subst d x e {struct d} :=
+        match d with
+        | Var y a => if eqb x y then e else Var y a
+        | PrimConst c a => PrimConst c a
+        | Application l r a => if freeIn x l && freeFor e x l && freeIn x r && freeFor e x r then 
+                                  Application (subst l x e) (subst r x e) a else Application l r a
+        | Abstraction (Var v av) b a => if eqb v x 
+                                        then Abstraction (Var v av) b a
+                                        else Abstraction (Var v av) (subst b x e) a
+        | Abstraction x b a => Abstraction x b a
+        end.
    
-      Fixpoint beqExpression (e1 e2: expression) : bool :=
+      Fixpoint defEq (e1 e2: expression) {struct e1} : bool :=
         match e1,e2 with
         | Var x a , Var y b =>  eqb x y && beq a b
         | Var x a, _ => false
         | PrimConst c a, PrimConst d b => eqb c d && beq a b
         | PrimConst c a, _ => false
-        | Application l1 r1 a1, Application l2 r2 a2 => beqExpression l1 l2 && beqExpression r1 r2 && beq a1 a2
-                                                        (* || beta-rule *)
-
+        | Application (Abstraction (Var x ax) b ab) a aa, r => defEq (subst b x a) r  (* beta-rule *)
+        | Application l1 r1 a1, Application l2 r2 a2 => defEq l1 l2 && defEq r1 r2 && beq a1 a2 (* Check arities too?? *)
         | Application l1 r1 a1, _ => false
-        | Abstraction (Var v1 _) e1 a1, Abstraction (Var v2 _) e2 a2 => eqb v1 v2 && beqExpression e1 e2 && beq a1 a2
-                                                                        (* || zeta-rule *)
-                                                                        (* || alpha-rule *)
-                                                                        (* || eta-rule *)
-        | Abstraction v1 e1 a1, _ => false
+        | Abstraction (Var v1 _) e1 a1, Abstraction (Var v2 _) e2 a2 => eqb v1 v2 && defEq e1 e2 && beq a1 a2 (* zeta-rule *)                                                       
+                                                                        (* alpha-rule *)
+                                                                        (* eta-rule *)
+        | Abstraction _ _ _, _ => false
         end.
-        Instance : Beq expression := { beq := beqExpression }.
+        Instance : Beq expression := { beq := defEq }.
       
   
 
