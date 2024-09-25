@@ -349,9 +349,15 @@ Fixpoint beqExpression (e1 e2 : expression): bool :=
   *)
 
   Definition defEq (e1 e2: expression) : bool :=
-    match e1 with
-    | Application (Abstraction (Var x ax) b ab) a aa =>  beq (subst b x a) e2 (* beta-rule *)                                                   
-    | _ => beq e1 e2
+    match e1, e2 with
+    | Abstraction (Var v1 a1) (Application a (Var v2 a2) aa) b, _ => if freeIn v1 a || negb (eqb v1 v2)
+                                                                      then false 
+                                                                      else beq a e2 (* eta-rule *) 
+    | Application (Abstraction (Var x ax) b ab) a aa, _ =>  beq (subst b x a) e2 (* beta-rule *)   
+    | Abstraction (Var v1 a1) b1 a, Abstraction (Var v2 a2) b2 b => if freeIn v2 b1 
+                                                                    then false 
+                                                                    else beq (Abstraction (Var v2 a2) (subst b2 v1 (Var v2 a2)) b) e2 (* alpha-rule *)                                    
+    | _, _ => beq e1 e2 (* This does zeta-rule too *)
     end.
 
   Instance : Beq expression := { beq := defEq }. 
@@ -371,10 +377,19 @@ Fixpoint beqExpression (e1 e2 : expression): bool :=
   Proof. simpl. reflexivity. Qed.
 
   Example beta5 : Application (Abstraction (Var "y" Zero) (Abstraction (Var "x" Zero) (Var "y" Zero) (Arrow Zero Zero)) (Arrow Zero Zero)) (Var "x" Zero) Zero =?  (Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero)) = false.
-  Proof. simpl. reflexivity. Qed. (* the free x in the agrument become captired, which is wrong...good! *)
+  Proof. simpl. reflexivity. Qed. (* the free x in the argument become captured, which is wrong...good! *)
 
+  Example alpha1 : Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero) =? Abstraction (Var "y" Zero) (Var "y" Zero) (Arrow Zero Zero) = true.
+  Proof. simpl. reflexivity. Qed.   
 
+  Example alpha2 : Abstraction (Var "x" Zero) (Var "y" Zero) (Arrow Zero Zero) =? Abstraction (Var "y" Zero) (Var "y" Zero) (Arrow Zero Zero) = false.
+  Proof. simpl. reflexivity. Qed.
 
+  Example alpha3 : Abstraction (Var "x" Zero) (Var "y" Zero) (Arrow Zero Zero) =? Abstraction (Var "y" Zero) (Var "x" Zero) (Arrow Zero Zero) = false.
+  Proof. simpl. reflexivity. Qed.
+
+  Example eta1 : Abstraction (Var "x" Zero) (Application (Var "y" Zero) (Var "x" Zero) (Arrow Zero Zero)) (Arrow Zero Zero) =? Var "y" Zero = true.
+  Proof. simpl. reflexivity. Qed.
 
 
 Definition beqNamePair (n1 n2 : namePair) : bool :=
