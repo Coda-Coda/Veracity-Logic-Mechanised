@@ -206,6 +206,16 @@ Inductive expression : Type :=
   | Application (abs exp : expression) (a : arity)
   | Abstraction (var body : expression) (a : arity).
 
+Fixpoint beqExpression (e1 e2 : expression): bool :=
+  match e1, e2 with
+  | Var n1 a1, Var n2 a2 => eqb n1 n2
+  | PrimConst c1 a1, PrimConst c2 a2 => eqb c1 c2
+  | Application l1 l2 a1, Application r1 r2 a2 => beqExpression l1 r1 && beqExpression l2 r2 
+  | Abstraction v1 b1 a1, Abstraction v2 b2 a2 => beqExpression v1 v2 && beqExpression b1 b2
+  | _, _ => false
+  end.
+
+  Instance : Beq expression := { beq := beqExpression }.
   (* Working out the arity of an expression *)
 
   Definition getArity (e : expression) : arity :=
@@ -274,7 +284,7 @@ Inductive expression : Type :=
       match exp with
       | Var _ _ => true
       | PrimConst _ _ => true
-      | Application l r _ => freeFor t x l || freeFor t x r
+      | Application l r _ => freeFor t x l && freeFor t x r
       | Abstraction (Var v _) e _ => if freeIn x exp 
                            then negb (freeIn v t) && freeFor t x e
                            else true
@@ -293,26 +303,41 @@ Inductive expression : Type :=
       Example testFreeFor4: freeFor (Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = false.
       Proof. simpl. reflexivity. Qed.
 
-      Fixpoint subst d x e {struct d} :=
+      Fixpoint subst d x e  :=
         match d with
-        | Var y a => if eqb x y then e else Var y a
-        | PrimConst c a => PrimConst c a
-        | Application l r a => if freeIn x l && freeFor e x l && freeIn x r && freeFor e x r then 
-                                  Application (subst l x e) (subst r x e) a else Application l r a
-        | Abstraction (Var v av) b a => if eqb v x 
-                                        then Abstraction (Var v av) b a
-                                        else Abstraction (Var v av) (subst b x e) a
-        | Abstraction x b a => Abstraction x b a
+        | Var y _ => if eqb x y then e else d
+        | PrimConst _ _ => d
+        | Application l r a => Application (subst l x e) (subst r x e) a
+        | Abstraction (Var v av) b a => if freeIn x d && freeFor e x d 
+                                        then Abstraction (Var v av) (subst b x e) a
+                                        else d
+        | Abstraction x b a => d
         end.
-   
+
+        Compute subst (Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)).
+        Example testsubst1: subst (Var "x" Zero) "x" (PrimConst "a" Zero) = PrimConst "a" Zero.
+        Proof. simpl. reflexivity. Qed.
+        Example testsubst2: subst (Var "y" Zero) "x" (PrimConst "a" Zero) = Var "y" Zero.
+        Proof. simpl. reflexivity. Qed.
+        Example testsubst3: subst (Application (Var "x" Zero) (PrimConst "a" Zero) Zero) "x" (PrimConst "b" Zero) = (Application (PrimConst "b" Zero) (PrimConst "a" Zero) Zero).
+        Proof. simpl. reflexivity. Qed.
+        Example testsubst4: subst (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = Abstraction (Var "y" Zero)
+        (Abstraction (Var "y" Zero) (Var "x" Zero) (Arrow Zero Zero))
+        (Arrow Zero Zero).
+        Proof. simpl. reflexivity. Qed.
+        Example testsubst5: subst (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) = Abstraction (Var "y" Zero)
+        (Var "x" Zero) (Arrow Zero Zero).
+        Proof. simpl. reflexivity. Qed.
+
+ (*  
       Fixpoint defEq (e1 e2: expression) {struct e1} : bool :=
         match e1,e2 with
         | Var x a , Var y b =>  eqb x y && beq a b
         | Var x a, _ => false
         | PrimConst c a, PrimConst d b => eqb c d && beq a b
         | PrimConst c a, _ => false
-        | Application (Abstraction (Var x ax) b ab) a aa, r => defEq (subst b x a) r  (* beta-rule *)
-        | Application l1 r1 a1, Application l2 r2 a2 => defEq l1 l2 && defEq r1 r2 && beq a1 a2 (* Check arities too?? *)
+        | Application (Abstraction (Var x ax) b ab) a aa, r => beq (subst b x a) r  (* beta-rule *)
+        | Application l1 r1 a1, Application l2 r2 a2 => beq e1 e2 (* Check arities too?? *)
         | Application l1 r1 a1, _ => false
         | Abstraction (Var v1 _) e1 a1, Abstraction (Var v2 _) e2 a2 => eqb v1 v2 && defEq e1 e2 && beq a1 a2 (* zeta-rule *)                                                       
                                                                         (* alpha-rule *)
@@ -321,7 +346,36 @@ Inductive expression : Type :=
         end.
         Instance : Beq expression := { beq := defEq }.
       
-  
+  *)
+
+  Definition defEq (e1 e2: expression) : bool :=
+    match e1 with
+    | Application (Abstraction (Var x ax) b ab) a aa =>  beq (subst b x a) e2 (* beta-rule *)                                                   
+    | _ => beq e1 e2
+    end.
+
+  Instance : Beq expression := { beq := defEq }. 
+
+  Open Scope beq_scope.
+
+  Example beta1 : Application (Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero)) (Var "y" Zero) Zero =? Var "y" Zero = true.
+  Proof. simpl. reflexivity. Qed.
+
+  Example beta2 : Application (Abstraction (Var "y" Zero) (Var "x" Zero) (Arrow Zero Zero)) (Var "y" Zero) Zero =? (Var "x" Zero) = true.
+  Proof. simpl. reflexivity. Qed.
+
+  Example beta3 : Application (Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero)) (Var "y" Zero) Zero =?  (Var "y" Zero) = true.
+  Proof. simpl. reflexivity. Qed.
+
+  Example beta4 : Application (Abstraction (Var "x" Zero) (PrimConst "a" Zero) (Arrow Zero Zero)) (Var "y" Zero) Zero =?  (PrimConst "a" Zero) = true.
+  Proof. simpl. reflexivity. Qed.
+
+  Example beta5 : Application (Abstraction (Var "y" Zero) (Abstraction (Var "x" Zero) (Var "y" Zero) (Arrow Zero Zero)) (Arrow Zero Zero)) (Var "x" Zero) Zero =?  (Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero)) = false.
+  Proof. simpl. reflexivity. Qed. (* the free x in the agrument become captired, which is wrong...good! *)
+
+
+
+
 
 Definition beqNamePair (n1 n2 : namePair) : bool :=
 match n1,n2 with
