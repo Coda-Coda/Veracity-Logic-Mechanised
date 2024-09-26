@@ -190,6 +190,8 @@ Inductive arity :=
   | Arrow (a b : arity).
   (* Arity for composites to come... *)
 
+  Notation "'o'" := Zero (at level 3).
+
   Fixpoint beqArity (a1 a2 : arity) : bool :=
   match a1, a2 with
   | Zero, Zero => true
@@ -205,6 +207,13 @@ Inductive expression : Type :=
   | PrimConst (name : string) (a : arity)
   | Application (abs exp : expression) (a : arity)
   | Abstraction (var body : expression) (a : arity).
+
+  Notation "x ::: a" := (Var x a) (at level 200, right associativity). 
+  (* Notation "c ::: a" := (PrimConst c a) (at level 200, right associativity).*)
+  Notation "abs ' ' exp ::: a" := (Application (abs exp : expression) (a : arity)) (at level 200, right associativity).
+  Notation "'(' var ')' '(' body ')' ::: a" := (Abstraction (var body : expression) (a : arity)) (at level 200, right associativity).
+
+  Check (Var "x" Zero).
 
 Fixpoint beqExpression (e1 e2 : expression): bool :=
   match e1, e2 with
@@ -329,24 +338,6 @@ Fixpoint beqExpression (e1 e2 : expression): bool :=
         (Var "x" Zero) (Arrow Zero Zero).
         Proof. simpl. reflexivity. Qed.
 
- (*  
-      Fixpoint defEq (e1 e2: expression) {struct e1} : bool :=
-        match e1,e2 with
-        | Var x a , Var y b =>  eqb x y && beq a b
-        | Var x a, _ => false
-        | PrimConst c a, PrimConst d b => eqb c d && beq a b
-        | PrimConst c a, _ => false
-        | Application (Abstraction (Var x ax) b ab) a aa, r => beq (subst b x a) r  (* beta-rule *)
-        | Application l1 r1 a1, Application l2 r2 a2 => beq e1 e2 (* Check arities too?? *)
-        | Application l1 r1 a1, _ => false
-        | Abstraction (Var v1 _) e1 a1, Abstraction (Var v2 _) e2 a2 => eqb v1 v2 && defEq e1 e2 && beq a1 a2 (* zeta-rule *)                                                       
-                                                                        (* alpha-rule *)
-                                                                        (* eta-rule *)
-        | Abstraction _ _ _, _ => false
-        end.
-        Instance : Beq expression := { beq := defEq }.
-      
-  *)
 
   Definition defEq (e1 e2: expression) : bool :=
     match e1, e2 with
@@ -391,6 +382,12 @@ Fixpoint beqExpression (e1 e2 : expression): bool :=
   Example eta1 : Abstraction (Var "x" Zero) (Application (Var "y" Zero) (Var "x" Zero) (Arrow Zero Zero)) (Arrow Zero Zero) =? Var "y" Zero = true.
   Proof. simpl. reflexivity. Qed.
 
+  Notation " e 'free for' x 'in' b" := (freeFor e x b) (at level 200, right associativity).
+
+  Example testFreeFor5: "(Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) 'free for' "x" in (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero))" = false.
+      Proof. simpl. reflexivity. Qed.
+
+  (* , format Coq < "'[v   ' 'If'  c1 '/' '[' 'then'  c2  ']' '/' '[' 'else'  c3 ']' ']'"). *)
 
 Definition beqNamePair (n1 n2 : namePair) : bool :=
 match n1,n2 with
