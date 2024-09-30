@@ -190,7 +190,13 @@ Inductive arity :=
   | Arrow (a b : arity).
   (* Arity for composites to come... *)
 
-  Notation "'o'" := Zero (at level 3).
+  Notation "'o'" := Zero (at level 0).
+  Notation "a --> b" := (Arrow a b) (at level 75).
+
+  Check Zero.
+  Check (Arrow Zero Zero).
+  Check (Arrow (Arrow Zero Zero) Zero).
+  Check (Arrow Zero (Arrow Zero Zero)).
 
   Fixpoint beqArity (a1 a2 : arity) : bool :=
   match a1, a2 with
@@ -208,12 +214,19 @@ Inductive expression : Type :=
   | Application (abs exp : expression) (a : arity)
   | Abstraction (var body : expression) (a : arity).
 
-  Notation "x ::: a" := (Var x a) (at level 200, right associativity). 
-  (* Notation "c ::: a" := (PrimConst c a) (at level 200, right associativity).*)
-  Notation "abs ' ' exp ::: a" := (Application (abs exp : expression) (a : arity)) (at level 200, right associativity).
-  Notation "'(' var ')' '(' body ')' ::: a" := (Abstraction (var body : expression) (a : arity)) (at level 200, right associativity).
+  Notation "x ::: a" := (Var x a) (at level 80).
+  (* Notation "abs '@' exp" := (Application (abs exp : expression)) (at level 90). *)
+  Infix "@" := Application (at level 90).
+  (* Notation " var # body" := (Abstraction (var body : expression)) (at level 85). *)
+  Infix "#" := Abstraction (at level 85).
 
   Check (Var "x" Zero).
+  Check ("x" ::: o) : expression.
+  Check (Application ("y" ::: o-->o)("x" ::: o) ).
+  Check ("y" ::: o-->o @ "x" ::: o).
+  Check ("y" ::: o # "x" ::: o).
+  Check ("y" ::: o # ("y" ::: o @ "y" ::: o) (o-->o) ).
+
 
 Fixpoint beqExpression (e1 e2 : expression): bool :=
   match e1, e2 with
