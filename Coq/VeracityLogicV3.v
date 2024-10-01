@@ -212,23 +212,24 @@ Inductive arity :=
   Instance : Beq arity := { beq := beqArity }.
 
 Inductive expression : Type :=
-  | Var (name : string) (a : arity)
-  | PrimConst (name : string) (a : arity)
-  | Application (abs exp : expression) (a : arity)
-  | Abstraction (var body : expression) (a : arity).
+  | Var (name : string)
+  | PrimConst (name : string)
+  | Application (abs exp : expression)
+  | Abstraction (var body : expression).
 
-  Notation "x ::: a" := (Var x a) (at level 80).
+  Notation "^ x" := (Var x) (at level 80).
   (* Notation "abs '@' exp" := (Application (abs exp : expression)) (at level 90). *)
   Infix "@" := Application (at level 90).
-  (* Notation " var # body" := (Abstraction (var body : expression)) (at level 85). *)
-  Infix "#" := Abstraction (at level 85).
+  Notation "\ var body" := (Abstraction (Var var) body : expression) (at level 85).
+  (* Infix "\" := Abstraction (at level 85). *)
 
-  Check (Var "x" Zero).
-  Check ("x" ::: o) : expression.
-  Check (Application ("y" ::: o-->o)("x" ::: o) ).
-  Check ("y" ::: o-->o @ "x" ::: o).
-  Check ("y" ::: o # "x" ::: o).
-  Check ("y" ::: o # ("y" ::: o @ "y" ::: o) (o-->o) ).
+  Check (Var "x").
+  Check (^"x") : expression.
+  Check (Application (^"y")(^"x") ).
+  Check (^"y"  @ ^"x" ).
+  Check (Abstraction (^"y") (^"x")).
+  Check (\ (^"y") (^"x")).
+  Check (\ ^"y" (^"y"  @ ^"y" )).
 
 
 Fixpoint beqExpression (e1 e2 : expression): bool :=
