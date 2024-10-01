@@ -185,6 +185,9 @@ Nordstrom, Petersson and Smith.
 
 (* Working up to defining definitional equality *)
 
+(* We make arities non-explicit (i.e. they don;t appear in terms) 
+   but we have functi0ons for finding them so that they can be checked *)
+
 Inductive arity :=
   | Zero 
   | Arrow (a b : arity).
