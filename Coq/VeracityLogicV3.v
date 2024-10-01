@@ -189,6 +189,7 @@ Nordstrom, Petersson and Smith.
    but we have functi0ons for finding them so that they can be checked *)
 
 Inductive arity :=
+  | Null
   | Zero 
   | Arrow (a b : arity).
   (* Arity for composites to come... *)
@@ -203,6 +204,8 @@ Inductive arity :=
 
   Fixpoint beqArity (a1 a2 : arity) : bool :=
   match a1, a2 with
+  | Null, Null => true
+  | Null, _ => false
   | Zero, Zero => true
   | Zero, _ => false
   | Arrow a11 a12, Arrow a21 a22 => beqArity a11 a21 && beqArity a12 a22
@@ -220,39 +223,41 @@ Inductive expression : Type :=
   Notation "^ x" := (Var x) (at level 80).
   (* Notation "abs '@' exp" := (Application (abs exp : expression)) (at level 90). *)
   Infix "@" := Application (at level 90).
-  Notation "\ var body" := (Abstraction (Var var) body : expression) (at level 85).
-  (* Infix "\" := Abstraction (at level 85). *)
+  Notation "var '--->' body" := (Abstraction (Var var) body : expression) (at level 95).
+
 
   Check (Var "x").
   Check (^"x") : expression.
   Check (Application (^"y")(^"x") ).
   Check (^"y"  @ ^"x" ).
   Check (Abstraction (^"y") (^"x")).
-  Check (\ (^"y") (^"x")).
-  Check (\ ^"y" (^"y"  @ ^"y" )).
+  Check (("y") ---> (^"x")).
+  Check ("y" ---> (^"y"  @ ^"y" )).
 
 
 Fixpoint beqExpression (e1 e2 : expression): bool :=
   match e1, e2 with
-  | Var n1 a1, Var n2 a2 => eqb n1 n2
-  | PrimConst c1 a1, PrimConst c2 a2 => eqb c1 c2
-  | Application l1 l2 a1, Application r1 r2 a2 => beqExpression l1 r1 && beqExpression l2 r2 
-  | Abstraction v1 b1 a1, Abstraction v2 b2 a2 => beqExpression v1 v2 && beqExpression b1 b2
+  | Var n1, Var n2 => eqb n1 n2
+  | PrimConst c1, PrimConst c2 => eqb c1 c2
+  | Application l1 l2, Application r1 r2 => beqExpression l1 r1 && beqExpression l2 r2 
+  | Abstraction v1 b1, Abstraction v2 b2 => beqExpression v1 v2 && beqExpression b1 b2
   | _, _ => false
   end.
 
   Instance : Beq expression := { beq := beqExpression }.
   (* Working out the arity of an expression *)
 
-  Definition getArity (e : expression) : arity :=
+  Fixpoint getArity (e : expression) : arity :=
     match e with
-    | Var _ a => a
-    | PrimConst _ a => a
-    | Abstraction _ _ a => a
-    | Application _ _ a => a
+    | Var _  => Zero
+    | PrimConst _ => Zero
+    | Abstraction v b => Arrow Zero (getArity b)
+    | Application e1 e2 => match (getArity e1) with | Arrow a b =>  if beq a (getArity e2) then b else Null 
+                                                    | Zero => Null
+                                                    | Null => Null end
     end.
 
-  Definition checkArity (e : expression) : bool :=
+ (*  Definition checkArity (e : expression) : bool :=
     match e with
     | Var x Zero => true
     | Var _ _ => false
@@ -273,6 +278,7 @@ Fixpoint beqExpression (e1 e2 : expression): bool :=
 
     (* We haven't done the arity for the various term-formers 
        like \lambda, case, apply etc.*)
+  *)
   
 (*
    Then need rules that essentially talk about the arity and 
@@ -283,18 +289,18 @@ Fixpoint beqExpression (e1 e2 : expression): bool :=
 
   Fixpoint freeIn (x : string) (exp : expression) : bool :=
     match exp with
-    | Var y _ => eqb x y
-    | PrimConst _ _  => false
-    | Application l r _ => freeIn x l || freeIn x r
-    | Abstraction (Var v _) e _ => negb (eqb v x) && freeIn x e
-    | Abstraction _ _ _ => false
+    | Var y  => eqb x y
+    | PrimConst _  => false
+    | Application l r => freeIn x l || freeIn x r
+    | Abstraction (Var v ) e  => negb (eqb v x) && freeIn x e
+    | Abstraction _ _  => false
     end.
 
-    Compute freeIn "x" (Var"x" _).
-    Compute freeIn "x" (Abstraction (Var "x" _ ) (Var "x" _) _).
-    Compute freeIn "x" (Abstraction (Var "y" _ ) (Var "x" _) _).
+    Compute freeIn "x" (Var"x").
+    Compute freeIn "x" (Abstraction (Var "x") (Var "x")).
+    Compute freeIn "x" (Abstraction (Var "y") (Var "x")).
 
-    Example test1freeIn: freeIn "x" (Var "x" Zero) = true.
+    Example test1freeIn: freeIn "x" (Var "x") = true.
     Proof. simpl. reflexivity. Qed.
 
     (*
@@ -308,63 +314,62 @@ Fixpoint beqExpression (e1 e2 : expression): bool :=
 
     Fixpoint freeFor (t : expression) (x : string) (exp : expression) : bool :=
       match exp with
-      | Var _ _ => true
-      | PrimConst _ _ => true
-      | Application l r _ => freeFor t x l && freeFor t x r
-      | Abstraction (Var v _) e _ => if freeIn x exp 
+      | Var _ => true
+      | PrimConst _ => true
+      | Application l r => freeFor t x l && freeFor t x r
+      | Abstraction (Var v) e => if freeIn x exp 
                            then negb (freeIn v t) && freeFor t x e
                            else true
-      | Abstraction _ _ _ => false
+      | Abstraction _ _  => false
       end.
 
-      Example testFreeFor1: freeFor (Var "y" Zero) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = false.
+      Example testFreeFor1: freeFor (Var "y") "x" (Abstraction (Var "y") (Var "x")) = false.
       Proof. simpl. reflexivity. Qed.
 
-      Example testFreeFor2: freeFor (Var "y" Zero) "x"  (Abstraction (Var "y" Zero) (Var "y" Zero)(Arrow Zero Zero)) = true.
+      Example testFreeFor2: freeFor (Var "y") "x"  (Abstraction (Var "y") (Var "y")) = true.
       Proof. simpl. reflexivity. Qed.
 
-      Example testFreeFor3: freeFor (Abstraction (Var "y" Zero) (Var "y" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = true.
+      Example testFreeFor3: freeFor (Abstraction (Var "y") (Var "y")) "x" (Abstraction (Var "y") (Var "x")) = true.
       Proof. simpl. reflexivity. Qed. 
       
-      Example testFreeFor4: freeFor (Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = false.
+      Example testFreeFor4: freeFor (Abstraction (Var "x") (Var "y")) "x" (Abstraction (Var "y") (Var "x")) = false.
       Proof. simpl. reflexivity. Qed.
 
       Fixpoint subst d x e  :=
         match d with
-        | Var y _ => if eqb x y then e else d
-        | PrimConst _ _ => d
-        | Application l r a => Application (subst l x e) (subst r x e) a
-        | Abstraction (Var v av) b a => if freeIn x d && freeFor e x d 
-                                        then Abstraction (Var v av) (subst b x e) a
+        | Var y => if eqb x y then e else d
+        | PrimConst _ => d
+        | Application l r => Application (subst l x e) (subst r x e) 
+        | Abstraction (Var v) b => if freeIn x d && freeFor e x d 
+                                        then Abstraction (Var v) (subst b x e)
                                         else d
-        | Abstraction x b a => d
+        | Abstraction x b => d
         end.
 
-        Compute subst (Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)).
-        Example testsubst1: subst (Var "x" Zero) "x" (PrimConst "a" Zero) = PrimConst "a" Zero.
+        Compute subst (Abstraction (Var "x") (Var "y")) "x" (Abstraction (Var "y") (Var "x")).
+        Example testsubst1: subst (Var "x") "x" (PrimConst "a") = PrimConst "a".
         Proof. simpl. reflexivity. Qed.
-        Example testsubst2: subst (Var "y" Zero) "x" (PrimConst "a" Zero) = Var "y" Zero.
+        Example testsubst2: subst (Var "y") "x" (PrimConst "a") = Var "y".
         Proof. simpl. reflexivity. Qed.
-        Example testsubst3: subst (Application (Var "x" Zero) (PrimConst "a" Zero) Zero) "x" (PrimConst "b" Zero) = (Application (PrimConst "b" Zero) (PrimConst "a" Zero) Zero).
+        Example testsubst3: subst (Application (Var "x") (PrimConst "a")) "x" (PrimConst "b") = (Application (PrimConst "b") (PrimConst "a")).
         Proof. simpl. reflexivity. Qed.
-        Example testsubst4: subst (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) = Abstraction (Var "y" Zero)
-        (Abstraction (Var "y" Zero) (Var "x" Zero) (Arrow Zero Zero))
-        (Arrow Zero Zero).
+        Example testsubst4: subst (Abstraction (Var "y") (Var "x")) "x" (Abstraction (Var "y") (Var "x")) = Abstraction (Var "y")
+        (Abstraction (Var "y") (Var "x")).
         Proof. simpl. reflexivity. Qed.
-        Example testsubst5: subst (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero)) "x" (Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) = Abstraction (Var "y" Zero)
-        (Var "x" Zero) (Arrow Zero Zero).
+        Example testsubst5: subst (Abstraction (Var "y") (Var "x")) "x" (Abstraction (Var "x") (Var "y")) = Abstraction (Var "y")
+        (Var "x").
         Proof. simpl. reflexivity. Qed.
 
 
   Definition defEq (e1 e2: expression) : bool :=
     match e1, e2 with
-    | Abstraction (Var v1 a1) (Application a (Var v2 a2) aa) b, _ => if freeIn v1 a || negb (eqb v1 v2)
+    | Abstraction (Var v1) (Application a (Var v2)), _ => if freeIn v1 a || negb (eqb v1 v2)
                                                                       then false 
                                                                       else beq a e2 (* eta-rule *) 
-    | Application (Abstraction (Var x ax) b ab) a aa, _ =>  beq (subst b x a) e2 (* beta-rule *)   
-    | Abstraction (Var v1 a1) b1 a, Abstraction (Var v2 a2) b2 b => if freeIn v2 b1 
+    | Application (Abstraction (Var x) b) a, _ =>  beq (subst b x a) e2 (* beta-rule *)   
+    | Abstraction (Var v1) b1, Abstraction (Var v2) b2 => if freeIn v2 b1 
                                                                     then false 
-                                                                    else beq (Abstraction (Var v2 a2) (subst b2 v1 (Var v2 a2)) b) e2 (* alpha-rule *)                                    
+                                                                    else beq (Abstraction (Var v2) (subst b2 v1 (Var v2))) e2 (* alpha-rule *)                                    
     | _, _ => beq e1 e2 (* This does zeta-rule too *)
     end.
 
@@ -372,39 +377,41 @@ Fixpoint beqExpression (e1 e2 : expression): bool :=
 
   Open Scope beq_scope.
 
-  Example beta1 : Application (Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero)) (Var "y" Zero) Zero =? Var "y" Zero = true.
+  Example beta1 : Application (Abstraction (Var "x") (Var "x") ) (Var "y")  =? Var "y" = true.
   Proof. simpl. reflexivity. Qed.
 
-  Example beta2 : Application (Abstraction (Var "y" Zero) (Var "x" Zero) (Arrow Zero Zero)) (Var "y" Zero) Zero =? (Var "x" Zero) = true.
+  Example beta2 : Application (Abstraction (Var "y") (Var "x")) (Var "y") =? (Var "x") = true.
   Proof. simpl. reflexivity. Qed.
 
-  Example beta3 : Application (Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero)) (Var "y" Zero) Zero =?  (Var "y" Zero) = true.
+  Example beta3 : Application (Abstraction (Var "x") (Var "x") ) (Var "y") =?  (Var "y") = true.
   Proof. simpl. reflexivity. Qed.
 
-  Example beta4 : Application (Abstraction (Var "x" Zero) (PrimConst "a" Zero) (Arrow Zero Zero)) (Var "y" Zero) Zero =?  (PrimConst "a" Zero) = true.
+  Example beta4 : Application (Abstraction (Var "x") (PrimConst "a") ) (Var "y") =?  (PrimConst "a") = true.
   Proof. simpl. reflexivity. Qed.
 
-  Example beta5 : Application (Abstraction (Var "y" Zero) (Abstraction (Var "x" Zero) (Var "y" Zero) (Arrow Zero Zero)) (Arrow Zero Zero)) (Var "x" Zero) Zero =?  (Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero)) = false.
+  Example beta5 : Application (Abstraction (Var "y") (Abstraction (Var "x") (Var "y") ) ) (Var "x") =?  (Abstraction (Var "x") (Var "x")) = false.
   Proof. simpl. reflexivity. Qed. (* the free x in the argument become captured, which is wrong...good! *)
 
-  Example alpha1 : Abstraction (Var "x" Zero) (Var "x" Zero) (Arrow Zero Zero) =? Abstraction (Var "y" Zero) (Var "y" Zero) (Arrow Zero Zero) = true.
+  Example alpha1 : Abstraction (Var "x") (Var "x") =? Abstraction (Var "y") (Var "y") = true.
   Proof. simpl. reflexivity. Qed.   
 
-  Example alpha2 : Abstraction (Var "x" Zero) (Var "y" Zero) (Arrow Zero Zero) =? Abstraction (Var "y" Zero) (Var "y" Zero) (Arrow Zero Zero) = false.
+  Example alpha2 : Abstraction (Var "x") (Var "y")  =? Abstraction (Var "y") (Var "y") = false.
   Proof. simpl. reflexivity. Qed.
 
-  Example alpha3 : Abstraction (Var "x" Zero) (Var "y" Zero) (Arrow Zero Zero) =? Abstraction (Var "y" Zero) (Var "x" Zero) (Arrow Zero Zero) = false.
+  Example alpha3 : Abstraction (Var "x") (Var "y")  =? Abstraction (Var "y") (Var "x") = false.
   Proof. simpl. reflexivity. Qed.
 
-  Example eta1 : Abstraction (Var "x" Zero) (Application (Var "y" Zero) (Var "x" Zero) (Arrow Zero Zero)) (Arrow Zero Zero) =? Var "y" Zero = true.
+  Example eta1 : Abstraction (Var "x") (Application (Var "y") (Var "x"))  =? Var "y"  = true.
   Proof. simpl. reflexivity. Qed.
 
-  Notation " e 'free for' x 'in' b" := (freeFor e x b) (at level 200, right associativity).
+  Notation " e 'freeFor' x 'in' b" := (freeFor e x b) (at level 100).
 
-  Example testFreeFor5: "(Abstraction (Var "x" Zero) (Var "y" Zero)(Arrow Zero Zero)) 'free for' "x" in (Abstraction (Var "y" Zero) (Var "x" Zero)(Arrow Zero Zero))" = false.
+  Example testFreeFor5: ((Abstraction (Var "x") (Var "y")) freeFor "x" in (Abstraction (Var "y") (Var "x"))) = false.
       Proof. simpl. reflexivity. Qed.
 
-  (* , format Coq < "'[v   ' 'If'  c1 '/' '[' 'then'  c2  ']' '/' '[' 'else'  c3 ']' ']'"). *)
+
+
+      
 
 Definition beqNamePair (n1 n2 : namePair) : bool :=
 match n1,n2 with
