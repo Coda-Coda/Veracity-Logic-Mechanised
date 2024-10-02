@@ -245,7 +245,9 @@ Fixpoint beqExpression (e1 e2 : expression): bool :=
   end.
 
   Instance : Beq expression := { beq := beqExpression }.
-  (* Working out the arity of an expression *)
+
+  (* Working out the arity of an expression. Note that we restrict variables to being of rity Zero. 
+     This follows the comment at the top of page 34 in NPS *)
 
   Fixpoint getArity (e : expression) : arity :=
     match e with
