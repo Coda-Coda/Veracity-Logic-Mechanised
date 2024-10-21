@@ -184,6 +184,22 @@ Inductive atomic_evid_name :=
   | _e2_
   | _e3_
   | _e4_
+  | _e5_
+  | _e6_
+  | _e7_
+  | _e8_
+  | _e9_
+  | _e10_
+  | _e11_
+  | _e12_
+  | _e13_
+  | _e14_
+  | _e15_
+  | _e16_
+  | _e17_
+  | _e18_
+  | _e19_
+  | _e20_
   | _eQ_
   | _eB_
   | _l_
@@ -221,6 +237,7 @@ Inductive actor_name :=
   | _retailer_
   | _vineyard_
   | _winery_
+  | _A_
   | _P_
   | _Q_
   | _R_
@@ -241,6 +258,21 @@ Inductive claim_name :=
   | _c3_
   | _c4_
   | _c5_
+  | _c6_ 
+  | _c7_
+  | _c8_
+  | _c9_
+  | _c10_
+  | _c11_
+  | _c12_
+  | _c13_
+  | _c14_
+  | _c15_
+  | _c16_
+  | _c17_
+  | _c18_
+  | _c19_
+  | _c20_ 
   | _cQ_
   | _healthy_
   | _nonToxic_
@@ -260,6 +292,7 @@ Inductive trust_relation_name :=
   | _A_Trust_
   | _B_Trust_
   | _T_Trust_
+  | _S_Trust_
   | _U_Trust_
   | _V_Trust_
 .
@@ -449,11 +482,60 @@ Definition e4 := AtomicEvid  _e4_.
 Definition a4 := Actor _a4_ .
 Definition c4 := AtomicClaim _c4_.
 
+Definition e5 := AtomicEvid  _e5_.
+Definition c5 := AtomicClaim _c5_.
+
+Definition e6 := AtomicEvid  _e6_.
+Definition c6 := AtomicClaim _c6_.
+
+Definition e7 := AtomicEvid  _e7_.
+Definition c7 := AtomicClaim _c7_.
+
+Definition e8 := AtomicEvid  _e8_.
+Definition c8 := AtomicClaim _c8_.
+
+Definition e9 := AtomicEvid  _e9_.
+Definition c9 := AtomicClaim _c9_.
+
+Definition e10 := AtomicEvid  _e10_.
+Definition c10 := AtomicClaim _c10_.
+
+Definition e11 := AtomicEvid  _e11_.
+Definition c11 := AtomicClaim _c11_.
+
+Definition e12 := AtomicEvid  _e12_.
+Definition c12 := AtomicClaim _c12_.
+
+Definition e13 := AtomicEvid  _e13_.
+Definition c13 := AtomicClaim _c13_.
+
+Definition e14 := AtomicEvid  _e14_.
+Definition c14 := AtomicClaim _c14_.
+
+Definition e15 := AtomicEvid  _e15_.
+Definition c15 := AtomicClaim _c15_.
+
+Definition e16 := AtomicEvid  _e16_.
+Definition c16 := AtomicClaim _c16_.
+
+Definition e17 := AtomicEvid  _e17_.
+Definition c17 := AtomicClaim _c17_.
+
+Definition e18 := AtomicEvid  _e18_.
+Definition c18 := AtomicClaim _c18_.
+
+Definition e19 := AtomicEvid  _e19_.
+Definition c19 := AtomicClaim _c19_.
+
+Definition e20 := AtomicEvid  _e20_.
+Definition c20 := AtomicClaim _c20_.
+
 Definition eB := AtomicEvid  _eB_.
 
 Definition x := AtomicEvid _x_ .
 Definition y := AtomicEvid _y_.
 Definition z := AtomicEvid _z_.
+Definition Anonymous := Actor _A_.
 Definition Penelope := Actor _P_.
 Definition Quentin := Actor _Q_.
 Definition Ryan := Actor _R_.
@@ -469,6 +551,7 @@ Definition C5 := AtomicClaim _c5_.
 
 
 Definition trustT := Trust _T_Trust_.
+Definition trustS := Trust _S_Trust_.
 Definition trustU := Trust _U_Trust_.
 Definition trustV := Trust _V_Trust_.
 Definition trustA := Trust _A_Trust_.
@@ -477,6 +560,29 @@ Definition trustB := Trust _B_Trust_.
 Definition j1 := x \by Penelope @ 1 \in c1.
 Definition j2 := y \by Penelope @ 1 \in c2.
 Definition j3 := z \by Penelope @ 1 \in c3.
+
+
+Definition v1 := e1 \by Penelope @ 1 \in c1.
+Definition v2 := e2 \by Penelope @ 1 \in c2.
+Definition v3 := e3 \by Penelope @ 1 \in c3.
+Definition v4 := e4 \by Penelope @ 1 \in c4.
+Definition v5 := e5 \by Penelope @ 1 \in c5.
+Definition v6 := e6 \by Penelope @ 1 \in c6.
+Definition v7 := e7 \by Penelope @ 1 \in c7.
+Definition v8 := e8 \by Penelope @ 1 \in c8.
+Definition v9 := e9 \by Penelope @ 1 \in c9.
+Definition v10 := e10 \by Penelope @ 1 \in c10.
+Definition v11 := e11 \by Penelope @ 1 \in c11.
+Definition v12 := e12 \by Penelope @ 1 \in c12.
+Definition v13 := e13 \by Penelope @ 1 \in c13.
+Definition v14 := e14 \by Penelope @ 1 \in c14.
+Definition v15 := e15 \by Penelope @ 1 \in c15.
+Definition v16 := e16 \by Penelope @ 1 \in c16.
+Definition v17 := e17 \by Penelope @ 1 \in c17.
+Definition v18 := e18 \by Penelope @ 1 \in c18.
+Definition v19 := e19 \by Penelope @ 1 \in c19.
+Definition v20 := e20 \by Penelope @ 1 \in c20.
+
 
 (*|
 
@@ -749,6 +855,7 @@ Inductive proofTreeOf : list judgement -> judgement -> Type :=
               (M: proofTreeOf Ps (bx \by a @ w2 \in C2))
                               :
    proofTreeOf Qs ((Lambda x w1 bx) \by a @ w2 \in (Implies C1 C2))
+
 | impl_elim x bx y a w1 w2 C1 C2 Ps Qs Rs
                     (H1 : Ps ++ Qs ==? Rs = true)
                (H2 : notUsedInInnerAbstraction x bx = true)                
@@ -841,6 +948,22 @@ Instance : ShowForProofTree atomic_evid_name := {
       | _e2_ => "e2"
       | _e3_ => "e3"
       | _e4_ => "e4"
+      | _e5_ => "e5"
+      | _e6_ => "e6"
+      | _e7_ => "e7"
+      | _e8_ => "e8"
+      | _e9_ => "e9"
+      | _e10_ => "e10"
+      | _e11_ => "e11"
+      | _e12_ => "e12"
+      | _e13_ => "e13"
+      | _e14_ => "e14"
+      | _e15_ => "e15"
+      | _e16_ => "e16"
+      | _e17_ => "e17"
+      | _e18_ => "e18"
+      | _e19_ => "e19"
+      | _e20_ => "e20"
       | _eQ_ => "e?"
       | _eB_ => "eB"
       | _l_ => "l"
@@ -872,6 +995,7 @@ Instance : ShowForProofTree actor_name := {
       | _retailer_ => "r"
       | _vineyard_ => "v"
       | _winery_ => "w"
+      | _A_ => "A"
       | _P_ => "P"
       | _Q_ => "Q"
       | _R_ => "R"
@@ -892,6 +1016,21 @@ Instance : ShowForProofTree claim_name := {
       | _c3_ => "C_{3}"
       | _c4_ => "C_{4}"
       | _c5_ => "C_{5}"
+      | _c6_ => "C_{6}"
+      | _c7_ => "C_{7}"
+      | _c8_ => "C_{8}"
+      | _c9_ => "C_{9}"
+      | _c10_ => "C_{10}"
+      | _c11_ => "C_{11}"
+      | _c12_ => "C_{12}"
+      | _c13_ => "C_{13}"
+      | _c14_ => "C_{14}"
+      | _c15_ => "C_{15}"
+      | _c16_ => "C_{16}"
+      | _c17_ => "C_{17}"
+      | _c18_ => "C_{18}"
+      | _c19_ => "C_{19}"
+      | _c20_ => "C_{20}"
       | _cQ_ => "C_{?}"
       | _healthy_ => "H"
       | _nonToxic_ => "N"
@@ -911,6 +1050,7 @@ Instance : ShowForProofTree trust_relation_name := {
       | _A_Trust_ => "A"
       | _B_Trust_ => "B"
       | _T_Trust_ => "T"
+      | _S_Trust_ => "S"
       | _U_Trust_ => "U"
       | _V_Trust_ => "V"
     end
@@ -924,6 +1064,22 @@ Instance : ShowForNaturalLanguage atomic_evid_name := {
       | _e2_ => "atomic evidence 2"
       | _e3_ => "atomic evidence 3"
       | _e4_ => "atomic evidence 4"
+      | _e5_ => "atomic evidence 5"
+      | _e6_ => "atomic evidence 6"
+      | _e7_ => "atomic evidence 7"
+      | _e8_ => "atomic evidence 8"
+      | _e9_ => "atomic evidence 9"
+      | _e10_ => "atomic evidence 10"
+      | _e11_ => "atomic evidence 11"
+      | _e12_ => "atomic evidence 12"
+      | _e13_ => "atomic evidence 13"
+      | _e14_ => "atomic evidence 14"
+      | _e15_ => "atomic evidence 15"
+      | _e16_ => "atomic evidence 16"
+      | _e17_ => "atomic evidence 17"
+      | _e18_ => "atomic evidence 18"
+      | _e19_ => "atomic evidence 19"
+      | _e20_ => "atomic evidence 20"
       | _eQ_ =>  "unknown evidence"
       | _eB_ =>  "evidence for bottom"
       | _l_ => "atomic evidence l"
@@ -956,6 +1112,7 @@ Instance : ShowForNaturalLanguage actor_name := {
       | _retailer_ => "retailer"
       | _vineyard_ => "vineyard"
       | _winery_ => "winery"
+      | _A_ => "Anonymous"
       | _P_ => "Penelope"
       | _Q_ => "Quentin"
       | _R_ => "Ryan"
@@ -977,6 +1134,21 @@ Instance : ShowForNaturalLanguage claim_name := {
       | _c3_ => "claim 3"
       | _c4_ => "claim 4"
       | _c5_ => "claim 5"
+      | _c6_ => "claim 6"
+      | _c7_ => "claim 7"
+      | _c8_ => "claim 8"
+      | _c9_ => "claim 9"
+      | _c10_ => "claim 10"
+      | _c11_ => "claim 11"
+      | _c12_ => "claim 12"
+      | _c13_ => "claim 13"
+      | _c14_ => "claim 14"
+      | _c15_ => "claim 15"
+      | _c16_ => "claim 16"
+      | _c17_ => "claim 17"
+      | _c18_ => "claim 18"
+      | _c19_ => "claim 19"
+      | _c20_ => "claim 20"
       | _cQ_ => "unknown claim"
       | _healthy_ => "healthy"
       | _nonToxic_ => "non-toxic"
@@ -996,6 +1168,7 @@ Instance : ShowForNaturalLanguage trust_relation_name := {
     match n with
       | _A_Trust_ => "trust relation A"
       | _B_Trust_ => "trust relation B"
+      | _S_Trust_ => "trust relation S"
       | _T_Trust_ => "trust relation T"
       | _U_Trust_ => "trust relation U"
       | _V_Trust_ => "trust relation V"
@@ -1791,6 +1964,7 @@ apply assume.
 apply assume.
 Defined.
 
+
 (*|
 .. coq:: unfold
    :class: coq-math
@@ -1813,6 +1987,7 @@ and_elim1
 `and_elim1` allows us to conclude the left conjunct from a conjunctive claim.
 It requires that the evidence is a `Pair`, here written as `{{e1, e2}}`.
 The weight remains the same.
+| and_elim1 e1 e2 a w C1 C2 Ps
 
 |*)
 
@@ -1823,6 +1998,8 @@ apply and_intro with (w1:=(1#3)) (w2:=(1#2)) (Ps:=[e1 \by a1 @ 1 # 3 \in c1]) (Q
 apply assume.
 apply assume.
 Defined.
+
+
 
 (*|
 .. coq:: unfold
@@ -1883,7 +2060,7 @@ The right disjunct can be any claim.
 Lemma or_intro1_example :
   proofTreeOf [(e \by a1 @ (1 # 3) \in c1)] ((Left e) \by a1 @ (1 # 3) \in (c1 \/' c2)).
 Proof.
-apply or_intro1.
+apply or_intro1 with (C2 := c2).
 apply assume.
 Defined.
 
@@ -2028,7 +2205,7 @@ The second subgoal can be solved by `reflexivity`.
 
 The third subgoal now has the actor `Penelope` rather then `Quentin`.
 |*)
-apply trustT. reflexivity.
+apply trustS. reflexivity.
 apply assume.
 Defined.
 
@@ -2162,11 +2339,11 @@ apply impl_elim with
   (Qs:=[e2 \by a1 @ 1 # 4 \in c1])
   (H2:=eq_refl).
   reflexivity.
-- apply impl_intro with
+ apply impl_intro with
     (Ps:=[e1 \by a1 @ 1 # 4 \in c1]).
       1-3: reflexivity.
   apply assume.
-- apply assume.
+ apply assume.
 Defined.
 
 
@@ -2249,7 +2426,7 @@ However, clicking on a Coq tactic or command will unfold the proof state or outp
 
 |*)
 
-Definition process_example : proofTreeOf_wrapped Penelope (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
+ Definition process_example : proofTreeOf_wrapped Penelope (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3)))).
 Proof.
 eexists  _ _ _.
 eapply impl_intro with (x:=_z_) (Ps := [j3]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
@@ -2261,8 +2438,8 @@ apply assume with (e := _x_) (w := 1).
 apply assume with (e := _y_) (w := 1).
 apply assume with (e := _z_) (w := 1).
 Unshelve.
-all: reflexivity.
-Defined.
+all: try reflexivity.
+Defined. 
 
 (*|
 .. coq:: unfold
@@ -2277,6 +2454,7 @@ Eval compute in (showForProofTree process_example).
 
 Eval compute in (showForNaturalLanguage process_example).
 Eval compute in (showForLogSeq process_example).
+
 
 (*|
 
@@ -2320,8 +2498,10 @@ This example shows a basic application of `impl_elim`.
 
 |*)
 
-Definition impl_intro_elim : proofTreeOf_wrapped a1 (c1).
-eexists [(AtomicEvid _e2_) \by a1 @ 1 \in c1] _ 1.
+Definition t := AtomicClaim _c1_.
+
+Definition impl_intro_elim : proofTreeOf_wrapped a1 (t).
+eexists [(AtomicEvid _e2_) \by a1 @ 1 \in t] _ 1.
 (*|
 The tactics on the next four lines are not required for the proof and could be deleted, however they help to highlight what is happening with the application of the abstraction: :math:`\lambda(e_1)(e_1)(e_2) = e_2`.
 |*)
@@ -2330,7 +2510,7 @@ simpl. reflexivity. Unshelve. 3: reflexivity. 2: shelve.
 fold e2.
 rewrite <- H.
 
-eapply (impl_elim _e1_ e1 e2 a1 1 1 C1 C1 _ _ _ _).
+eapply (impl_elim _e1_ e1 e2 a1 1 1 t t _ _ _ _).
 eapply (impl_intro _e1_ _ _ 1 1 _ _ _ [] _ _ _).
 eapply (assume _e1_ _ 1).
 eapply (assume _e2_ _ 1).
@@ -2406,12 +2586,29 @@ apply assume.
 apply assume.
 Defined.
 
-(*|
+Eval compute in (showForProofTree concreteProofTreeExampleWith2Conjuncts).
+
+
+Definition proofTreeOfOrPlusAnd :
+proofTreeOf [l \by Penelope @ (1 # 2) \in c1; s \by Penelope @ (1 # 4) \in c2] ({{Left l, s}} \by Penelope @ (1 # 4) \in ((c1 \/'c3) /\' c2)).
+Proof.
+apply and_intro with (w1:= 1#2) (w2:=1#4) (Ps := [l \by Penelope @ (1 # 2) \in (c1)]) (Qs:= [s \by Penelope @ (1 # 4) \in c2]) (w3 := (1 # 4)). 1-2: shelve.
+apply or_intro1.
+apply assume with (e := _l_) (w := (1 # 2)).
+apply assume with (e := _s_) (w := (1 # 4)).
+Unshelve.
+all: reflexivity.
+Defined.
+
+Eval compute in (showForProofTree proofTreeOfOrPlusAnd).
+
+(*|               
+                                                
 .. coq:: unfold
    :class: coq-math
 |*)
 
-Eval compute in (showForProofTree concreteProofTreeExampleWith2Conjuncts).
+
 
 (*|
 .. coq::
@@ -2437,6 +2634,8 @@ apply (assume _l_).
 apply (assume _s_).
 apply (assume _c_).
 Defined.
+
+
 
 (*|
 .. coq:: unfold
@@ -2496,8 +2695,8 @@ This example shows the use of a trust relation to change which actor holds that 
 
 
 Program Definition concreteProofTreeExampleTrust : 
-proofTreeOf [e \by a2 @ 1 \in (c1)] e \by a1 @ 1 \in (c1).
-eapply (trust _ a1 a2 1 1 1 c1 trustT). reflexivity.
+proofTreeOf [e \by a2 @ 1 \in (c1)] e \by a1 @ 1#2 \in (c1).
+eapply (trust _ a1 a2 (1#2) 1 (1#2) c1 trustT). reflexivity.
 apply (assume _e_).
 Defined.
 
@@ -2734,6 +2933,9 @@ eapply (assume _ _ 1).
 Show Proof.
 Defined.
 
+
+
+
 (*|
 .. coq:: unfold
    :class: coq-math
@@ -2843,6 +3045,435 @@ Eval compute in (showForProofTree impl_intro_elim_with_differing_weights).
 
 Eval compute in (showForNaturalLanguage impl_intro_elim_with_differing_weights).
 Eval compute in (showForLogSeq impl_intro_elim_with_differing_weights).
+
+
+(*|
+
+Some larger proofs
+++++++++++++++++++
+
+These examples examine some proofs with a larger number of claims
+The purpose is to test how the software handles larger proofs.
+
+
+|*)
+
+
+Definition and_impl_with_4_Conjuncts : proofTreeOf_wrapped Penelope (c4 ->' (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3 /\' c4))))).
+Proof.
+eexists  _ _ _.
+eapply impl_intro with (x:=_e4_) (Ps := [v4]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e3_) (Ps := [v3;v4]) (Qs:=[v4]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e2_) (Ps := [v2;v3;v4]) (Qs:=[v3;v4]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e1_) (Ps := [v1;v2;v3;v4]) (Qs:=[v2;v3;v4]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (Ps := [v1;v2;v3]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply assume with (e := _e1_) (w := 1).
+apply assume with (e := _e2_) (w := 1). 
+apply assume with (e := _e3_) (w := 1).
+apply assume with (e := _e4_) (w := 1).
+Unshelve.
+all: reflexivity.
+Defined. 
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_impl_with_4_Conjuncts).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage and_impl_with_4_Conjuncts).
+Eval compute in (showForLogSeq and_impl_with_4_Conjuncts).
+
+
+Definition and_impl_with_5_Conjuncts : proofTreeOf_wrapped Penelope (c5 ->' (c4 ->' (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3 /\' c4 /\' c5)))))).
+Proof.
+eexists  _ _ _.
+eapply impl_intro with (x:=_e5_) (Ps := [v5]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e4_) (Ps := [v4;v5]) (Qs:=[v5]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e3_) (Ps := [v3;v4;v5]) (Qs:=[v4;v5]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e2_) (Ps := [v2;v3;v4;v5]) (Qs:=[v3;v4;v5]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e1_) (Ps := [v1;v2;v3;v4;v5]) (Qs:=[v2;v3;v4;v5]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply assume with (e := _e1_) (w := 1).
+apply assume with (e := _e2_) (w := 1).
+apply assume with (e := _e3_) (w := 1).
+apply assume with (e := _e4_) (w := 1).
+apply assume with (e := _e5_) (w := 1).
+Unshelve.
+all: reflexivity.
+Defined. 
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_impl_with_5_Conjuncts).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage and_impl_with_5_Conjuncts).
+Eval compute in (showForLogSeq and_impl_with_5_Conjuncts).
+
+
+Definition and_impl_with_11_Conjuncts : proofTreeOf_wrapped Penelope (c11 ->'(c10 ->'(c9 ->'(c8 ->'(c7 ->'(c6 ->' (c5 ->' (c4 ->' (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3 /\' c4 /\' c5 /\' c6 /\' c7 /\' c8 /\' c9 /\' c10 /\' c11)))))))))))).
+Proof.
+eexists  _ _ _.
+eapply impl_intro with (x:=_e11_) (Ps := [v11]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e10_) (Ps := [v10;v11]) (Qs:=[v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e9_) (Ps := [v9;v10;v11]) (Qs:=[v10;v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e8_) (Ps := [v8;v9;v10;v11]) (Qs:=[v9;v10;v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e7_) (Ps := [v7;v8;v9;v10;v11]) (Qs:=[v8;v9;v10;v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e6_) (Ps := [v6;v7;v8;v9;v10;v11]) (Qs:=[v7;v8;v9;v10;v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e5_) (Ps := [v5;v6;v7;v8;v9;v10;v11]) (Qs:=[v6;v7;v8;v9;v10;v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e4_) (Ps := [v4;v5;v6;v7;v8;v9;v10;v11]) (Qs:=[v5;v6;v7;v8;v9;v10;v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e3_) (Ps := [v3;v4;v5;v6;v7;v8;v9;v10;v11]) (Qs:=[v4;v5;v6;v7;v8;v9;v10;v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e2_) (Ps := [v2;v3;v4;v5;v6;v7;v8;v9;v10;v11]) (Qs:=[v3;v4;v5;v6;v7;v8;v9;v10;v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e1_) (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11]) (Qs:=[v2;v3;v4;v5;v6;v7;v8;v9;v10;v11]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply assume with (e := _e1_) (w := 1).
+apply assume with (e := _e2_) (w := 1).
+apply assume with (e := _e3_) (w := 1).
+apply assume with (e := _e4_) (w := 1).
+apply assume with (e := _e5_) (w := 1).
+apply assume with (e := _e6_) (w := 1).
+apply assume with (e := _e7_) (w := 1).
+apply assume with (e := _e8_) (w := 1).
+apply assume with (e := _e9_) (w := 1).
+apply assume with (e := _e10_) (w := 1).
+apply assume with (e := _e11_) (w := 1).
+Unshelve.
+all: reflexivity.
+Defined. 
+
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_impl_with_11_Conjuncts).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage and_impl_with_11_Conjuncts).
+
+(*| 
+Eval compute in (showForLogSeq and_impl_with_11_Conjuncts).
+
+The above line gives a stack overflow error
+|*)
+
+
+Definition and_impl_with_20_Conjuncts : proofTreeOf_wrapped Penelope (c20 ->'(c19 ->'(c18 ->'(c17 ->'(c16 ->'(c15 ->'(c14 ->'(c13 ->'(c12 ->'(c11 ->'(c10 ->'(c9 ->'(c8 ->'(c7 ->'(c6 ->' (c5 ->' (c4 ->' (c3 ->' (c2 ->' (c1 ->' (c1 /\' c2 /\' c3 /\' c4 /\' c5 /\' c6 /\' c7 /\' c8 /\' c9 /\' c10 /\' c11 /\' c12 /\' c13 /\' c14 /\' c15 /\' c16 /\' c17 /\' c18 /\' c19 /\' c20))))))))))))))))))))).
+Proof.
+eexists  _ _ _.
+eapply impl_intro with (x:=_e20_) (Ps := [v20]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e19_) (Ps := [v19;v20]) (Qs:=[v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e18_) (Ps := [v18;v19;v20]) (Qs:=[v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e17_) (Ps := [v17;v18;v19;v20]) (Qs:=[v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e16_) (Ps := [v16;v17;v18;v19;v20]) (Qs:=[v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e15_) (Ps := [v15;v16;v17;v18;v19;v20]) (Qs:=[v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e14_) (Ps := [v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e13_) (Ps := [v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e12_) (Ps := [v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e11_) (Ps := [v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e10_) (Ps := [v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e9_) (Ps := [v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e8_) (Ps := [v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e7_) (Ps := [v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e6_) (Ps := [v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e5_) (Ps := [v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e4_) (Ps := [v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e3_) (Ps := [v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e2_) (Ps := [v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e1_) (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (Qs:=[v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19;v20]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18;v19]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17;v18]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16;v17]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15;v16]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14;v15]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13;v14]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12;v13]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11;v12]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10;v11]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9;v10]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8;v9]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7;v8]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6;v7]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5;v6]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4;v5]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3;v4]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2;v3]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v2]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply assume with (e := _e1_) (w := 1).
+apply assume with (e := _e2_) (w := 1).
+apply assume with (e := _e3_) (w := 1).
+apply assume with (e := _e4_) (w := 1).
+apply assume with (e := _e5_) (w := 1).
+apply assume with (e := _e6_) (w := 1).
+apply assume with (e := _e7_) (w := 1).
+apply assume with (e := _e8_) (w := 1).
+apply assume with (e := _e9_) (w := 1).
+apply assume with (e := _e10_) (w := 1).
+apply assume with (e := _e11_) (w := 1).
+apply assume with (e := _e12_) (w := 1).
+apply assume with (e := _e13_) (w := 1).
+apply assume with (e := _e14_) (w := 1).
+apply assume with (e := _e15_) (w := 1).
+apply assume with (e := _e16_) (w := 1).
+apply assume with (e := _e17_) (w := 1).
+apply assume with (e := _e18_) (w := 1).
+apply assume with (e := _e19_) (w := 1).
+apply assume with (e := _e20_) (w := 1).
+Unshelve.
+all: reflexivity.
+Defined. 
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_impl_with_20_Conjuncts).
+
+(*|
+.. coq::
+|*)
+
+(*|
+
+Eval compute in (showForNaturalLanguage and_impl_with_20_Conjuncts).
+Eval compute in (showForLogSeq and_impl_with_20_Conjuncts).
+
+
+The above two lines also give stack overflow errors
+|*)
+
+
+Definition and_or_impl_with_5_Conjuncts : proofTreeOf_wrapped Penelope (c1 ->' (c3 ->' (c5 ->' (c6 ->' (c8 ->' ((c1 \/' c2) /\' c3 /\' c5 /\' c6 /\'  (c7 \/' c8))))))).
+Proof.
+eexists  _ _ _.
+eapply impl_intro with (x:=_e1_) (Ps := [v1]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e3_) (Ps := [v1;v3]) (Qs:=[v1]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e5_) (Ps := [v1;v3;v5]) (Qs:=[v1;v3]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e6_) (Ps := [v1;v3;v5;v6]) (Qs:=[v1;v3;v5]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e8_) (Ps := [v1;v3;v5;v6;v8]) (Qs:=[v1;v3;v5;v6]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (Ps := [v1;v3;v5;v6]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v3;v5]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v3]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply or_intro1.
+apply assume with (e := _e1_) (w := 1).
+apply assume with (e := _e3_) (w := 1).
+apply assume with (e := _e5_) (w := 1).
+apply assume with (e := _e6_) (w := 1).
+apply or_intro2.
+apply assume with (e := _e8_) (w := 1).
+Unshelve.
+all: try reflexivity.
+Defined. 
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_or_impl_with_5_Conjuncts).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage and_or_impl_with_5_Conjuncts).
+Eval compute in (showForLogSeq and_or_impl_with_5_Conjuncts).
+
+
+Definition and_or_impl_with_10_Conjuncts : proofTreeOf_wrapped Penelope (c1 ->' (c3 ->' (c5 ->' (c6 ->' (c8 ->' (c9 ->' (c10 ->' (c12 ->' (c13 ->' (c15 ->' ((c1 \/' c2) /\' c3 /\' c5 /\' c6 /\'  (c7 \/' c8) /\' c9 /\' c10 /\' (c11 \/' c12) /\' (c13 \/' c14) /\' (c15 \/' c16)))))))))))).
+Proof.
+eexists  _ _ _.
+eapply impl_intro with (x:=_e1_) (Ps := [v1]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e3_) (Ps := [v1;v3]) (Qs:=[v1]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e5_) (Ps := [v1;v3;v5]) (Qs:=[v1;v3]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e6_) (Ps := [v1;v3;v5;v6]) (Qs:=[v1;v3;v5]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e8_) (Ps := [v1;v3;v5;v6;v8]) (Qs:=[v1;v3;v5;v6]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e9_) (Ps := [v1;v3;v5;v6;v8;v9]) (Qs:=[v1;v3;v5;v6;v8]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e10_) (Ps := [v1;v3;v5;v6;v8;v9;v10]) (Qs:=[v1;v3;v5;v6;v8;v9]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e12_) (Ps := [v1;v3;v5;v6;v8;v9;v10;v12]) (Qs:=[v1;v3;v5;v6;v8;v9;v10]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e13_) (Ps := [v1;v3;v5;v6;v8;v9;v10;v12;v13]) (Qs:=[v1;v3;v5;v6;v8;v9;v10;v12]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply impl_intro with (x:=_e15_) (Ps := [v1;v3;v5;v6;v8;v9;v10;v12;v13;v15]) (Qs:=[v1;v3;v5;v6;v8;v9;v10;v12;v13]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (Ps := [v1;v3;v5;v6;v8;v9;v10;v12;v13]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v3;v5;v6;v8;v9;v10;v12]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v3;v5;v6;v8;v9;v10]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v3;v5;v6;v8;v9]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v3;v5;v6;v8]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v3;v5;v6]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v3;v5]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (Ps := [v1;v3]) (w3 := 1). 1-2: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply or_intro1.
+apply assume with (e := _e1_) (w := 1).
+apply assume with (e := _e3_) (w := 1).
+apply assume with (e := _e5_) (w := 1).
+apply assume with (e := _e6_) (w := 1).
+apply or_intro2.
+apply assume with (e := _e8_) (w := 1).
+apply assume with (e := _e9_) (w := 1).
+apply assume with (e := _e10_) (w := 1).
+apply or_intro2.
+apply assume with (e := _e12_) (w := 1).
+apply or_intro1.
+apply assume with (e := _e13_) (w := 1).
+apply or_intro1.
+apply assume with (e := _e15_) (w := 1).
+Unshelve.
+all: try reflexivity.
+Defined. 
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree and_or_impl_with_10_Conjuncts).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage and_or_impl_with_10_Conjuncts).
+Eval compute in (showForLogSeq and_or_impl_with_10_Conjuncts).
+
+
+
+
+
+
+
+
+
+
+
+(*|
+
+proofs in dissertation
++++++++++++++++++++++
+
+These proofs were done specifically for Brown's dissertation.
+
+|*)
+
+Definition s1 := x \by Anonymous @ 1 \in c1.
+Definition s2 := x \by Anonymous @ 1 \in c2.
+Definition s3 := y \by Anonymous @ 1 \in c3.
+Definition s5 := x \by Anonymous @ 1 \in c5.
+Definition s6 := y \by Anonymous @ 1 \in c6.
+
+Definition PartB : proofTreeOf_wrapped Anonymous (c5 ->' (c6 ->' (c5 /\' c6))).
+Proof.
+eexists  _ _ _.
+apply impl_intro with (x:=_x_) (Ps := [s5]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+apply impl_intro with (x:=_y_) (Ps := [s5;s6]) (Qs:=[s5]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply assume with (e := _x_) (w := 1).
+apply assume with (e := _y_) (w := 1).
+Unshelve.
+all: try reflexivity.
+Defined. 
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree PartB).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage PartB).
+Eval compute in (showForLogSeq PartB).
+
+
+
+Definition fertiliser_choice_s : proofTreeOf_wrapped Anonymous (c1 ->' (c3 ->' ((c1 \/' c2) /\' c3))).
+Proof.
+eexists  _ _ _.
+apply impl_intro with (x:=_x_) (Ps := [s1]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+apply impl_intro with (x:=_y_) (Ps := [s1;s3]) (Qs:=[s1]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply or_intro1.
+apply assume with (e := _x_) (w := 1).
+apply assume with (e := _y_) (w := 1).
+Unshelve.
+all: try reflexivity.
+Defined. 
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree fertiliser_choice_s).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage fertiliser_choice_s).
+Eval compute in (showForLogSeq fertiliser_choice_s).
+
+Definition fertiliser_choice_t : proofTreeOf_wrapped Anonymous (c2 ->' (c3 ->' ((c1 \/' c2) /\' c3))).
+Proof.
+eexists  _ _ _.
+apply impl_intro with (x:=_x_) (Ps := [s2]) (Qs:=[]) (w1 := 1) (w2 := 1). 1-3: shelve.
+apply impl_intro with (x:=_y_) (Ps := [s2;s3]) (Qs:=[s2]) (w1 := 1) (w2 := 1). 1-3: shelve.
+eapply and_intro with (w3 := 1). 1-2: shelve.
+apply or_intro2.
+apply assume with (e := _x_) (w := 1).
+apply assume with (e := _y_) (w := 1).
+Unshelve.
+all: try reflexivity.
+Defined. 
+
+(*|
+.. coq:: unfold
+   :class: coq-math
+|*)
+
+Eval compute in (showForProofTree fertiliser_choice_t).
+
+(*|
+.. coq::
+|*)
+
+Eval compute in (showForNaturalLanguage fertiliser_choice_t).
+Eval compute in (showForLogSeq fertiliser_choice_t).
 
 End VeracityLogic.
 
