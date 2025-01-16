@@ -598,6 +598,7 @@ proofTreeOf
 This is the :coq:`and_intro` rule as Coq sees it:
 |*)
 
+
 Check and_intro. (* .unfold *)
 
 Fixpoint computeEvidence (j : judgement) (p : proofTreeOf j) : option evid := 
