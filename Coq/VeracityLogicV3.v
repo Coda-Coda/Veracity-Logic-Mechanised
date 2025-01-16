@@ -594,6 +594,9 @@ proofTreeOf
                         :
     proofTreeOf ( ||- \by a \in C2)
 .
+
+(* Adding the equality rules to the type *)
+
 (*|
 This is the :coq:`and_intro` rule as Coq sees it:
 |*)
