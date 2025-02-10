@@ -593,6 +593,7 @@ proofTreeOf
                            (R: proofTreeOf ( ||- \by a \in C1))
                         :
     proofTreeOf ( ||- \by a \in C2)
+
 .
 
 (* Adding the equality rules to the type *)
